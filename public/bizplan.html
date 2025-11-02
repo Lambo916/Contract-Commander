@@ -19,36 +19,54 @@
     <link rel="stylesheet" href="style.css">
     
     <style>
-        .bizplan-output {
+        .container { 
+            max-width: 980px; 
+            margin: 32px auto; 
+            padding: 0 16px; 
+        }
+        
+        .grid { 
+            display: grid; 
+            gap: 12px; 
+        }
+        
+        textarea { 
+            min-height: 110px; 
+        }
+        
+        .actions { 
+            display: flex; 
+            gap: 8px; 
+            align-items: center; 
+            flex-wrap: wrap;
+        }
+        
+        .result { 
+            margin-top: 24px; 
+            padding: 16px; 
+            border: 1px solid var(--border-color, #2d2d2d); 
+            border-radius: 8px; 
+            background: var(--panel-bg);
+        }
+        
+        .muted { 
+            opacity: 0.75; 
+            font-size: 0.9rem; 
+        }
+        
+        .titlebar { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            margin-bottom: 16px; 
+        }
+        
+        .plan-output {
             white-space: pre-wrap;
             font-family: 'Open Sans', sans-serif;
             line-height: 1.8;
-            padding: 2rem;
-            background: var(--panel-bg);
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-        }
-        
-        .bizplan-output strong {
-            color: var(--primary-color);
-            display: block;
-            font-size: 1.2rem;
-            margin-top: 1.5rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .loading-spinner {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(0, 0, 0, 0.1);
-            border-radius: 50%;
-            border-top-color: var(--primary-color);
-            animation: spin 1s ease-in-out infinite;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+            max-height: 600px;
+            overflow-y: auto;
         }
         
         .error-alert {
@@ -58,6 +76,21 @@
             border-radius: 8px;
             border: 1px solid #fcc;
             margin-bottom: 1rem;
+        }
+        
+        .btn-secondary {
+            background: var(--secondary-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+        
+        .btn-secondary:hover:not(:disabled) {
+            background: var(--secondary-hover);
+        }
+        
+        .btn-secondary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
         }
     </style>
 </head>
@@ -69,7 +102,7 @@
                     <img src="grantgenie-logo.png" alt="Logo" class="logo" data-testid="img-logo">
                     <div class="title-container">
                         <h1 class="app-title" data-testid="text-app-title">BizPlan Builder</h1>
-                        <p class="app-tagline" data-testid="text-app-tagline">Generate investor-ready business plans with AI</p>
+                        <p class="app-tagline" data-testid="text-app-tagline">Draft investor-ready plans in minutes</p>
                     </div>
                 </div>
                 <div style="display: flex; gap: 1rem; align-items: center;">
@@ -83,71 +116,60 @@
         </header>
 
         <main class="main-content">
-            <div class="input-panel panel" data-testid="panel-input">
-                <div class="panel-header">
-                    <h2 data-testid="text-input-header">Input</h2>
-                </div>
-                <div class="panel-content">
-                    <form id="bizplanForm" data-testid="form-bizplan">
-                        <div class="form-group">
-                            <label for="industry" class="form-label required" data-testid="label-industry">
-                                Industry <span class="required-marker">*</span>
-                            </label>
-                            <input 
-                                type="text" 
-                                id="industry" 
-                                class="form-input"
-                                placeholder="e.g., Real estate investing, SaaS, E-commerce"
-                                required
-                                data-testid="input-industry"
-                            />
-                        </div>
+            <div class="container">
+                <div class="grid">
+                    <label>
+                        Company / Project Name <span style="color: var(--accent-color);">*</span>
+                        <input id="companyName" class="form-input" placeholder="e.g., BrightLeaf Foods" required data-testid="input-company-name" />
+                    </label>
 
-                        <div class="form-group">
-                            <label for="goals" class="form-label required" data-testid="label-goals">
-                                Business Goals <span class="required-marker">*</span>
-                            </label>
-                            <textarea 
-                                id="goals" 
-                                class="form-textarea"
-                                placeholder="e.g., Acquire 3 rental properties in 12 months, achieve $100K ARR, expand to new markets..."
-                                rows="5"
-                                required
-                                data-testid="textarea-goals"
-                            ></textarea>
-                        </div>
+                    <label>
+                        Industry <span style="color: var(--accent-color);">*</span>
+                        <input id="industry" class="form-input" placeholder="e.g., Food & Beverage • CPG" required data-testid="input-industry" />
+                    </label>
 
-                        <div class="form-group">
-                            <label for="tone" class="form-label" data-testid="label-tone">
-                                Tone
-                            </label>
-                            <select 
-                                id="tone" 
-                                class="form-select"
-                                data-testid="select-tone"
-                            >
-                                <option value="professional but motivational">Professional + Motivational</option>
-                                <option value="concise and analytical">Concise + Analytical</option>
-                                <option value="pitch-deck friendly">Pitch-deck Friendly</option>
-                            </select>
-                        </div>
+                    <label>
+                        Target Customer
+                        <textarea id="targetCustomer" class="form-textarea" placeholder="Who specifically are you serving? Segments, ICP, geo, budget." data-testid="textarea-target-customer"></textarea>
+                    </label>
 
-                        <button type="submit" class="btn-primary" id="generateBtn" data-testid="button-generate">
-                            Generate Business Plan
-                        </button>
-                    </form>
-                </div>
-            </div>
+                    <label>
+                        Product / Service
+                        <textarea id="offer" class="form-textarea" placeholder="What do you sell? Core features, differentiation." data-testid="textarea-offer"></textarea>
+                    </label>
 
-            <div class="output-panel panel" data-testid="panel-output">
-                <div class="panel-header">
-                    <h2 data-testid="text-output-header">Business Plan</h2>
-                </div>
-                <div class="panel-content">
-                    <div id="errorContainer"></div>
-                    <div id="output" class="bizplan-output" data-testid="div-output">
-                        Your business plan will appear here after generation...
+                    <label>
+                        Revenue Model
+                        <input id="revenueModel" class="form-input" placeholder="Subscriptions, one-time sales, ads, usage-based, etc." data-testid="input-revenue-model" />
+                    </label>
+
+                    <label>
+                        Current Stage
+                        <input id="stage" class="form-input" placeholder="Idea, MVP, pre-launch, launched, growing, etc." data-testid="input-stage" />
+                    </label>
+
+                    <label>
+                        Top Goals (next 6 months)
+                        <textarea id="goals" class="form-textarea" placeholder="3–5 concrete goals with rough targets" data-testid="textarea-goals"></textarea>
+                    </label>
+
+                    <label>
+                        Tone
+                        <input id="tone" class="form-input" placeholder="professional, persuasive, data-driven, visionary…" data-testid="input-tone" />
+                    </label>
+
+                    <div class="actions">
+                        <button id="generateBtn" class="btn-primary" data-testid="button-generate">Generate Plan</button>
+                        <button id="copyBtn" class="btn-secondary" disabled data-testid="button-copy">Copy Markdown</button>
+                        <button id="downloadBtn" class="btn-secondary" disabled data-testid="button-download">Download .md</button>
+                        <span id="status" class="muted" data-testid="text-status"></span>
                     </div>
+                </div>
+
+                <div id="errorContainer" data-testid="div-error-container"></div>
+
+                <div id="result" class="result" style="display:none;" data-testid="div-result">
+                    <pre id="plan" class="plan-output" data-testid="pre-plan"></pre>
                 </div>
             </div>
         </main>
@@ -172,69 +194,103 @@
             themeIcon.textContent = newTheme === 'dark' ? '🌙' : '☀️';
         });
 
-        // Form submission
-        const form = document.getElementById('bizplanForm');
-        const generateBtn = document.getElementById('generateBtn');
-        const outputDiv = document.getElementById('output');
-        const errorContainer = document.getElementById('errorContainer');
+        // Element references
+        const el = (id) => document.getElementById(id);
+        const status = el('status');
+        const planBox = el('plan');
+        const result = el('result');
+        const errorContainer = el('errorContainer');
 
-        form.addEventListener('submit', async (e) => {
-            e.preventDefault();
-            
-            const industry = document.getElementById('industry').value.trim();
-            const goals = document.getElementById('goals').value.trim();
-            const tone = document.getElementById('tone').value;
+        // Generate business plan
+        async function generate() {
+            const companyName = el('companyName').value.trim();
+            const industry = el('industry').value.trim();
 
-            if (!industry || !goals) {
-                showError('Please fill in all required fields');
+            if (!companyName || !industry) {
+                showError('Company name and industry are required.');
                 return;
             }
 
-            generateBtn.disabled = true;
-            generateBtn.innerHTML = '<span class="loading-spinner"></span> Generating...';
-            outputDiv.textContent = 'Generating your business plan...';
+            status.textContent = 'Generating…';
             errorContainer.innerHTML = '';
+            
+            const payload = {
+                companyName,
+                industry,
+                targetCustomer: el('targetCustomer').value.trim(),
+                offer: el('offer').value.trim(),
+                revenueModel: el('revenueModel').value.trim(),
+                stage: el('stage').value.trim(),
+                goals: el('goals').value.trim(),
+                tone: el('tone').value.trim()
+            };
 
             try {
-                const response = await fetch('/api/generate-plan', {
+                const r = await fetch('/api/generate-plan', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ industry, goals, tone }),
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
                 });
 
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || 'Failed to generate business plan');
+                const data = await r.json();
+                
+                if (!r.ok) {
+                    throw new Error(data.error || 'Failed to generate plan');
                 }
 
-                if (!data.plan || typeof data.plan !== 'string' || data.plan.trim() === '') {
+                if (!data.content || typeof data.content !== 'string' || data.content.trim() === '') {
                     throw new Error('Generated business plan is empty. Please try again.');
                 }
 
-                outputDiv.innerHTML = formatPlan(data.plan);
+                planBox.textContent = data.content;
+                result.style.display = 'block';
+                status.textContent = 'Done.';
+                el('copyBtn').disabled = false;
+                el('downloadBtn').disabled = false;
             } catch (error) {
                 console.error('Error:', error);
-                showError(error.message || 'Failed to generate business plan. Please try again.');
-                outputDiv.textContent = 'Your business plan will appear here after generation...';
-            } finally {
-                generateBtn.disabled = false;
-                generateBtn.textContent = 'Generate Business Plan';
+                showError(error.message || 'Failed to generate plan');
+                status.textContent = '';
             }
-        });
+        }
 
+        // Copy to clipboard
+        function copyMd() {
+            const txt = planBox.textContent || '';
+            navigator.clipboard.writeText(txt).then(() => {
+                status.textContent = 'Copied to clipboard.';
+                setTimeout(() => { status.textContent = ''; }, 2000);
+            }).catch(err => {
+                console.error('Copy failed:', err);
+                status.textContent = 'Copy failed.';
+            });
+        }
+
+        // Download as .md file
+        function downloadMd() {
+            const txt = planBox.textContent || '';
+            const companyName = el('companyName').value.trim() || 'BusinessPlan';
+            const filename = `${companyName.replace(/[^a-zA-Z0-9]/g, '_')}.md`;
+            
+            const file = new Blob([txt], { type: 'text/markdown' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(file);
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(a.href);
+            status.textContent = 'Downloaded.';
+            setTimeout(() => { status.textContent = ''; }, 2000);
+        }
+
+        // Show error message
         function showError(message) {
-            errorContainer.innerHTML = `<div class="error-alert" data-testid="div-error">${message}</div>`;
+            errorContainer.innerHTML = `<div class="error-alert">${message}</div>`;
         }
 
-        function formatPlan(plan) {
-            // Simple markdown-like formatting
-            return plan
-                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-                .replace(/\n/g, '<br>');
-        }
+        // Event listeners
+        el('generateBtn').addEventListener('click', generate);
+        el('copyBtn').addEventListener('click', copyMd);
+        el('downloadBtn').addEventListener('click', downloadMd);
     </script>
 </body>
 </html>
