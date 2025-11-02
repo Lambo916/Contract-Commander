@@ -9,7 +9,7 @@ $("btn-generate").addEventListener("click",async()=>{
     const res=await fetch(FETCH_PATH,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
     if(!res.ok) throw new Error(`HTTP ${res.status}`);
     const data=await res.json();
-    out.textContent=(data.markdown||data.plan||"").trim();
+    out.textContent=(data.markdown||"").trim();
   }catch(e){out.textContent=`Error generating plan: ${e.message}`;}
 });
 $("btn-copy").addEventListener("click",async()=>{const t=out.textContent.trim();if(!t)return;try{await navigator.clipboard.writeText(t);}catch(e){}});
