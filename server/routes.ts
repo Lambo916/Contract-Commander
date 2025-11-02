@@ -7,7 +7,7 @@ import OpenAI from "openai";
 import sanitizeHtml from "sanitize-html";
 import { resolveProfile, type FilingProfile } from "@shared/filing-profiles";
 import { db } from "./db";
-import { complianceReports, insertComplianceReportSchema, type ComplianceReport, usageTracking } from "@shared/schema";
+import { complianceReports, insertComplianceReportSchema, type ComplianceReport, usageTracking, bizPlanRequestSchema } from "@shared/schema";
 import { eq, desc, or, and, sql } from "drizzle-orm";
 import { getUserId, hasAccess, requireAuth } from "./auth";
 
@@ -511,6 +511,91 @@ IMPORTANT:
       // Generic error response
       res.status(500).json({
         error: "An unexpected error occurred. Please try again.",
+      });
+    }
+  });
+
+  // BizPlan Builder - Generate business plan
+  app.post("/api/generate-plan", async (req, res) => {
+    try {
+      // Validate request body
+      const validatedData = bizPlanRequestSchema.parse(req.body);
+      const { industry, goals, tone } = validatedData;
+
+      console.log(`Generating business plan for industry: ${industry}`);
+
+      // Build business plan prompt
+      const prompt = `You are BizPlan Builder — an AI startup strategist that generates complete, investor-ready business plans.
+Create a structured plan for a company in the ${industry} industry with goals of: ${goals}.
+
+Respond in this structured format:
+---
+**EXECUTIVE SUMMARY**
+(Short vision overview)
+
+**MARKET ANALYSIS**
+(Target market, trends, and demand factors)
+
+**STRATEGY & OPERATIONS**
+(Key milestones, team setup, workflows, partnerships)
+
+**MARKETING PLAN**
+(Customer acquisition, channels, brand positioning)
+
+**FINANCIAL OUTLOOK**
+(Revenue streams, startup costs, 12-month forecast assumptions)
+
+**AI INSIGHT**
+(1–2 smart risks/opportunities to consider)
+---
+
+Tone: ${tone}.
+Keep it practical, modern, and inspiring. Use concise sub-bullets where helpful.`;
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o-mini",
+        messages: [{ role: "user", content: prompt }],
+        temperature: 0.8,
+      });
+
+      const plan = completion.choices?.[0]?.message?.content || "";
+      
+      console.log("Business plan generated successfully");
+      
+      res.json({ plan });
+    } catch (error: any) {
+      console.error("Error in /api/generate-plan:", error);
+
+      // Handle validation errors
+      if (error.name === "ZodError") {
+        return res.status(400).json({
+          error: "Invalid request data",
+          details: error.errors,
+        });
+      }
+
+      // Handle specific OpenAI errors
+      if (error.code === "insufficient_quota") {
+        return res.status(503).json({
+          error: "Service temporarily unavailable. Please try again later.",
+        });
+      }
+
+      if (error.status === 429) {
+        return res.status(429).json({
+          error: "Too many requests. Please wait a moment and try again.",
+        });
+      }
+
+      if (error.status === 401) {
+        return res.status(401).json({
+          error: "Authentication failed. Please check API configuration.",
+        });
+      }
+
+      // Generic error response
+      res.status(500).json({
+        error: "Failed to generate business plan.",
       });
     }
   });
