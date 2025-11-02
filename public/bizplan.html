@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BizPlan Builder</title>
+    <meta name="description" content="Generate investor-ready business plans with AI">
+    
+    <link rel="icon" type="image/png" sizes="32x32" href="/grantgenie-favicon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/grantgenie-favicon-16.png">
+    <link rel="icon" type="image/x-icon" href="/grantgenie-favicon.ico">
+    
+    <meta name="theme-color" content="#4DB6E7">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <style>
+        .bizplan-output {
+            white-space: pre-wrap;
+            font-family: 'Open Sans', sans-serif;
+            line-height: 1.8;
+            padding: 2rem;
+            background: var(--panel-bg);
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+        }
+        
+        .bizplan-output strong {
+            color: var(--primary-color);
+            display: block;
+            font-size: 1.2rem;
+            margin-top: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .error-alert {
+            background-color: #fee;
+            color: #c33;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid #fcc;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <header class="app-header">
+            <div class="header-content">
+                <div class="header-left">
+                    <img src="grantgenie-logo.png" alt="Logo" class="logo" data-testid="img-logo">
+                    <div class="title-container">
+                        <h1 class="app-title" data-testid="text-app-title">BizPlan Builder</h1>
+                        <p class="app-tagline" data-testid="text-app-tagline">Generate investor-ready business plans with AI</p>
+                    </div>
+                </div>
+                <div style="display: flex; gap: 1rem; align-items: center;">
+                    <a href="/" style="color: var(--text-color); text-decoration: none; font-weight: 500;">GrantGenie</a>
+                    <button class="theme-toggle" id="themeToggle" data-testid="button-theme-toggle" aria-label="Toggle theme">
+                        <span class="theme-icon" id="themeIcon">☀️</span>
+                        <span>Theme</span>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="input-panel panel" data-testid="panel-input">
+                <div class="panel-header">
+                    <h2 data-testid="text-input-header">Input</h2>
+                </div>
+                <div class="panel-content">
+                    <form id="bizplanForm" data-testid="form-bizplan">
+                        <div class="form-group">
+                            <label for="industry" class="form-label required" data-testid="label-industry">
+                                Industry <span class="required-marker">*</span>
+                            </label>
+                            <input 
+                                type="text" 
+                                id="industry" 
+                                class="form-input"
+                                placeholder="e.g., Real estate investing, SaaS, E-commerce"
+                                required
+                                data-testid="input-industry"
+                            />
+                        </div>
+
+                        <div class="form-group">
+                            <label for="goals" class="form-label required" data-testid="label-goals">
+                                Business Goals <span class="required-marker">*</span>
+                            </label>
+                            <textarea 
+                                id="goals" 
+                                class="form-textarea"
+                                placeholder="e.g., Acquire 3 rental properties in 12 months, achieve $100K ARR, expand to new markets..."
+                                rows="5"
+                                required
+                                data-testid="textarea-goals"
+                            ></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="tone" class="form-label" data-testid="label-tone">
+                                Tone
+                            </label>
+                            <select 
+                                id="tone" 
+                                class="form-select"
+                                data-testid="select-tone"
+                            >
+                                <option value="professional but motivational">Professional + Motivational</option>
+                                <option value="concise and analytical">Concise + Analytical</option>
+                                <option value="pitch-deck friendly">Pitch-deck Friendly</option>
+                            </select>
+                        </div>
+
+                        <button type="submit" class="btn-primary" id="generateBtn" data-testid="button-generate">
+                            Generate Business Plan
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="output-panel panel" data-testid="panel-output">
+                <div class="panel-header">
+                    <h2 data-testid="text-output-header">Business Plan</h2>
+                </div>
+                <div class="panel-content">
+                    <div id="errorContainer"></div>
+                    <div id="output" class="bizplan-output" data-testid="div-output">
+                        Your business plan will appear here after generation...
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Theme toggle functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const themeIcon = document.getElementById('themeIcon');
+        const htmlElement = document.documentElement;
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        themeIcon.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            themeIcon.textContent = newTheme === 'dark' ? '🌙' : '☀️';
+        });
+
+        // Form submission
+        const form = document.getElementById('bizplanForm');
+        const generateBtn = document.getElementById('generateBtn');
+        const outputDiv = document.getElementById('output');
+        const errorContainer = document.getElementById('errorContainer');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const industry = document.getElementById('industry').value.trim();
+            const goals = document.getElementById('goals').value.trim();
+            const tone = document.getElementById('tone').value;
+
+            if (!industry || !goals) {
+                showError('Please fill in all required fields');
+                return;
+            }
+
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<span class="loading-spinner"></span> Generating...';
+            outputDiv.textContent = 'Generating your business plan...';
+            errorContainer.innerHTML = '';
+
+            try {
+                const response = await fetch('/api/generate-plan', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ industry, goals, tone }),
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Failed to generate business plan');
+                }
+
+                outputDiv.innerHTML = formatPlan(data.plan);
+            } catch (error) {
+                console.error('Error:', error);
+                showError(error.message || 'Failed to generate business plan. Please try again.');
+                outputDiv.textContent = 'Your business plan will appear here after generation...';
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.textContent = 'Generate Business Plan';
+            }
+        });
+
+        function showError(message) {
+            errorContainer.innerHTML = `<div class="error-alert" data-testid="div-error">${message}</div>`;
+        }
+
+        function formatPlan(plan) {
+            // Simple markdown-like formatting
+            return plan
+                .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>');
+        }
+    </script>
+</body>
+</html>
