@@ -210,6 +210,10 @@
                     throw new Error(data.error || 'Failed to generate business plan');
                 }
 
+                if (!data.plan || typeof data.plan !== 'string' || data.plan.trim() === '') {
+                    throw new Error('Generated business plan is empty. Please try again.');
+                }
+
                 outputDiv.innerHTML = formatPlan(data.plan);
             } catch (error) {
                 console.error('Error:', error);
