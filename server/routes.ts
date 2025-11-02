@@ -515,54 +515,71 @@ IMPORTANT:
     }
   });
 
-  // BizPlan Builder - Generate business plan
+  // BizPlan Builder - Generate business plan (SDK-free fetch for Vercel portability)
   app.post("/api/generate-plan", async (req, res) => {
     try {
       // Validate request body
       const validatedData = bizPlanRequestSchema.parse(req.body);
-      const { industry, goals, tone } = validatedData;
+      const {
+        companyName,
+        industry,
+        targetCustomer,
+        offer,
+        revenueModel,
+        stage,
+        goals,
+        tone
+      } = validatedData;
 
-      console.log(`Generating business plan for industry: ${industry}`);
+      console.log(`Generating business plan for: ${companyName} - ${industry}`);
 
-      // Build business plan prompt
-      const prompt = `You are BizPlan Builder — an AI startup strategist that generates complete, investor-ready business plans.
-Create a structured plan for a company in the ${industry} industry with goals of: ${goals}.
+      // Build comprehensive business plan prompt
+      const prompt = `
+You are BizPlan Builder. Draft a concise, investor-ready business plan as markdown.
+Company: ${companyName}
+Industry: ${industry}
+Target Customer: ${targetCustomer || 'N/A'}
+Offer (product/service): ${offer || 'N/A'}
+Revenue Model: ${revenueModel || 'N/A'}
+Stage: ${stage || 'N/A'}
+Top Goals (next 6 months): ${goals || 'N/A'}
+Tone: ${tone || 'professional'}
 
-Respond in this structured format:
----
-**EXECUTIVE SUMMARY**
-(Short vision overview)
+Include sections: Executive Summary, Problem, Solution, Market, Business Model, Go-to-Market, Operations, Team (placeholder), Financial Outline (assumptions + 12-mo milestones), Risks & Mitigations, Next Steps.
+Keep it 900–1400 words, crisp, and skimmable with headings and bullet points.
+      `.trim();
 
-**MARKET ANALYSIS**
-(Target market, trends, and demand factors)
-
-**STRATEGY & OPERATIONS**
-(Key milestones, team setup, workflows, partnerships)
-
-**MARKETING PLAN**
-(Customer acquisition, channels, brand positioning)
-
-**FINANCIAL OUTLOOK**
-(Revenue streams, startup costs, 12-month forecast assumptions)
-
-**AI INSIGHT**
-(1–2 smart risks/opportunities to consider)
----
-
-Tone: ${tone}.
-Keep it practical, modern, and inspiring. Use concise sub-bullets where helpful.`;
-
-      const completion = await openai.chat.completions.create({
-        model: "gpt-4o-mini",
-        messages: [{ role: "user", content: prompt }],
-        temperature: 0.8,
+      // SDK-free fetch to OpenAI API (Vercel compatible)
+      const apiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o-mini',
+          messages: [
+            { role: 'system', content: 'You generate clear, actionable business plans.' },
+            { role: 'user', content: prompt }
+          ],
+          temperature: 0.6
+        })
       });
 
-      const plan = completion.choices?.[0]?.message?.content || "";
+      const data = await apiResponse.json();
+      
+      if (!apiResponse.ok) {
+        console.error("OpenAI API error:", data);
+        return res.status(apiResponse.status).json({
+          error: data.error?.message || 'OpenAI API error'
+        });
+      }
+
+      const content = data.choices?.[0]?.message?.content || "";
       
       console.log("Business plan generated successfully");
       
-      res.json({ plan });
+      res.json({ content });
     } catch (error: any) {
       console.error("Error in /api/generate-plan:", error);
 
@@ -571,25 +588,6 @@ Keep it practical, modern, and inspiring. Use concise sub-bullets where helpful.
         return res.status(400).json({
           error: "Invalid request data",
           details: error.errors,
-        });
-      }
-
-      // Handle specific OpenAI errors
-      if (error.code === "insufficient_quota") {
-        return res.status(503).json({
-          error: "Service temporarily unavailable. Please try again later.",
-        });
-      }
-
-      if (error.status === 429) {
-        return res.status(429).json({
-          error: "Too many requests. Please wait a moment and try again.",
-        });
-      }
-
-      if (error.status === 401) {
-        return res.status(401).json({
-          error: "Authentication failed. Please check API configuration.",
         });
       }
 

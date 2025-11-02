@@ -62,9 +62,14 @@ export type UsageTracking = typeof usageTracking.$inferSelect;
 
 // BizPlan Builder schemas
 export const bizPlanRequestSchema = z.object({
+  companyName: z.string().min(1, "Company name is required"),
   industry: z.string().min(1, "Industry is required"),
-  goals: z.string().min(1, "Goals are required"),
-  tone: z.string().optional().default("professional but motivational"),
+  targetCustomer: z.string().optional(),
+  offer: z.string().optional(),
+  revenueModel: z.string().optional(),
+  stage: z.string().optional(),
+  goals: z.string().optional(),
+  tone: z.string().optional().default("professional"),
 });
 
 export type BizPlanRequest = z.infer<typeof bizPlanRequestSchema>;
