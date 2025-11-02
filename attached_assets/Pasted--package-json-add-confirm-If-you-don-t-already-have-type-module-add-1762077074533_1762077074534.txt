@@ -1,0 +1,166 @@
+# ---------- package.json (add/confirm) ----------
+# If you don't already have "type": "module", add it so OpenAI SDK imports work.
+# Also be sure openai, express, and cors are installed.
+{
+  "type": "module",
+  "dependencies": {
+    "express": "^4.19.2",
+    "cors": "^2.8.5",
+    "openai": "^4.59.0"
+  }
+}
+
+# ---------- .env (create/update) ----------
+# DO NOT commit this file
+OPENAI_API_KEY=sk-...your_key...
+BIZPLAN_MODEL=gpt-4o-mini
+
+# ================================================
+# =========== server/routes/plan.route.mjs ========
+# (Create this new file)
+# ================================================
+import { Router } from "express";
+import OpenAI from "openai";
+
+const router = Router();
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+// POST /api/plan
+router.post("/", async (req, res) => {
+  try {
+    const { industry, goals, tone } = req.body || {};
+
+    if (!industry || !goals) {
+      return res.status(400).json({ error: "Missing required fields: industry, goals" });
+    }
+
+    const prompt = `
+You are BizPlan Builder — an AI startup strategist that generates complete, investor-ready business plans.
+Create a structured plan for a company in the ${industry} industry with goals of: ${goals}.
+
+Respond in this structured format:
+---
+**EXECUTIVE SUMMARY**
+(Short vision overview)
+
+**MARKET ANALYSIS**
+(Target market, trends, and demand factors)
+
+**STRATEGY & OPERATIONS**
+(Key milestones, team setup, workflows, partnerships)
+
+**MARKETING PLAN**
+(Customer acquisition, channels, brand positioning)
+
+**FINANCIAL OUTLOOK**
+(Revenue streams, startup costs, 12-month forecast assumptions)
+
+**AI INSIGHT**
+(1–2 smart risks/opportunities to consider)
+---
+
+Tone: ${tone || "professional but motivational"}.
+Keep it practical, modern, and inspiring. Use concise sub-bullets where helpful.
+    `;
+
+    const completion = await openai.chat.completions.create({
+      model: process.env.BIZPLAN_MODEL || "gpt-4o-mini",
+      messages: [{ role: "user", content: prompt }],
+      temperature: 0.8,
+    });
+
+    const plan = completion.choices?.[0]?.message?.content || "";
+    return res.json({ plan });
+  } catch (err) {
+    console.error("BizPlan error:", err);
+    return res.status(500).json({ error: "Failed to generate business plan." });
+  }
+});
+
+export default router;
+
+# ================================================
+# ================ server/index.mjs ===============
+# (Modify your existing Express entry to mount the route)
+# ================================================
+import express from "express";
+import cors from "cors";
+import planRoute from "./routes/plan.route.mjs";
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+// Mount BizPlan API
+app.use("/api/plan", planRoute);
+
+// (keep your existing static/Vite dev/prod handlers here)
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on :${PORT}`));
+
+# ================================================
+# ======== public/js/bizplan-client.js ===========
+# (Create new front-end client helper; import it in your HTML)
+# ================================================
+export async function generatePlan({ industry, goals, tone }) {
+  const resp = await fetch("/api/plan", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ industry, goals, tone })
+  });
+  if (!resp.ok) {
+    const e = await resp.json().catch(() => ({}));
+    throw new Error(e.error || "Request failed");
+  }
+  const data = await resp.json();
+  return data.plan || "";
+}
+
+# ================================================
+# ============== index.html snippet ==============
+# (Drop into your main page where you want the tool UI)
+# ================================================
+<!-- BizPlan Builder UI (minimal) -->
+<section id="bizplan-builder" class="card">
+  <h2>BizPlan Builder</h2>
+  <label>Industry</label>
+  <input id="bp-industry" placeholder="e.g., Real estate investing" />
+
+  <label class="mt-2">Goals</label>
+  <textarea id="bp-goals" rows="3" placeholder="e.g., Acquire 3 rental properties in 12 months..."></textarea>
+
+  <label class="mt-2">Tone</label>
+  <select id="bp-tone">
+    <option value="professional but motivational">Professional + Motivational</option>
+    <option value="concise and analytical">Concise + Analytical</option>
+    <option value="pitch-deck friendly">Pitch-deck Friendly</option>
+  </select>
+
+  <button id="bp-generate" class="btn mt-3">Generate Plan</button>
+  <pre id="bp-output" class="mt-3 ai-output"></pre>
+</section>
+
+<script type="module">
+  import { generatePlan } from "/js/bizplan-client.js";
+
+  const $ = (id) => document.getElementById(id);
+  const btn = $("bp-generate");
+  const out = $("bp-output");
+
+  btn.addEventListener("click", async () => {
+    btn.disabled = true;
+    out.textContent = "Generating plan…";
+    try {
+      const plan = await generatePlan({
+        industry: $("bp-industry").value.trim(),
+        goals: $("bp-goals").value.trim(),
+        tone: $("bp-tone").value
+      });
+      out.textContent = plan || "No content returned.";
+    } catch (e) {
+      out.textContent = `Error: ${e.message}`;
+    } finally {
+      btn.disabled = false;
+    }
+  });
+</script>
