@@ -59,3 +59,12 @@ export const insertUsageTrackingSchema = createInsertSchema(usageTracking).omit(
 
 export type InsertUsageTracking = z.infer<typeof insertUsageTrackingSchema>;
 export type UsageTracking = typeof usageTracking.$inferSelect;
+
+// BizPlan Builder schemas
+export const bizPlanRequestSchema = z.object({
+  industry: z.string().min(1, "Industry is required"),
+  goals: z.string().min(1, "Goals are required"),
+  tone: z.string().optional().default("professional but motivational"),
+});
+
+export type BizPlanRequest = z.infer<typeof bizPlanRequestSchema>;
