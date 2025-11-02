@@ -1,296 +1,44 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BizPlan Builder</title>
-    <meta name="description" content="Generate investor-ready business plans with AI">
-    
-    <link rel="icon" type="image/png" sizes="32x32" href="/grantgenie-favicon-32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/grantgenie-favicon-16.png">
-    <link rel="icon" type="image/x-icon" href="/grantgenie-favicon.ico">
-    
-    <meta name="theme-color" content="#4DB6E7">
-    
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-    
-    <link rel="stylesheet" href="style.css">
-    
-    <style>
-        .container { 
-            max-width: 980px; 
-            margin: 32px auto; 
-            padding: 0 16px; 
-        }
-        
-        .grid { 
-            display: grid; 
-            gap: 12px; 
-        }
-        
-        textarea { 
-            min-height: 110px; 
-        }
-        
-        .actions { 
-            display: flex; 
-            gap: 8px; 
-            align-items: center; 
-            flex-wrap: wrap;
-        }
-        
-        .result { 
-            margin-top: 24px; 
-            padding: 16px; 
-            border: 1px solid var(--border-color, #2d2d2d); 
-            border-radius: 8px; 
-            background: var(--panel-bg);
-        }
-        
-        .muted { 
-            opacity: 0.75; 
-            font-size: 0.9rem; 
-        }
-        
-        .titlebar { 
-            display: flex; 
-            justify-content: space-between; 
-            align-items: center; 
-            margin-bottom: 16px; 
-        }
-        
-        .plan-output {
-            white-space: pre-wrap;
-            font-family: 'Open Sans', sans-serif;
-            line-height: 1.8;
-            max-height: 600px;
-            overflow-y: auto;
-        }
-        
-        .error-alert {
-            background-color: #fee;
-            color: #c33;
-            padding: 1rem;
-            border-radius: 8px;
-            border: 1px solid #fcc;
-            margin-bottom: 1rem;
-        }
-        
-        .btn-secondary {
-            background: var(--secondary-bg);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-        }
-        
-        .btn-secondary:hover:not(:disabled) {
-            background: var(--secondary-hover);
-        }
-        
-        .btn-secondary:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-    </style>
-</head>
-<body>
-    <div class="app-container">
-        <header class="app-header">
-            <div class="header-content">
-                <div class="header-left">
-                    <img src="grantgenie-logo.png" alt="Logo" class="logo" data-testid="img-logo">
-                    <div class="title-container">
-                        <h1 class="app-title" data-testid="text-app-title">BizPlan Builder</h1>
-                        <p class="app-tagline" data-testid="text-app-tagline">Draft investor-ready plans in minutes</p>
-                    </div>
-                </div>
-                <div style="display: flex; gap: 1rem; align-items: center;">
-                    <a href="/" style="color: var(--text-color); text-decoration: none; font-weight: 500;">GrantGenie</a>
-                    <button class="theme-toggle" id="themeToggle" data-testid="button-theme-toggle" aria-label="Toggle theme">
-                        <span class="theme-icon" id="themeIcon">☀️</span>
-                        <span>Theme</span>
-                    </button>
-                </div>
-            </div>
-        </header>
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>BizPlan Builder — YourBizGuru</title>
+<link rel="stylesheet" href="/ybg.css"/>
+</head><body><div class="ybg-wrap">
+  <div class="ybg-hero">
+    <img class="ybg-logo" src="/assets/bizplan-icon.png" alt="BizPlan Builder"/>
+    <div><div class="ybg-title">BizPlan Builder</div>
+      <div class="ybg-sub">Draft investor-ready business plans — powered by YourBizGuru</div></div>
+  </div>
 
-        <main class="main-content">
-            <div class="container">
-                <div class="grid">
-                    <label>
-                        Company / Project Name <span style="color: var(--accent-color);">*</span>
-                        <input id="companyName" class="form-input" placeholder="e.g., BrightLeaf Foods" required data-testid="input-company-name" />
-                    </label>
-
-                    <label>
-                        Industry <span style="color: var(--accent-color);">*</span>
-                        <input id="industry" class="form-input" placeholder="e.g., Food & Beverage • CPG" required data-testid="input-industry" />
-                    </label>
-
-                    <label>
-                        Target Customer
-                        <textarea id="targetCustomer" class="form-textarea" placeholder="Who specifically are you serving? Segments, ICP, geo, budget." data-testid="textarea-target-customer"></textarea>
-                    </label>
-
-                    <label>
-                        Product / Service
-                        <textarea id="offer" class="form-textarea" placeholder="What do you sell? Core features, differentiation." data-testid="textarea-offer"></textarea>
-                    </label>
-
-                    <label>
-                        Revenue Model
-                        <input id="revenueModel" class="form-input" placeholder="Subscriptions, one-time sales, ads, usage-based, etc." data-testid="input-revenue-model" />
-                    </label>
-
-                    <label>
-                        Current Stage
-                        <input id="stage" class="form-input" placeholder="Idea, MVP, pre-launch, launched, growing, etc." data-testid="input-stage" />
-                    </label>
-
-                    <label>
-                        Top Goals (next 6 months)
-                        <textarea id="goals" class="form-textarea" placeholder="3–5 concrete goals with rough targets" data-testid="textarea-goals"></textarea>
-                    </label>
-
-                    <label>
-                        Tone
-                        <input id="tone" class="form-input" placeholder="professional, persuasive, data-driven, visionary…" data-testid="input-tone" />
-                    </label>
-
-                    <div class="actions">
-                        <button id="generateBtn" class="btn-primary" data-testid="button-generate">Generate Plan</button>
-                        <button id="copyBtn" class="btn-secondary" disabled data-testid="button-copy">Copy Markdown</button>
-                        <button id="downloadBtn" class="btn-secondary" disabled data-testid="button-download">Download .md</button>
-                        <span id="status" class="muted" data-testid="text-status"></span>
-                    </div>
-                </div>
-
-                <div id="errorContainer" data-testid="div-error-container"></div>
-
-                <div id="result" class="result" style="display:none;" data-testid="div-result">
-                    <pre id="plan" class="plan-output" data-testid="pre-plan"></pre>
-                </div>
-            </div>
-        </main>
+  <div class="ybg-card">
+    <div class="ybg-section-title">Input</div>
+    <div class="ybg-grid">
+      <div class="full"><label>Company / Project Name *</label><input id="company" placeholder="Your Company or Project"/></div>
+      <div><label>Industry *</label><input id="industry" placeholder="e.g., Food, SaaS, Real Estate"/></div>
+      <div><label>Target Customer</label><input id="target" placeholder="e.g., SMBs, consumers, enterprises"/></div>
+      <div class="full"><label>Product / Service</label><textarea id="product" placeholder="Describe your offering..."></textarea></div>
+      <div><label>Revenue Model</label><input id="revenue" placeholder="e.g., subscription, storefront, marketplace"/></div>
+      <div><label>Current Stage</label><input id="stage" placeholder="idea, MVP, launched, scaling"/></div>
+      <div class="full"><label>Top Goals (next 6–12 months)</label><textarea id="goals" placeholder="Your top 3–5 outcomes..."></textarea></div>
+      <div><label>Tone</label>
+        <select id="tone"><option>Professional</option><option>Investor-ready</option><option>Concise</option><option>Visionary</option></select>
+      </div>
     </div>
 
-    <script>
-        // Theme toggle functionality
-        const themeToggle = document.getElementById('themeToggle');
-        const themeIcon = document.getElementById('themeIcon');
-        const htmlElement = document.documentElement;
+    <div class="ybg-actions">
+      <button class="btn btn-primary" id="btn-generate">Generate Plan</button>
+      <button class="btn btn-ghost" id="btn-copy">Copy Markdown</button>
+      <button class="btn btn-quiet" id="btn-download">Download .md</button>
+      <button class="btn btn-quiet" id="btn-clear">Clear</button>
+    </div>
 
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        htmlElement.setAttribute('data-theme', savedTheme);
-        themeIcon.textContent = savedTheme === 'dark' ? '🌙' : '☀️';
+    <div class="ybg-results">
+      <div class="ybg-section-title">Results</div>
+      <pre id="output" class="ybg-prose"></pre>
+    </div>
+  </div>
 
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = htmlElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            
-            htmlElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            themeIcon.textContent = newTheme === 'dark' ? '🌙' : '☀️';
-        });
-
-        // Element references
-        const el = (id) => document.getElementById(id);
-        const status = el('status');
-        const planBox = el('plan');
-        const result = el('result');
-        const errorContainer = el('errorContainer');
-
-        // Generate business plan
-        async function generate() {
-            const companyName = el('companyName').value.trim();
-            const industry = el('industry').value.trim();
-
-            if (!companyName || !industry) {
-                showError('Company name and industry are required.');
-                return;
-            }
-
-            status.textContent = 'Generating…';
-            errorContainer.innerHTML = '';
-            
-            const payload = {
-                companyName,
-                industry,
-                targetCustomer: el('targetCustomer').value.trim(),
-                offer: el('offer').value.trim(),
-                revenueModel: el('revenueModel').value.trim(),
-                stage: el('stage').value.trim(),
-                goals: el('goals').value.trim(),
-                tone: el('tone').value.trim()
-            };
-
-            try {
-                const r = await fetch('/api/generate-plan', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await r.json();
-                
-                if (!r.ok) {
-                    throw new Error(data.error || 'Failed to generate plan');
-                }
-
-                if (!data.content || typeof data.content !== 'string' || data.content.trim() === '') {
-                    throw new Error('Generated business plan is empty. Please try again.');
-                }
-
-                planBox.textContent = data.content;
-                result.style.display = 'block';
-                status.textContent = 'Done.';
-                el('copyBtn').disabled = false;
-                el('downloadBtn').disabled = false;
-            } catch (error) {
-                console.error('Error:', error);
-                showError(error.message || 'Failed to generate plan');
-                status.textContent = '';
-            }
-        }
-
-        // Copy to clipboard
-        function copyMd() {
-            const txt = planBox.textContent || '';
-            navigator.clipboard.writeText(txt).then(() => {
-                status.textContent = 'Copied to clipboard.';
-                setTimeout(() => { status.textContent = ''; }, 2000);
-            }).catch(err => {
-                console.error('Copy failed:', err);
-                status.textContent = 'Copy failed.';
-            });
-        }
-
-        // Download as .md file
-        function downloadMd() {
-            const txt = planBox.textContent || '';
-            const companyName = el('companyName').value.trim() || 'BusinessPlan';
-            const filename = `${companyName.replace(/[^a-zA-Z0-9]/g, '_')}.md`;
-            
-            const file = new Blob([txt], { type: 'text/markdown' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(file);
-            a.download = filename;
-            a.click();
-            URL.revokeObjectURL(a.href);
-            status.textContent = 'Downloaded.';
-            setTimeout(() => { status.textContent = ''; }, 2000);
-        }
-
-        // Show error message
-        function showError(message) {
-            errorContainer.innerHTML = `<div class="error-alert">${message}</div>`;
-        }
-
-        // Event listeners
-        el('generateBtn').addEventListener('click', generate);
-        el('copyBtn').addEventListener('click', copyMd);
-        el('downloadBtn').addEventListener('click', downloadMd);
-    </script>
-</body>
-</html>
+  <div class="ybg-footer">
+    <span>Powered by <a href="https://yourbizguru.com" target="_blank">YourBizGuru.com</a></span>
+    <span><a href="/privacy.html" target="_blank">Privacy</a> • <a href="/terms.html" target="_blank">Terms</a></span>
+  </div>
+</div><script src="/bizplan.js"></script></body></html>

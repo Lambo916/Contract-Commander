@@ -1,0 +1,115 @@
+Implement the YourBizGuru-branded BizPlan Builder UI and logic. Do all steps below:
+
+1) Create a shared stylesheet at /public/ybg.css with this exact content:
+
+:root{--ybg-blue:#4DB6E7;--ybg-yellow:#FFEB3B;--ybg-bg:#0f141a;--ybg-panel:#121820;--ybg-border:#1e2631;--ybg-muted:#99a3ad;--ybg-text:#e9eef3;--ybg-radius:16px;--ybg-shadow:0 8px 28px rgba(0,0,0,.35)}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:radial-gradient(1200px 800px at 20% -10%,#163049 0%,#0e1b28 35%,var(--ybg-bg) 70%);color:var(--ybg-text)}
+.ybg-wrap{max-width:1080px;margin:0 auto;padding:20px}
+.ybg-hero{display:flex;align-items:center;gap:16px;margin:8px 0 16px}
+.ybg-logo{width:56px;height:56px}
+.ybg-title{font-size:28px;font-weight:800;letter-spacing:.2px}
+.ybg-sub{opacity:.85}
+.ybg-card{background:var(--ybg-panel);border:1px solid var(--ybg-border);border-radius:var(--ybg-radius);box-shadow:var(--ybg-shadow);padding:18px}
+.ybg-section-title{font-size:18px;font-weight:700;margin:6px 0 14px}
+.ybg-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ybg-grid .full{grid-column:1 / -1}
+label{display:block;font-size:13px;font-weight:700;margin:8px 0 6px}
+input,select,textarea{width:100%;background:#0c1219;border:1px solid #223044;color:var(--ybg-text);border-radius:12px;padding:12px 12px;font-size:15px;outline:none}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(77,182,231,.35);border-color:#2b4058}
+textarea{min-height:120px;resize:vertical}
+.ybg-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.btn{border:0;border-radius:12px;padding:12px 16px;font-weight:800;cursor:pointer}
+.btn-primary{background:linear-gradient(90deg,var(--ybg-blue),#7fd0f2);color:#001018}
+.btn-ghost{background:transparent;border:1px solid #274158;color:var(--ybg-text)}
+.btn-quiet{background:#0e1620;border:1px solid #223044;color:var(--ybg-muted)}
+.ybg-results{margin-top:16px}
+.ybg-prose{background:#0b1218;border:1px dashed #254158;border-radius:12px;padding:14px;min-height:180px;color:var(--ybg-text);white-space:pre-wrap;overflow:auto}
+.ybg-footer{display:flex;justify-content:space-between;align-items:center;margin:22px 0 10px;color:var(--ybg-muted);font-size:14px}
+.ybg-footer a{color:var(--ybg-blue);text-decoration:none}
+
+2) Replace /public/bizplan.html with this exact content:
+
+<!doctype html><html lang="en"><head>
+<meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>BizPlan Builder — YourBizGuru</title>
+<link rel="stylesheet" href="/ybg.css"/>
+</head><body><div class="ybg-wrap">
+  <div class="ybg-hero">
+    <img class="ybg-logo" src="/assets/bizplan-icon.png" alt="BizPlan Builder"/>
+    <div><div class="ybg-title">BizPlan Builder</div>
+      <div class="ybg-sub">Draft investor-ready business plans — powered by YourBizGuru</div></div>
+  </div>
+
+  <div class="ybg-card">
+    <div class="ybg-section-title">Input</div>
+    <div class="ybg-grid">
+      <div class="full"><label>Company / Project Name *</label><input id="company" placeholder="Your Company or Project"/></div>
+      <div><label>Industry *</label><input id="industry" placeholder="e.g., Food, SaaS, Real Estate"/></div>
+      <div><label>Target Customer</label><input id="target" placeholder="e.g., SMBs, consumers, enterprises"/></div>
+      <div class="full"><label>Product / Service</label><textarea id="product" placeholder="Describe your offering..."></textarea></div>
+      <div><label>Revenue Model</label><input id="revenue" placeholder="e.g., subscription, storefront, marketplace"/></div>
+      <div><label>Current Stage</label><input id="stage" placeholder="idea, MVP, launched, scaling"/></div>
+      <div class="full"><label>Top Goals (next 6–12 months)</label><textarea id="goals" placeholder="Your top 3–5 outcomes..."></textarea></div>
+      <div><label>Tone</label>
+        <select id="tone"><option>Professional</option><option>Investor-ready</option><option>Concise</option><option>Visionary</option></select>
+      </div>
+    </div>
+
+    <div class="ybg-actions">
+      <button class="btn btn-primary" id="btn-generate">Generate Plan</button>
+      <button class="btn btn-ghost" id="btn-copy">Copy Markdown</button>
+      <button class="btn btn-quiet" id="btn-download">Download .md</button>
+      <button class="btn btn-quiet" id="btn-clear">Clear</button>
+    </div>
+
+    <div class="ybg-results">
+      <div class="ybg-section-title">Results</div>
+      <pre id="output" class="ybg-prose"></pre>
+    </div>
+  </div>
+
+  <div class="ybg-footer">
+    <span>Powered by <a href="https://yourbizguru.com" target="_blank">YourBizGuru.com</a></span>
+    <span><a href="/privacy.html" target="_blank">Privacy</a> • <a href="/terms.html" target="_blank">Terms</a></span>
+  </div>
+</div><script src="/bizplan.js"></script></body></html>
+
+3) Create /public/bizplan.js with this exact content:
+
+const FETCH_PATH="/api/bizplan";
+const $=(id)=>document.getElementById(id);
+const out=$("output");
+$("btn-generate").addEventListener("click",async()=>{
+  const payload={company:$("company").value.trim(),industry:$("industry").value.trim(),target:$("target").value.trim(),product:$("product").value.trim(),revenue:$("revenue").value.trim(),stage:$("stage").value.trim(),goals:$("goals").value.trim(),tone:$("tone").value};
+  if(!payload.company||!payload.industry){out.textContent="Please fill in required fields: Company and Industry.";return;}
+  out.textContent="Generating plan…";
+  try{
+    const res=await fetch(FETCH_PATH,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(payload)});
+    if(!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data=await res.json();
+    out.textContent=(data.markdown||data.plan||"").trim();
+  }catch(e){out.textContent=`Error generating plan: ${e.message}`;}
+});
+$("btn-copy").addEventListener("click",async()=>{const t=out.textContent.trim();if(!t)return;try{await navigator.clipboard.writeText(t);}catch(e){}});
+$("btn-download").addEventListener("click",()=>{const t=out.textContent.trim();if(!t)return;const blob=new Blob([t],{type:"text/markdown"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="bizplan.md";a.click();URL.revokeObjectURL(a.href);});
+$("btn-clear").addEventListener("click",()=>{out.textContent="";});
+
+4) Ensure the backend route exists (TypeScript/JS server). If not present, add an Express handler at /api/bizplan that uses process.env.OPENAI_API_KEY (do NOT enable Replit Managed OpenAI). Create sections: Executive Summary, Market, Business Model, Go-to-Market, Roadmap, Financial Outline, Risks & Mitigations, Next Steps. Return { markdown }.
+
+5) Scrub residual GrantGenie references throughout the repo:
+- Replace “GrantGenie” -> “BizPlan Builder”
+- Replace “/api/grant”, “/api/generate-grant”, etc. -> “/api/bizplan”
+- Update any titles, favicons, OG/Twitter meta, and nav links to point to /bizplan.html.
+
+6) Static asset:
+- Add /public/assets/bizplan-icon.png using the existing toolkit icon sizing (56x56 logical). If a placeholder exists, keep it.
+
+7) Verify:
+- Build & run. Visit /bizplan.html. Generate a sample plan. Confirm Copy and Download buttons work.
+- Do NOT modify App Secrets; rely on existing OPENAI_API_KEY. Dismiss the “Confirm OpenAI Integration” banner.
+
+8) Publish:
+- Use Autoscale Deployment. Provide the public path (include /bizplan.html). Report the URL when done.
+
+End of instructions.
