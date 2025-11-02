@@ -1,0 +1,67 @@
+:root{
+  --ybg-blue:#4DB6E7; /* primary */
+  --ybg-yellow:#FFEB3B; /* accent */
+  --ybg-bg:#0f141a;      /* app background (dark teal/blue ok) */
+  --ybg-panel:#121820;   /* panel card */
+  --ybg-border:#1e2631;
+  --ybg-muted:#99a3ad;
+  --ybg-text:#e9eef3;
+  --ybg-radius:16px;
+  --ybg-shadow:0 8px 28px rgba(0,0,0,.35);
+}
+
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+  background: radial-gradient(1200px 800px at 20% -10%, #163049 0%, #0e1b28 35%, var(--ybg-bg) 70%);
+  color:var(--ybg-text);
+}
+
+.ybg-wrap{max-width:1080px;margin:0 auto;padding:20px}
+.ybg-hero{
+  display:flex;align-items:center;gap:16px;margin:8px 0 16px;
+}
+.ybg-logo{width:56px;height:56px}
+.ybg-title{font-size:28px;font-weight:800;letter-spacing:.2px}
+.ybg-sub{opacity:.85}
+
+.ybg-card{
+  background:var(--ybg-panel);border:1px solid var(--ybg-border);
+  border-radius:var(--ybg-radius);box-shadow:var(--ybg-shadow);padding:18px;
+}
+
+.ybg-section-title{
+  font-size:18px;font-weight:700;margin:6px 0 14px;
+}
+
+.ybg-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.ybg-grid .full{grid-column:1 / -1}
+
+label{display:block;font-size:13px;font-weight:700;margin:8px 0 6px}
+input,select,textarea{
+  width:100%;background:#0c1219;border:1px solid #223044;color:var(--ybg-text);
+  border-radius:12px;padding:12px 12px;font-size:15px;outline:none;
+}
+input:focus,select:focus,textarea:focus{box-shadow:0 0 0 3px rgba(77,182,231,.35);border-color:#2b4058}
+textarea{min-height:120px;resize:vertical}
+
+.ybg-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+.btn{
+  border:0;border-radius:12px;padding:12px 16px;font-weight:800;cursor:pointer;
+}
+.btn-primary{background:linear-gradient(90deg,var(--ybg-blue),#7fd0f2);color:#001018}
+.btn-ghost{background:transparent;border:1px solid #274158;color:var(--ybg-text)}
+.btn-quiet{background:#0e1620;border:1px solid #223044;color:var(--ybg-muted)}
+
+.ybg-results{margin-top:16px}
+.ybg-prose{
+  background:#0b1218;border:1px dashed #254158;border-radius:12px;padding:14px;min-height:180px;
+  color:var(--ybg-text);white-space:pre-wrap;overflow:auto;
+}
+
+.ybg-footer{
+  display:flex;justify-content:space-between;align-items:center;margin:22px 0 10px;
+  color:var(--ybg-muted);font-size:14px;
+}
+.ybg-footer a{color:var(--ybg-blue);text-decoration:none}
