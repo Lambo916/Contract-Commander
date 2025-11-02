@@ -1,0 +1,139 @@
+<!-- public/bizplan.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>BizPlan Builder • YourBizGuru</title>
+  <link rel="stylesheet" href="/styles.css" />
+  <style>
+    .container { max-width: 980px; margin: 32px auto; padding: 0 16px; }
+    .grid { display: grid; gap: 12px; }
+    textarea { min-height: 110px; }
+    .actions { display:flex; gap: 8px; align-items:center; }
+    .result { margin-top: 24px; padding: 16px; border: 1px solid var(--border,#2d2d2d); border-radius: 8px; background: rgba(255,255,255,0.02); }
+    .muted { opacity:.75; font-size:.9rem; }
+    .titlebar { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="titlebar">
+      <h1>BizPlan Builder</h1>
+      <div class="muted">Draft investor-ready plans in minutes</div>
+    </div>
+
+    <div class="grid">
+      <label>
+        Company / Project Name *
+        <input id="companyName" placeholder="e.g., BrightLeaf Foods" required />
+      </label>
+
+      <label>
+        Industry *
+        <input id="industry" placeholder="e.g., Food & Beverage • CPG" required />
+      </label>
+
+      <label>
+        Target Customer
+        <textarea id="targetCustomer" placeholder="Who specifically are you serving? Segments, ICP, geo, budget."></textarea>
+      </label>
+
+      <label>
+        Product / Service
+        <textarea id="offer" placeholder="What do you sell? Core features, differentiation."></textarea>
+      </label>
+
+      <label>
+        Revenue Model
+        <input id="revenueModel" placeholder="Subscriptions, one-time sales, ads, usage-based, etc." />
+      </label>
+
+      <label>
+        Current Stage
+        <input id="stage" placeholder="Idea, MVP, pre-launch, launched, growing, etc." />
+      </label>
+
+      <label>
+        Top Goals (next 6 months)
+        <textarea id="goals" placeholder="3–5 concrete goals with rough targets"></textarea>
+      </label>
+
+      <label>
+        Tone
+        <input id="tone" placeholder="professional, persuasive, data-driven, visionary…" />
+      </label>
+
+      <div class="actions">
+        <button id="generateBtn">Generate Plan</button>
+        <button id="copyBtn" disabled>Copy Markdown</button>
+        <button id="downloadBtn" disabled>Download .md</button>
+        <span id="status" class="muted"></span>
+      </div>
+    </div>
+
+    <div id="result" class="result" style="display:none;">
+      <pre id="plan" style="white-space:pre-wrap;"></pre>
+    </div>
+  </div>
+
+  <script>
+    const el = (id) => document.getElementById(id);
+    const status = el('status');
+    const planBox = el('plan');
+    const result = el('result');
+
+    async function generate() {
+      status.textContent = 'Generating…';
+      const payload = {
+        companyName: el('companyName').value.trim(),
+        industry: el('industry').value.trim(),
+        targetCustomer: el('targetCustomer').value.trim(),
+        offer: el('offer').value.trim(),
+        revenueModel: el('revenueModel').value.trim(),
+        stage: el('stage').value.trim(),
+        goals: el('goals').value.trim(),
+        tone: el('tone').value.trim()
+      };
+
+      const r = await fetch('/api/bizplan', {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await r.json();
+      if (!r.ok) {
+        status.textContent = data.error || 'Error';
+        return;
+      }
+      planBox.textContent = data.content || '';
+      result.style.display = 'block';
+      status.textContent = 'Done.';
+      el('copyBtn').disabled = !data.content;
+      el('downloadBtn').disabled = !data.content;
+    }
+
+    function copyMd() {
+      const txt = planBox.textContent || '';
+      navigator.clipboard.writeText(txt);
+      status.textContent = 'Copied to clipboard.';
+    }
+
+    function downloadMd() {
+      const txt = planBox.textContent || '';
+      const file = new Blob([txt], { type: 'text/markdown' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(file);
+      a.download = 'BusinessPlan.md';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      status.textContent = 'Downloaded.';
+    }
+
+    el('generateBtn').addEventListener('click', generate);
+    el('copyBtn').addEventListener('click', copyMd);
+    el('downloadBtn').addEventListener('click', downloadMd);
+  </script>
+</body>
+</html>
