@@ -516,36 +516,36 @@ IMPORTANT:
   });
 
   // BizPlan Builder - Generate business plan (SDK-free fetch for Vercel portability)
-  app.post("/api/generate-plan", async (req, res) => {
+  app.post("/api/bizplan", async (req, res) => {
     try {
       // Validate request body
       const validatedData = bizPlanRequestSchema.parse(req.body);
       const {
-        companyName,
+        company,
         industry,
-        targetCustomer,
-        offer,
-        revenueModel,
+        target,
+        product,
+        revenue,
         stage,
         goals,
         tone
       } = validatedData;
 
-      console.log(`Generating business plan for: ${companyName} - ${industry}`);
+      console.log(`Generating business plan for: ${company} - ${industry}`);
 
       // Build comprehensive business plan prompt
       const prompt = `
 You are BizPlan Builder. Draft a concise, investor-ready business plan as markdown.
-Company: ${companyName}
+Company: ${company}
 Industry: ${industry}
-Target Customer: ${targetCustomer || 'N/A'}
-Offer (product/service): ${offer || 'N/A'}
-Revenue Model: ${revenueModel || 'N/A'}
+Target Customer: ${target || 'N/A'}
+Product/Service: ${product || 'N/A'}
+Revenue Model: ${revenue || 'N/A'}
 Stage: ${stage || 'N/A'}
-Top Goals (next 6 months): ${goals || 'N/A'}
-Tone: ${tone || 'professional'}
+Top Goals (next 6-12 months): ${goals || 'N/A'}
+Tone: ${tone || 'Professional'}
 
-Include sections: Executive Summary, Problem, Solution, Market, Business Model, Go-to-Market, Operations, Team (placeholder), Financial Outline (assumptions + 12-mo milestones), Risks & Mitigations, Next Steps.
+Include sections: Executive Summary, Market, Business Model, Go-to-Market, Roadmap, Financial Outline, Risks & Mitigations, Next Steps.
 Keep it 900–1400 words, crisp, and skimmable with headings and bullet points.
       `.trim();
 
@@ -575,13 +575,13 @@ Keep it 900–1400 words, crisp, and skimmable with headings and bullet points.
         });
       }
 
-      const content = data.choices?.[0]?.message?.content || "";
+      const markdown = data.choices?.[0]?.message?.content || "";
       
       console.log("Business plan generated successfully");
       
-      res.json({ content });
+      res.json({ markdown });
     } catch (error: any) {
-      console.error("Error in /api/generate-plan:", error);
+      console.error("Error in /api/bizplan:", error);
 
       // Handle validation errors
       if (error.name === "ZodError") {
