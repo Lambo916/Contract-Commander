@@ -20,6 +20,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 const allowedOrigins = isProduction 
   ? [
       'https://grant.yourbizguru.com',
+      'https://bizplan.yourbizguru.com',
       /\.vercel\.app$/, // Allow Vercel preview deployments
     ]
   : [
