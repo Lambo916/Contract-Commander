@@ -1,61 +1,182 @@
-<!doctype html><html lang="en"><head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1"/>
-<title>BizPlan Builder — YourBizGuru</title>
-<meta name="description" content="Draft investor-ready business plans with AI-powered assistance from YourBizGuru">
-
-<!-- Favicon and Icons -->
-<link rel="icon" type="image/png" sizes="32x32" href="/assets/bizplan-icon.png">
-<link rel="icon" type="image/png" sizes="16x16" href="/assets/bizplan-icon.png">
-<link rel="apple-touch-icon" href="/assets/bizplan-icon.png">
-
-<!-- Theme Color -->
-<meta name="theme-color" content="#4DB6E7">
-
-<!-- Open Graph for social media -->
-<meta property="og:title" content="BizPlan Builder — YourBizGuru">
-<meta property="og:description" content="Draft investor-ready business plans with AI-powered assistance">
-<meta property="og:type" content="website">
-
-<!-- Styles -->
-<link rel="stylesheet" href="/ybg.css"/>
-</head><body><div class="ybg-wrap">
-  <div class="ybg-hero">
-    <img class="ybg-logo" src="/assets/bizplan-icon.png" alt="BizPlan Builder"/>
-    <div><div class="ybg-title">BizPlan Builder</div>
-      <div class="ybg-sub">Draft investor-ready business plans — powered by YourBizGuru</div></div>
-  </div>
-
-  <div class="ybg-card">
-    <div class="ybg-section-title">Input</div>
-    <div class="ybg-grid">
-      <div class="full"><label>Company / Project Name *</label><input id="company" placeholder="Your Company or Project"/></div>
-      <div><label>Industry *</label><input id="industry" placeholder="e.g., Food, SaaS, Real Estate"/></div>
-      <div><label>Target Customer</label><input id="target" placeholder="e.g., SMBs, consumers, enterprises"/></div>
-      <div class="full"><label>Product / Service</label><textarea id="product" placeholder="Describe your offering..."></textarea></div>
-      <div><label>Revenue Model</label><input id="revenue" placeholder="e.g., subscription, storefront, marketplace"/></div>
-      <div><label>Current Stage</label><input id="stage" placeholder="idea, MVP, launched, scaling"/></div>
-      <div class="full"><label>Top Goals (next 6–12 months)</label><textarea id="goals" placeholder="Your top 3–5 outcomes..."></textarea></div>
-      <div><label>Tone</label>
-        <select id="tone"><option>Professional</option><option>Investor-ready</option><option>Concise</option><option>Visionary</option></select>
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BizPlan Builder — YourBizGuru</title>
+  <meta name="description" content="Draft investor-ready business plans with AI-powered assistance from YourBizGuru">
+  
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/bizplan-icon.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/bizplan-icon.png">
+  <link rel="apple-touch-icon" href="/assets/bizplan-icon.png">
+  <meta name="theme-color" content="#4DB6E7">
+  
+  <meta property="og:title" content="BizPlan Builder — YourBizGuru">
+  <meta property="og:description" content="Draft investor-ready business plans with AI-powered assistance">
+  <meta property="og:type" content="website">
+  
+  <link rel="stylesheet" href="/ybg.css">
+  <link rel="stylesheet" href="/bizplan-styles.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <div class="ybg-wrap">
+    <div class="ybg-hero">
+      <img class="ybg-logo" src="/assets/bizplan-icon.png" alt="BizPlan Builder"/>
+      <div>
+        <div class="ybg-title">BizPlan Builder</div>
+        <div class="ybg-sub">Draft investor-ready business plans — powered by YourBizGuru</div>
       </div>
     </div>
 
-    <div class="ybg-actions">
-      <button class="btn btn-primary" id="btn-generate">Generate Plan</button>
-      <button class="btn btn-ghost" id="btn-copy">Copy Markdown</button>
-      <button class="btn btn-quiet" id="btn-download">Download .md</button>
-      <button class="btn btn-quiet" id="btn-clear">Clear</button>
+    <div class="ybg-card">
+      <div class="ybg-section-title">Input</div>
+      <div class="ybg-grid">
+        <div class="full">
+          <label>Company / Project Name *</label>
+          <input id="company" placeholder="Your Company or Project" data-testid="input-company"/>
+        </div>
+        <div>
+          <label>Industry *</label>
+          <input id="industry" placeholder="e.g., Food, SaaS, Real Estate" data-testid="input-industry"/>
+        </div>
+        <div>
+          <label>Target Customer</label>
+          <input id="target" placeholder="e.g., SMBs, consumers, enterprises" data-testid="input-target"/>
+        </div>
+        <div class="full">
+          <label>Product / Service</label>
+          <textarea id="product" placeholder="Describe your offering..." data-testid="input-product"></textarea>
+        </div>
+        <div>
+          <label>Revenue Model</label>
+          <input id="revenue" placeholder="e.g., subscription, storefront, marketplace" data-testid="input-revenue"/>
+        </div>
+        <div>
+          <label>Current Stage</label>
+          <input id="stage" placeholder="idea, MVP, launched, scaling" data-testid="input-stage"/>
+        </div>
+        <div class="full">
+          <label>Top Goals (next 6–12 months)</label>
+          <textarea id="goals" placeholder="Your top 3–5 outcomes..." data-testid="input-goals"></textarea>
+        </div>
+        <div>
+          <label>Tone</label>
+          <select id="tone" data-testid="select-tone">
+            <option>Professional</option>
+            <option>Investor-ready</option>
+            <option>Concise</option>
+            <option>Visionary</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="ybg-actions">
+        <button class="btn btn-primary" id="btn-generate" data-testid="button-generate" title="Generate business plan">Generate Plan</button>
+      </div>
+
+      <!-- Toolbar (hidden until report is generated) -->
+      <div id="toolbar" class="toolbar" style="display:none;">
+        <div class="toolbar-group">
+          <div class="dropdown">
+            <button class="btn btn-toolbar" id="btn-file" data-testid="button-file" title="Save or load your reports">
+              File ▾
+            </button>
+            <div class="dropdown-menu" id="file-menu">
+              <button class="dropdown-item" id="btn-save" data-testid="button-save" title="Save this report to your account">Save Report</button>
+              <button class="dropdown-item" id="btn-load" data-testid="button-load" title="Open a saved report">Load Report</button>
+            </div>
+          </div>
+
+          <div class="dropdown">
+            <button class="btn btn-toolbar" id="btn-export" data-testid="button-export" title="Copy or download your report">
+              Export ▾
+            </button>
+            <div class="dropdown-menu" id="export-menu">
+              <button class="dropdown-item" id="btn-copy" data-testid="button-copy" title="Copy the full report to clipboard">Copy All</button>
+              <button class="dropdown-item" id="btn-pdf" data-testid="button-pdf" title="Download a PDF of this report">Export PDF</button>
+            </div>
+          </div>
+
+          <button class="btn btn-toolbar" id="btn-clear" data-testid="button-clear" title="Remove the current report from the page">Clear</button>
+        </div>
+      </div>
+
+      <!-- Report Metadata Bar (hidden until report is generated) -->
+      <div id="report-meta" class="report-meta" style="display:none;">
+        <div class="meta-item"><strong>Company:</strong> <span id="meta-company">—</span></div>
+        <div class="meta-item"><strong>Industry:</strong> <span id="meta-industry">—</span></div>
+        <div class="meta-item"><strong>Stage:</strong> <span id="meta-stage">—</span></div>
+        <div class="meta-item"><strong>Generated:</strong> <span id="meta-timestamp">—</span></div>
+      </div>
+
+      <!-- Report View Container -->
+      <div class="ybg-results">
+        <div class="ybg-section-title">Results</div>
+        <div id="report-view" class="report-view"></div>
+      </div>
     </div>
 
-    <div class="ybg-results">
-      <div class="ybg-section-title">Results</div>
-      <pre id="output" class="ybg-prose"></pre>
+    <div class="ybg-footer">
+      <span>Powered by <a href="https://yourbizguru.com" target="_blank">YourBizGuru.com</a></span>
+      <span><a href="/privacy.html" target="_blank">Privacy</a> • <a href="/terms.html" target="_blank">Terms</a></span>
     </div>
   </div>
 
-  <div class="ybg-footer">
-    <span>Powered by <a href="https://yourbizguru.com" target="_blank">YourBizGuru.com</a></span>
-    <span><a href="/privacy.html" target="_blank">Privacy</a> • <a href="/terms.html" target="_blank">Terms</a></span>
+  <!-- Save Report Modal -->
+  <div id="save-modal" class="modal" role="dialog" aria-labelledby="save-modal-title" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="save-modal-title">Save Report</h2>
+        <button class="modal-close" data-testid="button-close-save-modal" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <label for="save-title">Report Title</label>
+        <input type="text" id="save-title" class="modal-input" placeholder="Report title" data-testid="input-save-title"/>
+        <p class="modal-hint">You can save up to 30 reports.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="save-cancel" data-testid="button-save-cancel">Cancel</button>
+        <button class="btn btn-primary" id="save-confirm" data-testid="button-save-confirm">Save</button>
+      </div>
+    </div>
   </div>
-</div><script src="/script.js"></script></body></html>
+
+  <!-- Load Report Modal -->
+  <div id="load-modal" class="modal" role="dialog" aria-labelledby="load-modal-title" aria-hidden="true">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2 id="load-modal-title">Load Report</h2>
+        <button class="modal-close" data-testid="button-close-load-modal" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <input type="text" id="load-search" class="modal-input" placeholder="Search reports..." data-testid="input-load-search"/>
+        <div id="load-list" class="report-list" data-testid="list-reports"></div>
+        <div id="load-pagination" class="pagination"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="load-cancel" data-testid="button-load-cancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Clear Confirmation Modal -->
+  <div id="clear-modal" class="modal" role="dialog" aria-labelledby="clear-modal-title" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="clear-modal-title">Clear Report?</h2>
+        <button class="modal-close" data-testid="button-close-clear-modal" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p>Clear the current report? This does not delete any saved copies.</p>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="clear-cancel" data-testid="button-clear-cancel">Cancel</button>
+        <button class="btn btn-primary" id="clear-confirm" data-testid="button-clear-confirm">Clear</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/bizplan-app.js"></script>
+</body>
+</html>
