@@ -134,6 +134,7 @@
         <label for="save-title">Report Title</label>
         <input type="text" id="save-title" class="modal-input" placeholder="Report title" data-testid="input-save-title"/>
         <p class="modal-hint">You can save up to 30 reports.</p>
+        <div id="save-status" class="modal-status"></div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-ghost" id="save-cancel" data-testid="button-save-cancel">Cancel</button>
@@ -151,7 +152,7 @@
       </div>
       <div class="modal-body">
         <input type="text" id="load-search" class="modal-input" placeholder="Search reports..." data-testid="input-load-search"/>
-        <div id="load-list" class="report-list" data-testid="list-reports"></div>
+        <div id="reports-list" class="report-list" data-testid="list-reports"></div>
         <div id="load-pagination" class="pagination"></div>
       </div>
       <div class="modal-footer">
