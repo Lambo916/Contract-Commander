@@ -73,3 +73,25 @@ export const bizPlanRequestSchema = z.object({
 });
 
 export type BizPlanRequest = z.infer<typeof bizPlanRequestSchema>;
+
+// BizPlan Reports table
+export const bizplanReports = pgTable("bizplan_reports", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").notNull().default(''),
+  title: text("title").notNull(),
+  company: text("company"),
+  industry: text("industry"),
+  contentHtml: text("content_html").notNull(),
+  approxCharCount: integer("approx_char_count").notNull().default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertBizplanReportSchema = createInsertSchema(bizplanReports).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertBizplanReport = z.infer<typeof insertBizplanReportSchema>;
+export type BizplanReport = typeof bizplanReports.$inferSelect;

@@ -7,7 +7,7 @@ import OpenAI from "openai";
 import sanitizeHtml from "sanitize-html";
 import { resolveProfile, type FilingProfile } from "@shared/filing-profiles";
 import { db } from "./db";
-import { complianceReports, insertComplianceReportSchema, type ComplianceReport, usageTracking, bizPlanRequestSchema } from "@shared/schema";
+import { complianceReports, insertComplianceReportSchema, type ComplianceReport, usageTracking, bizPlanRequestSchema, bizplanReports, insertBizplanReportSchema, type BizplanReport } from "@shared/schema";
 import { eq, desc, or, and, sql } from "drizzle-orm";
 import { getUserId, hasAccess, requireAuth } from "./auth";
 
@@ -20,13 +20,35 @@ function getAnonymousUserId(req: Request): string {
   return `anon_${clientId}`;
 }
 
-// Sanitize HTML content to prevent XSS
+// Sanitize HTML content to prevent XSS (for CompliPilot reports)
 function sanitizeHtmlContent(html: string): string {
   return sanitizeHtml(html, {
     allowedTags: sanitizeHtml.defaults.allowedTags.concat(['h1', 'h2', 'h3', 'h4', 'h5', 'h6']),
     allowedAttributes: {
       ...sanitizeHtml.defaults.allowedAttributes,
       '*': ['style', 'class'],
+    },
+  });
+}
+
+// Sanitize HTML content for BizPlan reports (stricter rules)
+function sanitizeBizPlanHtml(html: string): string {
+  return sanitizeHtml(html, {
+    allowedTags: ['p', 'h1', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'strong', 'em', 'a', 'hr', 'div', 'span', 'small', 'br'],
+    allowedAttributes: {
+      'a': ['href', 'target', 'rel'],
+    },
+    transformTags: {
+      'a': (tagName, attribs) => {
+        return {
+          tagName: 'a',
+          attribs: {
+            ...attribs,
+            rel: 'noopener nofollow',
+            target: attribs.target || '_blank',
+          },
+        };
+      },
     },
   });
 }
@@ -595,6 +617,279 @@ Keep it 900–1400 words, crisp, and skimmable with headings and bullet points.
       res.status(500).json({
         error: "Failed to generate business plan.",
       });
+    }
+  });
+
+  // BizPlan Builder - Save report with 30-report limit and HTML sanitization
+  app.post("/api/bizplan/reports/save", async (req, res) => {
+    try {
+      // Get anonymous user ID from browser client ID
+      let userId;
+      try {
+        userId = getAnonymousUserId(req);
+      } catch (error: any) {
+        if (error.message === 'X-Client-Id header is required') {
+          return res.status(400).json({ error: 'X-Client-Id header is required' });
+        }
+        throw error;
+      }
+
+      const { contentHtml, company, industry } = req.body;
+
+      // Validate required fields
+      if (!contentHtml || typeof contentHtml !== 'string') {
+        return res.status(400).json({ error: 'contentHtml is required and must be a string' });
+      }
+
+      // Size validation: hard reject if > 3MB
+      const sizeInBytes = Buffer.byteLength(contentHtml, 'utf8');
+      const sizeInMB = sizeInBytes / (1024 * 1024);
+      
+      if (sizeInMB > 3) {
+        return res.status(413).json({
+          error: 'Report content exceeds 3MB limit',
+          sizeMB: sizeInMB.toFixed(2),
+          limit: 3
+        });
+      }
+
+      // Check 30-report limit for this userId
+      const reportCount = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(bizplanReports)
+        .where(eq(bizplanReports.userId, userId));
+
+      const currentCount = reportCount[0]?.count || 0;
+
+      if (currentCount >= 30) {
+        console.log(`[BizPlan] User ${userId} has reached 30-report limit: ${currentCount}/30`);
+        return res.status(400).json({
+          error: 'You have reached the 30-report limit. Please delete old reports to save new ones.',
+          count: currentCount,
+          limit: 30
+        });
+      }
+
+      // Auto-generate title: "${company || "Untitled"} — YYYY-MM-DD_HH-mm"
+      const now = new Date();
+      const year = now.getFullYear();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const title = `${company || 'Untitled'} — ${year}-${month}-${day}_${hours}-${minutes}`;
+
+      // Sanitize HTML content
+      const sanitizedHtml = sanitizeBizPlanHtml(contentHtml);
+
+      // Calculate character count
+      const approxCharCount = sanitizedHtml.length;
+
+      // Size warning (soft): warn if > 1MB
+      let sizeWarning = undefined;
+      if (sizeInMB > 1) {
+        sizeWarning = `Report size is ${sizeInMB.toFixed(2)}MB. Consider reducing content for better performance.`;
+      }
+
+      // Save to database
+      const [savedReport] = await db
+        .insert(bizplanReports)
+        .values({
+          userId,
+          title,
+          company: company || null,
+          industry: industry || null,
+          contentHtml: sanitizedHtml,
+          approxCharCount,
+        })
+        .returning();
+
+      console.log(`[BizPlan] Report saved for user ${userId}: ${title} (${currentCount + 1}/30)`);
+
+      res.json({
+        ...savedReport,
+        sizeWarning,
+        count: currentCount + 1,
+        limit: 30
+      });
+    } catch (error: any) {
+      console.error("Error saving BizPlan report:", error);
+
+      if (process.env.NODE_ENV === 'production') {
+        res.status(500).json({
+          error: "Failed to save report. Please try again.",
+        });
+      } else {
+        res.status(500).json({
+          error: "Failed to save report.",
+          details: error.message,
+        });
+      }
+    }
+  });
+
+  // BizPlan Builder - List all reports for userId with pagination
+  app.get("/api/bizplan/reports", async (req, res) => {
+    try {
+      // Get anonymous user ID from browser client ID
+      let userId;
+      try {
+        userId = getAnonymousUserId(req);
+      } catch (error: any) {
+        if (error.message === 'X-Client-Id header is required') {
+          return res.status(400).json({ error: 'X-Client-Id header is required' });
+        }
+        throw error;
+      }
+
+      // Parse pagination parameters
+      const offset = parseInt(req.query.offset as string) || 0;
+      const limit = Math.min(parseInt(req.query.limit as string) || 50, 50); // Max 50
+
+      // Fetch reports with pagination
+      const reports = await db
+        .select({
+          id: bizplanReports.id,
+          title: bizplanReports.title,
+          company: bizplanReports.company,
+          industry: bizplanReports.industry,
+          createdAt: bizplanReports.createdAt,
+          approxCharCount: bizplanReports.approxCharCount,
+        })
+        .from(bizplanReports)
+        .where(eq(bizplanReports.userId, userId))
+        .orderBy(desc(bizplanReports.createdAt))
+        .offset(offset)
+        .limit(limit);
+
+      // Get total count for pagination metadata
+      const totalCountResult = await db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(bizplanReports)
+        .where(eq(bizplanReports.userId, userId));
+
+      const totalCount = totalCountResult[0]?.count || 0;
+
+      res.json({
+        reports,
+        pagination: {
+          offset,
+          limit,
+          total: totalCount,
+          hasMore: offset + limit < totalCount
+        }
+      });
+    } catch (error: any) {
+      console.error("Error listing BizPlan reports:", error);
+
+      if (process.env.NODE_ENV === 'production') {
+        res.status(500).json({
+          error: "Failed to retrieve reports. Please try again.",
+        });
+      } else {
+        res.status(500).json({
+          error: "Failed to retrieve reports.",
+          details: error.message,
+        });
+      }
+    }
+  });
+
+  // BizPlan Builder - Get single report by ID
+  app.get("/api/bizplan/reports/:id", async (req, res) => {
+    try {
+      // Get anonymous user ID from browser client ID
+      let userId;
+      try {
+        userId = getAnonymousUserId(req);
+      } catch (error: any) {
+        if (error.message === 'X-Client-Id header is required') {
+          return res.status(400).json({ error: 'X-Client-Id header is required' });
+        }
+        throw error;
+      }
+
+      const { id } = req.params;
+
+      // Fetch report with ownership validation
+      const [report] = await db
+        .select()
+        .from(bizplanReports)
+        .where(and(
+          eq(bizplanReports.id, id),
+          eq(bizplanReports.userId, userId)
+        ));
+
+      if (!report) {
+        return res.status(404).json({
+          error: "Report not found or access denied.",
+        });
+      }
+
+      res.json(report);
+    } catch (error: any) {
+      console.error("Error retrieving BizPlan report:", error);
+
+      if (process.env.NODE_ENV === 'production') {
+        res.status(500).json({
+          error: "Failed to retrieve report. Please try again.",
+        });
+      } else {
+        res.status(500).json({
+          error: "Failed to retrieve report.",
+          details: error.message,
+        });
+      }
+    }
+  });
+
+  // BizPlan Builder - Delete report by ID
+  app.delete("/api/bizplan/reports/:id", async (req, res) => {
+    try {
+      // Get anonymous user ID from browser client ID
+      let userId;
+      try {
+        userId = getAnonymousUserId(req);
+      } catch (error: any) {
+        if (error.message === 'X-Client-Id header is required') {
+          return res.status(400).json({ error: 'X-Client-Id header is required' });
+        }
+        throw error;
+      }
+
+      const { id } = req.params;
+
+      // Delete report with ownership validation
+      const result = await db
+        .delete(bizplanReports)
+        .where(and(
+          eq(bizplanReports.id, id),
+          eq(bizplanReports.userId, userId)
+        ))
+        .returning();
+
+      if (result.length === 0) {
+        return res.status(404).json({
+          error: "Report not found or access denied.",
+        });
+      }
+
+      console.log(`[BizPlan] Report deleted: ${id} (user: ${userId})`);
+
+      res.json({ success: true, deletedId: result[0].id });
+    } catch (error: any) {
+      console.error("Error deleting BizPlan report:", error);
+
+      if (process.env.NODE_ENV === 'production') {
+        res.status(500).json({
+          error: "Failed to delete report. Please try again.",
+        });
+      } else {
+        res.status(500).json({
+          error: "Failed to delete report.",
+          details: error.message,
+        });
+      }
     }
   });
 
