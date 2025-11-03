@@ -1,0 +1,117 @@
+TITLE: BizPlan Builder — Toolbar + Output Polish (Three-Button UX, Non-Markdown Render, DB Save/Load, PDF/Copy Export)
+
+OBJECTIVE
+Replace the current “Markdown-style” result with a professionally formatted HTML view. Replace existing buttons with exactly THREE top-level buttons:
+1) File  2) Export  3) Clear
+— File: Save Report, Load Report (persist to existing DB, 30-report cap per user)
+— Export: Copy All, Export PDF
+— Clear: Clears the current report (with confirm)
+
+SCOPE
+A) Rendering
+B) Toolbar + Menus
+C) Save/Load (DB)
+D) Export (Copy, PDF)
+E) Limits/Validation
+F) Styling
+G) QA checklist
+
+A) RENDERING (NO MARKDOWN IN VIEW)
+- Do NOT render the generated plan as Markdown in the UI.
+- Keep the generator logic, but convert the structured sections into CLEAN HTML before display.
+- Use a single scrollable `<div id="report-view">` that contains semantic HTML:
+  - Top: Report Title (H1), Subhead (H2/H3), Meta line (Company/Industry/Date/Version).
+  - Sections use H2/H3, standard paragraphs, UL/OL where appropriate.
+  - Preserve bold/italics where meaningful; no code blocks.
+- Include a compact metadata header bar above the report: Company, Industry, Target Customer, Stage, Generated Timestamp.
+- No “Copy Markdown” button anywhere in the UI. No Markdown formatting shown to the user.
+
+B) TOOLBAR + MENUS (THREE BUTTONS ONLY)
+Top-right toolbar (desktop & mobile responsive):
+1) **File** (menu)
+   - Save Report
+   - Load Report
+2) **Export** (menu)
+   - Copy All
+   - Export PDF
+3) **Clear** (single action)
+
+Tooltips:
+- File: “Save or load your reports”
+- Save Report: “Save this report to your account”
+- Load Report: “Open a saved report”
+- Export: “Copy or download your report”
+- Copy All: “Copy the full report to clipboard”
+- Export PDF: “Download a PDF of this report”
+- Clear: “Remove the current report from the page”
+
+States/guards:
+- Disable Export and Clear when no report is present.
+- Disable Save when no report is present.
+- Menus are accessible (keyboard + screen reader), and mobile-friendly.
+
+C) SAVE / LOAD (DATABASE; LIMIT 30)
+- Use the existing DB connection. Create/confirm a `reports` collection/table with fields (suggested):
+  - id (uuid), userId, title, createdAt, updatedAt, contentHtml (TEXT), approxCharCount (INT), company, industry, notes (optional)
+- **Save Report** behavior:
+  - Default title = `${CompanyName || "Untitled"} — ${YYYY-MM-DD_HH-mm}`
+  - Persist `contentHtml` (the exact HTML currently inside #report-view), plus metadata.
+  - If user already has 30 saved reports, block the save with a toast: “You’ve reached the 30-report limit. Delete an older report to save a new one.”
+- **Load Report** behavior:
+  - Modal with a searchable, paginated list (title, createdAt, approx length).
+  - Selecting an item replaces #report-view with the saved `contentHtml`.
+  - After load, enable Export and Clear.
+- Add a soft size guard: warn but allow save if `contentHtml` > 1 MB; hard cap at 3 MB with an error toast.
+
+D) EXPORT
+- **Copy All**:
+  - Copies the plain text AND the HTML to clipboard; prefer HTML clipboard if available.
+  - Toast: “Report copied.”
+- **Export PDF**:
+  - Generate a print-ready PDF of `#report-view`.
+  - Page size: US Letter; 0.5" margins; include headers and section titles.
+  - Automatic page breaks before H2 when needed.
+  - File name: `${CompanyName || "BizPlan"}_${YYYY-MM-DD}.pdf`
+  - Use the existing PDF approach (e.g., jsPDF + html) or a print-to-PDF route; do NOT include dark UI chrome—export only the report body.
+
+E) LIMITS / VALIDATION / SAFETY
+- Enforce 30-report-per-user limit gracefully.
+- Sanitize HTML before saving/loading (prevent script injection). Allowed tags: p, h1–h4, ul, ol, li, strong, em, a (rel="noopener nofollow", target="_blank"), hr, table (optional), small, div, span with limited class set.
+- When clearing, show confirm: “Clear the current report? This does not delete any saved copies. — [Cancel] [Clear]”
+
+F) STYLING (PROFESSIONAL THEME)
+- Keep app dark shell if desired, but the **report** uses a clean, print-friendly light theme on white background regardless of shell theme:
+  - Body font: system UI stack; headings slightly heavier; 1.5 line-height.
+  - Max width 840px; centered; 24px vertical rhythm between sections.
+  - H1 26–30px; H2 20–22px; H3 16–18px.
+  - Bullets indented consistently; no oversized bullets.
+  - A subtle card shadow around the report container; internal margins 24px desktop / 16px mobile.
+  - On mobile, ensure paddings don’t collapse; long words wrap.
+- Include a small footer line at the very bottom of the report body: “Generated with BizPlan Builder — YourBizGuru.com” (non-clickable in UI, clickable link in PDF).
+
+G) QA / ACCEPTANCE CHECKLIST
+1) Generate a sample plan → result shows as styled HTML (no Markdown artifacts, no code blocks).
+2) Toolbar shows only 3 buttons (File, Export, Clear). Menus open and are accessible.
+3) Save Report works; title auto-fills; entry appears in Load modal; loading restores identical HTML.
+4) Saving a 31st report triggers limit toast and blocks save.
+5) Copy All places formatted content onto clipboard; pasting into Google Docs/Word preserves headings/bullets.
+6) Export PDF downloads a clean, paginated PDF with correct filename, margins, and no dark chrome.
+7) Clear asks for confirm and empties the view; Export/Save disabled afterward.
+8) All actions work on mobile Safari (iOS) and desktop Chrome/Edge.
+9) No console errors; sanitize prevents script tags from being persisted or executed.
+10) Performance: rendering and PDF export complete smoothly for a 10–12 page report.
+
+DELIVERABLES
+- Updated UI with three-button toolbar + menus.
+- HTML renderer that replaces Markdown view.
+- DB-backed Save/Load with 30-report cap.
+- Copy All and Export PDF working.
+- Basic sanitization & accessibility.
+- Short README note (what changed, where to tweak titles/theme, how to adjust the 30-report cap).
+
+NOTES
+- Do not remove existing generation logic; only change the rendering pipeline and UI.
+- Keep previous “Download .md” path OUT of the UI (we don’t want to expose Markdown).
+- If a Markdown string is what the model currently returns, convert to HTML server-side or client-side before display, then continue with the new HTML flow.
+
+Please implement and push behind a single feature flag `BIZPLAN_POLISH_V1`, default ON.
