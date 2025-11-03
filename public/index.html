@@ -83,8 +83,8 @@
               File ▾
             </button>
             <div class="dropdown-menu" id="file-menu">
-              <button class="dropdown-item" id="btn-save" data-testid="button-save" title="Save this report to your account">Save Report</button>
-              <button class="dropdown-item" id="btn-load" data-testid="button-load" title="Open a saved report">Load Report</button>
+              <button class="dropdown-item" id="btn-save" data-action="save" data-testid="button-save" title="Save this report to your account">Save Report</button>
+              <button class="dropdown-item" id="btn-load" data-action="load" data-testid="button-load" title="Open a saved report">Load Report</button>
             </div>
           </div>
 
@@ -93,8 +93,8 @@
               Export ▾
             </button>
             <div class="dropdown-menu" id="export-menu">
-              <button class="dropdown-item" id="btn-copy" data-testid="button-copy" title="Copy the full report to clipboard">Copy All</button>
-              <button class="dropdown-item" id="btn-pdf" data-testid="button-pdf" title="Download a PDF of this report">Export PDF</button>
+              <button class="dropdown-item" id="btn-copy" data-action="copy" data-testid="button-copy" title="Copy the full report to clipboard">Copy All</button>
+              <button class="dropdown-item" id="btn-pdf" data-action="pdf" data-testid="button-pdf" title="Download a PDF of this report">Export PDF</button>
             </div>
           </div>
 
@@ -103,7 +103,7 @@
       </div>
 
       <!-- Report Metadata Bar (hidden until report is generated) -->
-      <div id="report-meta" class="report-meta" style="display:none;">
+      <div id="report-metadata" class="report-meta" style="display:none;">
         <div class="meta-item"><strong>Company:</strong> <span id="meta-company">—</span></div>
         <div class="meta-item"><strong>Industry:</strong> <span id="meta-industry">—</span></div>
         <div class="meta-item"><strong>Stage:</strong> <span id="meta-stage">—</span></div>
