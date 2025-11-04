@@ -80,9 +80,15 @@ function updateButtonStates(hasReport) {
   const exportBtn = $('btn-export');
   const clearBtn = $('btn-clear');
   
-  fileBtn.disabled = !hasReport;
-  exportBtn.disabled = !hasReport;
-  clearBtn.disabled = !hasReport;
+  if (hasReport) {
+    fileBtn.classList.remove('inactive');
+    exportBtn.classList.remove('inactive');
+    clearBtn.classList.remove('inactive');
+  } else {
+    fileBtn.classList.add('inactive');
+    exportBtn.classList.add('inactive');
+    clearBtn.classList.add('inactive');
+  }
 }
 
 function showMetadata(company, industry, stage) {

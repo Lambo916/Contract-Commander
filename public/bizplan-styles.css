@@ -37,6 +37,12 @@
   cursor: not-allowed;
 }
 
+.btn-toolbar.inactive {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 .btn-toolbar.btn-danger {
   color: #ff6b6b;
 }
