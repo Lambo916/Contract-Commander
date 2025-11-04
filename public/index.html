@@ -18,6 +18,11 @@
   <link rel="stylesheet" href="/ybg.css">
   <link rel="stylesheet" href="/bizplan-styles.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="/pdf-export.js"></script>
+  <script>
+    window.currentToolkitName = "BizPlan Builder";
+    window.currentToolkitLogo = "/assets/bizplan-icon.png";
+  </script>
 </head>
 <body>
   <div class="ybg-wrap">
@@ -75,11 +80,10 @@
         <button class="btn btn-primary" id="btn-generate" data-testid="button-generate" title="Generate business plan">Generate Plan</button>
       </div>
 
-      <!-- Toolbar (hidden until report is generated) -->
-      <div id="toolbar" class="toolbar" style="display:none;">
+      <div id="toolbar" class="toolbar">
         <div class="toolbar-group">
           <div class="dropdown">
-            <button class="btn btn-toolbar" id="btn-file" data-testid="button-file" title="Save or load your reports">
+            <button class="btn btn-toolbar" id="btn-file" data-testid="button-file" title="Save or load your reports" disabled>
               File ▾
             </button>
             <div class="dropdown-menu" id="file-menu">
@@ -89,7 +93,7 @@
           </div>
 
           <div class="dropdown">
-            <button class="btn btn-toolbar" id="btn-export" data-testid="button-export" title="Copy or download your report">
+            <button class="btn btn-toolbar" id="btn-export" data-testid="button-export" title="Copy or download your report" disabled>
               Export ▾
             </button>
             <div class="dropdown-menu" id="export-menu">
@@ -98,7 +102,7 @@
             </div>
           </div>
 
-          <button class="btn btn-toolbar" id="btn-clear" data-testid="button-clear" title="Remove the current report from the page">Clear</button>
+          <button class="btn btn-toolbar" id="btn-clear" data-testid="button-clear" title="Remove the current report from the page" disabled>Clear</button>
         </div>
       </div>
 

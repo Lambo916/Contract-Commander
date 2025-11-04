@@ -76,19 +76,13 @@ function markdownToHtml(markdown) {
 }
 
 function updateButtonStates(hasReport) {
-  const toolbar = $('toolbar');
   const fileBtn = $('btn-file');
   const exportBtn = $('btn-export');
   const clearBtn = $('btn-clear');
   
-  if (hasReport) {
-    toolbar.style.display = 'block';
-    fileBtn.disabled = false;
-    exportBtn.disabled = false;
-    clearBtn.disabled = false;
-  } else {
-    toolbar.style.display = 'none';
-  }
+  fileBtn.disabled = !hasReport;
+  exportBtn.disabled = !hasReport;
+  clearBtn.disabled = !hasReport;
 }
 
 function showMetadata(company, industry, stage) {
@@ -340,13 +334,13 @@ function renderPagination(pagination) {
 window.handlePrevPage = function() {
   if (currentOffset > 0) {
     currentOffset = Math.max(0, currentOffset - REPORTS_LIMIT);
-    fetchReportsList($('search-reports').value);
+    fetchReportsList($('load-search').value);
   }
 };
 
 window.handleNextPage = function() {
   currentOffset += REPORTS_LIMIT;
-  fetchReportsList($('search-reports').value);
+  fetchReportsList($('load-search').value);
 };
 
 window.loadReportById = async function(id) {
@@ -393,14 +387,14 @@ window.deleteReportById = async function(id) {
     
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     
-    await fetchReportsList($('search-reports').value);
+    await fetchReportsList($('load-search').value);
     
   } catch (e) {
     alert(`Error deleting report: ${e.message}`);
   }
 };
 
-$('search-reports').addEventListener('input', (e) => {
+$('load-search').addEventListener('input', (e) => {
   currentOffset = 0;
   fetchReportsList(e.target.value);
 });
@@ -428,31 +422,21 @@ async function handleExportPDF() {
   }
   
   try {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    
     const company = currentReportData?.company || 'Report';
     const now = new Date();
     const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    const filename = `${company}_${dateStr}.pdf`;
+    const filename = `BizPlan_${company}_${dateStr}.pdf`;
     
-    const text = reportView.innerText;
-    const lines = doc.splitTextToSize(text, 180);
+    const htmlContent = reportView.innerHTML;
     
-    let y = 20;
-    const lineHeight = 7;
-    const pageHeight = doc.internal.pageSize.height;
-    
-    lines.forEach(line => {
-      if (y + lineHeight > pageHeight - 20) {
-        doc.addPage();
-        y = 20;
-      }
-      doc.text(line, 15, y);
-      y += lineHeight;
-    });
-    
-    doc.save(filename);
+    if (window.exportAllResultsToPDF) {
+      window.exportAllResultsToPDF([{
+        html: htmlContent,
+        fileName: filename
+      }]);
+    } else {
+      throw new Error('PDF export module not loaded');
+    }
     
   } catch (e) {
     alert(`Error exporting PDF: ${e.message}`);
