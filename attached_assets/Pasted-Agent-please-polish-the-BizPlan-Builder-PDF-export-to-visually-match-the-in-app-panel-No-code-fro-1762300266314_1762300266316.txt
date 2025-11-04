@@ -1,0 +1,58 @@
+Agent — please polish the BizPlan Builder PDF export to visually match the in-app panel. No code from me; you handle all styling and structure.
+
+GOALS:
+1. Make the PDF export reflect the same premium YBG interface design.
+2. Ensure consistency between the panel and exported PDF — typography, colors, spacing, dividers, and tables.
+3. Maintain clean investor-ready formatting with a plush, professional tone.
+
+DETAILS:
+
+🟦 EXECUTIVE SNAPSHOT
+- Apply light gradient background (white → subtle light-blue hue).
+- Use bold uppercase labels (COMPANY, STAGE, INDUSTRY, TARGET MARKET).
+- Keep consistent spacing and clean separators between each data row.
+- Title: “Executive Snapshot” with the same blue accent bar as in-app.
+
+📊 KPI TABLE
+- Recreate table formatting to mirror the in-app version.
+- Use blue table header with white text for “Objective | KPI | Target | Timeframe”.
+- Add alternating row shading (very light gray).
+- Include a faint gold underline below the table title “Key Performance Indicators (KPIs)”.
+- Retain editable logic for future use but render static cleanly in PDF (no buttons).
+
+💡 AI INSIGHTS BOX
+- Apply light yellow shaded box with a faint gold left border (mimic in-app card).
+- Add a small lightbulb icon at the top-left corner (same as UI).
+- Title: “AI Insights” in bold, dark-gray text.
+- Maintain list bullets with clean spacing.
+- Add a short footer line under this section: “Generated insights provided by YourBizGuru AI.”
+
+🧩 LAYOUT + TYPOGRAPHY
+- Use the same typography hierarchy from the UI:
+  - Section headers: bold, slightly larger font
+  - Body: clean, modern sans-serif (same as Elev8 Analyzer)
+- Add consistent 20–25px padding per section.
+- Ensure proper line spacing (1.4x–1.6x) and spacing before headers.
+
+🪶 FOOTER + HEADER
+- Keep current BizPlan Builder logo header with thin gold divider.
+- Add footer: “Powered by YourBizGuru • Generated {timestamp} • For informational use only.”
+- Page numbering format: “Page X of Y” aligned right.
+
+🎨 COLOR + BRAND UNIFORMITY
+- Primary colors: #4DB6E7 (light blue), #FFEB3B (accent gold), #212121 (dark gray text).
+- Keep YBG branding cohesive with GrantGenie and Elev8 Analyzer.
+- Apply soft shadows for main content blocks for depth.
+
+📄 OUTPUT CHECK
+- Preview and confirm:
+  - KPI table alignment remains consistent across pages.
+  - AI Insights box retains its background color in exported PDF.
+  - No sections bleed to next page awkwardly.
+  - All fonts embedded for rendering consistency.
+- Ensure final output looks crisp, professional, and consistent with the live interface.
+
+Once implemented:
+✅ Confirm visual parity between the app panel and the PDF.
+✅ Verify all headers, boxes, and sections retain proper spacing and styling.
+✅ Ensure export maintains brand professionalism across devices and PDF readers.
