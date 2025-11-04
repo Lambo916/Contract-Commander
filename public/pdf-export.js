@@ -1108,7 +1108,7 @@ window.YBG_PDF = window.YBG_PDF || {};
     const mm = String(date.getMonth() + 1).padStart(2, '0');
     const dd = String(date.getDate()).padStart(2, '0');
     const safeName = getToolkitName().replace(/[^a-zA-Z0-9]/g, '');
-    const filename = `GrantGenie_${yyyy}-${mm}-${dd}_Report.pdf`;
+    const filename = `${safeName}_${yyyy}-${mm}-${dd}_Report.pdf`;
     
     doc.save(filename);
   }
@@ -1223,7 +1223,7 @@ window.YBG_PDF = window.YBG_PDF || {};
     const safeName = getToolkitName().replace(/[^a-zA-Z0-9]/g, '');
     
     const suffix = mode === 'latest' ? 'Latest_Result' : 'All_Results';
-    const filename = `GrantGenie_${yyyy}-${mm}-${dd}_${suffix}.pdf`;
+    const filename = `${safeName}_${yyyy}-${mm}-${dd}_${suffix}.pdf`;
     
     doc.save(filename);
   }
@@ -1373,8 +1373,9 @@ window.YBG_PDF = window.YBG_PDF || {};
       // Convert HTML to markdown-like text for PDF rendering (preserves structure)
       const markdownContent = htmlToMarkdown(htmlContent);
       
-      // Use provided fileName or generate default
-      const customFilename = item.fileName || `GrantGenie_${Date.now()}.pdf`;
+      // Use provided fileName or generate default with toolkit name
+      const safeName = getToolkitName().replace(/[^a-zA-Z0-9]/g, '');
+      const customFilename = item.fileName || `${safeName}_${Date.now()}.pdf`;
       
       // Export with custom filename handling
       return exportSingleResultWithFilename(markdownContent, customFilename);
