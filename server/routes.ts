@@ -31,12 +31,25 @@ function sanitizeHtmlContent(html: string): string {
   });
 }
 
-// Sanitize HTML content for BizPlan reports (stricter rules)
+// Sanitize HTML content for BizPlan reports (allow premium component classes, XSS-safe)
 function sanitizeBizPlanHtml(html: string): string {
   return sanitizeHtml(html, {
-    allowedTags: ['p', 'h1', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'strong', 'em', 'a', 'hr', 'div', 'span', 'small', 'br'],
+    allowedTags: ['p', 'h1', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'strong', 'em', 'a', 'hr', 'div', 'span', 'small', 'br', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'button'],
     allowedAttributes: {
       'a': ['href', 'target', 'rel'],
+      'div': ['class', 'data-testid', 'id'],
+      'span': ['class'],
+      'table': ['class'],
+      'thead': ['class'],
+      'tbody': ['class', 'id'],
+      'tr': ['class', 'data-kpi-index'],
+      'th': ['class', 'width'],
+      'td': ['class', 'contenteditable', 'data-field'],
+      'button': ['class', 'id', 'data-testid', 'title'], // No onclick - use event delegation instead
+      'ul': ['class'],
+      'li': ['class'],
+      'h3': ['class'],
+      'p': ['class'],
     },
     transformTags: {
       'a': (tagName, attribs) => {
@@ -555,9 +568,11 @@ IMPORTANT:
 
       console.log(`Generating business plan for: ${company} - ${industry}`);
 
-      // Build comprehensive business plan prompt
+      // Build comprehensive business plan prompt with premium structured output
       const prompt = `
-You are BizPlan Builder. Draft a concise, investor-ready business plan as markdown.
+You are BizPlan Builder, an elite business planning assistant. Generate a premium, investor-ready business plan with enhanced structure.
+
+COMPANY INFORMATION:
 Company: ${company}
 Industry: ${industry}
 Target Customer: ${target || 'N/A'}
@@ -567,8 +582,39 @@ Stage: ${stage || 'N/A'}
 Top Goals (next 6-12 months): ${goals || 'N/A'}
 Tone: ${tone || 'Professional'}
 
-Include sections: Executive Summary, Market, Business Model, Go-to-Market, Roadmap, Financial Outline, Risks & Mitigations, Next Steps.
-Keep it 900–1400 words, crisp, and skimmable with headings and bullet points.
+Generate a JSON object with this exact structure:
+
+{
+  "executiveSnapshot": {
+    "company": "${company}",
+    "stage": "${stage || 'Startup'}",
+    "industry": "${industry}",
+    "targetMarket": "${target || 'To be defined'}",
+    "top3Goals": ["Extract and format the top 3 goals from: ${goals || 'Growth, Revenue, Market Entry'}"]
+  },
+  
+  "mainPlan": "Full business plan as markdown (900-1400 words). Include these sections with ## headings: Executive Summary, Market Analysis, Business Model, Go-to-Market Strategy, Product Roadmap, Financial Outlook, Risk Mitigation, Next Steps. Use ${tone} tone. Make it crisp, skimmable, investor-ready.",
+  
+  "kpiTable": [
+    {
+      "objective": "Smart objective derived from goals (e.g., 'Achieve Product-Market Fit')",
+      "kpi": "Specific measurable KPI (e.g., 'Monthly Active Users')",
+      "target": "Numeric target (e.g., '10,000 users')",
+      "timeframe": "Timeline (e.g., 'Q2 2025')"
+    }
+  ],
+  
+  "aiInsights": [
+    "Generate 3-5 practical, actionable insights based on the business plan. Focus on: immediate priorities, risks to watch, opportunities to capitalize on. Keep each insight concise (1-2 sentences). Examples: 'Focus next 90 days on revenue traction and brand visibility.', 'Consider partnering with established players in ${industry} to accelerate market entry.'"
+  ]
+}
+
+INSTRUCTIONS:
+- executiveSnapshot: Auto-populate from inputs, keep factual
+- mainPlan: Write comprehensive markdown business plan, professional ${tone} tone
+- kpiTable: Intelligently suggest 4-6 KPIs based on goals and stage (e.g., "sales" → Revenue Growth %; "users" → User Acquisition Rate)
+- aiInsights: Generate strategic recommendations tied to plan content, forward-looking and actionable
+- Return ONLY valid JSON, no explanations
       `.trim();
 
       // SDK-free fetch to OpenAI API (Vercel compatible)
@@ -579,12 +625,14 @@ Keep it 900–1400 words, crisp, and skimmable with headings and bullet points.
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: 'gpt-4o-mini',
+          model: 'gpt-4o',
           messages: [
-            { role: 'system', content: 'You generate clear, actionable business plans.' },
+            { role: 'system', content: 'You are an expert business planning consultant generating premium, investor-ready business plans with structured insights.' },
             { role: 'user', content: prompt }
           ],
-          temperature: 0.6
+          response_format: { type: 'json_object' },
+          temperature: 0.7,
+          max_tokens: 3500
         })
       });
 
@@ -597,11 +645,36 @@ Keep it 900–1400 words, crisp, and skimmable with headings and bullet points.
         });
       }
 
-      const markdown = data.choices?.[0]?.message?.content || "";
+      const content = data.choices?.[0]?.message?.content || "{}";
+      let parsedResponse;
       
-      console.log("Business plan generated successfully");
+      try {
+        parsedResponse = JSON.parse(content);
+        console.log("Business plan generated successfully with premium structure");
+      } catch (parseError) {
+        console.error("Failed to parse OpenAI JSON response:", parseError);
+        console.error("Raw content:", content.substring(0, 500));
+        return res.status(500).json({
+          error: "Failed to generate structured business plan. Please try again.",
+          details: "AI response was not in expected format"
+        });
+      }
       
-      res.json({ markdown });
+      // Return structured response with all sections and fallbacks
+      res.json({
+        executiveSnapshot: parsedResponse.executiveSnapshot || {
+          company,
+          stage: stage || 'Startup',
+          industry,
+          targetMarket: target || 'To be defined',
+          top3Goals: (goals || '').split(/[,\n]/).filter(Boolean).slice(0, 3).map(g => g.trim())
+        },
+        mainPlan: parsedResponse.mainPlan || "Business plan content not available",
+        kpiTable: parsedResponse.kpiTable || [],
+        aiInsights: parsedResponse.aiInsights || [],
+        // Legacy support - also return as markdown for compatibility
+        markdown: parsedResponse.mainPlan || ""
+      });
     } catch (error: any) {
       console.error("Error in /api/bizplan:", error);
 

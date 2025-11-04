@@ -107,6 +107,201 @@ function hideMetadata() {
   $('report-metadata').style.display = 'none';
 }
 
+// ==== PREMIUM REPORT RENDERING FUNCTIONS ====
+
+function renderExecutiveSnapshot(snapshot) {
+  if (!snapshot) return '';
+  
+  const goals = Array.isArray(snapshot.top3Goals) ? snapshot.top3Goals : [];
+  const goalsHtml = goals.map(goal => `<li>${goal}</li>`).join('');
+  
+  return `
+    <div class="executive-snapshot" data-testid="executive-snapshot">
+      <h3 class="snapshot-title">Executive Snapshot</h3>
+      <div class="snapshot-grid">
+        <div class="snapshot-item">
+          <div class="snapshot-label">Company</div>
+          <div class="snapshot-value">${snapshot.company || 'N/A'}</div>
+        </div>
+        <div class="snapshot-item">
+          <div class="snapshot-label">Stage</div>
+          <div class="snapshot-value">${snapshot.stage || 'N/A'}</div>
+        </div>
+        <div class="snapshot-item">
+          <div class="snapshot-label">Industry</div>
+          <div class="snapshot-value">${snapshot.industry || 'N/A'}</div>
+        </div>
+        <div class="snapshot-item">
+          <div class="snapshot-label">Target Market</div>
+          <div class="snapshot-value">${snapshot.targetMarket || 'N/A'}</div>
+        </div>
+      </div>
+      ${goals.length > 0 ? `
+        <div class="snapshot-goals">
+          <div class="snapshot-label">Top 3 Goals</div>
+          <ul>${goalsHtml}</ul>
+        </div>
+      ` : ''}
+    </div>
+  `;
+}
+
+function renderKpiTable(kpiTable) {
+  if (!kpiTable || kpiTable.length === 0) {
+    kpiTable = [
+      { objective: 'Revenue Growth', kpi: 'Monthly Recurring Revenue', target: '$50,000', timeframe: 'Q2 2025' }
+    ];
+  }
+  
+  const rows = kpiTable.map((kpi, index) => `
+    <tr data-kpi-index="${index}">
+      <td contenteditable="true" class="kpi-editable" data-field="objective">${kpi.objective || ''}</td>
+      <td contenteditable="true" class="kpi-editable" data-field="kpi">${kpi.kpi || ''}</td>
+      <td contenteditable="true" class="kpi-editable" data-field="target">${kpi.target || ''}</td>
+      <td contenteditable="true" class="kpi-editable" data-field="timeframe">${kpi.timeframe || ''}</td>
+      <td class="kpi-actions">
+        <button class="kpi-btn kpi-remove" data-testid="button-remove-kpi-${index}" title="Remove row">×</button>
+      </td>
+    </tr>
+  `).join('');
+  
+  return `
+    <div class="kpi-table-section" data-testid="kpi-table">
+      <h3 class="kpi-title">Key Performance Indicators (KPIs)</h3>
+      <p class="kpi-subtitle">Track progress toward your goals — click cells to edit</p>
+      <div class="kpi-table-wrapper">
+        <table class="kpi-table">
+          <thead>
+            <tr>
+              <th>Objective</th>
+              <th>KPI</th>
+              <th>Target</th>
+              <th>Timeframe</th>
+              <th width="60"></th>
+            </tr>
+          </thead>
+          <tbody id="kpi-table-body">
+            ${rows}
+          </tbody>
+        </table>
+      </div>
+      <button class="kpi-btn kpi-add" id="add-kpi-row" data-testid="button-add-kpi" title="Add KPI row">+ Add KPI</button>
+    </div>
+  `;
+}
+
+function renderAiInsights(insights) {
+  if (!insights || insights.length === 0) {
+    insights = ['Focus on customer acquisition and product-market fit in the next 90 days.'];
+  }
+  
+  const insightsHtml = insights.map(insight => `<li>${insight}</li>`).join('');
+  
+  return `
+    <div class="ai-insights-box" data-testid="ai-insights">
+      <div class="insights-header">
+        <span class="insights-icon">💡</span>
+        <h3 class="insights-title">AI Insights</h3>
+      </div>
+      <ul class="insights-list">
+        ${insightsHtml}
+      </ul>
+    </div>
+  `;
+}
+
+function renderPremiumReport(data) {
+  const snapshotHtml = renderExecutiveSnapshot(data.executiveSnapshot);
+  const mainPlanHtml = markdownToHtml(data.mainPlan || data.markdown || '');
+  const kpiTableHtml = renderKpiTable(data.kpiTable);
+  const insightsHtml = renderAiInsights(data.aiInsights);
+  
+  return `
+    ${snapshotHtml}
+    <div class="main-plan-content">
+      ${mainPlanHtml}
+    </div>
+    ${kpiTableHtml}
+    ${insightsHtml}
+  `;
+}
+
+function attachKpiEditHandlers() {
+  // Add row handler
+  const addBtn = document.getElementById('add-kpi-row');
+  if (addBtn) {
+    addBtn.addEventListener('click', () => {
+      const tbody = document.getElementById('kpi-table-body');
+      if (!tbody) return;
+      
+      const newIndex = tbody.children.length;
+      const newRow = document.createElement('tr');
+      newRow.dataset.kpiIndex = newIndex;
+      newRow.innerHTML = `
+        <td contenteditable="true" class="kpi-editable" data-field="objective">New Objective</td>
+        <td contenteditable="true" class="kpi-editable" data-field="kpi">KPI Name</td>
+        <td contenteditable="true" class="kpi-editable" data-field="target">Target</td>
+        <td contenteditable="true" class="kpi-editable" data-field="timeframe">Timeframe</td>
+        <td class="kpi-actions">
+          <button class="kpi-btn kpi-remove" data-testid="button-remove-kpi-${newIndex}" title="Remove row">×</button>
+        </td>
+      `;
+      tbody.appendChild(newRow);
+      
+      // Attach remove handler to new row
+      const removeBtn = newRow.querySelector('.kpi-remove');
+      if (removeBtn) {
+        removeBtn.addEventListener('click', () => newRow.remove());
+      }
+      
+      // Update current report data
+      syncKpiTableData();
+    });
+  }
+  
+  // Remove row handlers
+  document.querySelectorAll('.kpi-remove').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const row = e.target.closest('tr');
+      if (row) row.remove();
+      syncKpiTableData();
+    });
+  });
+  
+  // Track edits
+  document.querySelectorAll('.kpi-editable').forEach(cell => {
+    cell.addEventListener('blur', () => {
+      syncKpiTableData();
+    });
+  });
+}
+
+function syncKpiTableData() {
+  if (!currentReportData) return;
+  
+  const rows = document.querySelectorAll('#kpi-table-body tr');
+  const kpiTable = [];
+  
+  rows.forEach(row => {
+    const objective = row.querySelector('[data-field="objective"]')?.textContent.trim() || '';
+    const kpi = row.querySelector('[data-field="kpi"]')?.textContent.trim() || '';
+    const target = row.querySelector('[data-field="target"]')?.textContent.trim() || '';
+    const timeframe = row.querySelector('[data-field="timeframe"]')?.textContent.trim() || '';
+    
+    kpiTable.push({ objective, kpi, target, timeframe });
+  });
+  
+  currentReportData.kpiTable = kpiTable;
+  
+  // Update HTML snapshot
+  currentReportData.html = renderPremiumReport({
+    executiveSnapshot: currentReportData.executiveSnapshot,
+    mainPlan: currentReportData.markdown,
+    kpiTable: currentReportData.kpiTable,
+    aiInsights: currentReportData.aiInsights
+  });
+}
+
 $('btn-generate').addEventListener('click', async () => {
   const payload = {
     company: $('company').value.trim(),
@@ -125,7 +320,7 @@ $('btn-generate').addEventListener('click', async () => {
   }
   
   const reportView = $('report-view');
-  reportView.innerHTML = '<p style="color: #666; font-style: italic;">Generating plan…</p>';
+  reportView.innerHTML = '<p style="color: #666; font-style: italic;">Generating premium business plan…</p>';
   hideMetadata();
   updateButtonStates(false);
   
@@ -142,18 +337,24 @@ $('btn-generate').addEventListener('click', async () => {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     
     const data = await res.json();
-    const markdown = (data.markdown || '').trim();
-    const html = markdownToHtml(markdown);
     
-    reportView.innerHTML = html;
+    // Render complete premium report with all sections
+    const fullHtml = renderPremiumReport(data);
+    reportView.innerHTML = fullHtml;
     
     currentReportData = {
-      markdown,
-      html,
+      executiveSnapshot: data.executiveSnapshot,
+      markdown: data.mainPlan || data.markdown || '',
+      kpiTable: data.kpiTable || [],
+      aiInsights: data.aiInsights || [],
+      html: fullHtml,
       company: payload.company,
       industry: payload.industry,
       stage: payload.stage
     };
+    
+    // Attach KPI edit handlers
+    attachKpiEditHandlers();
     
     showMetadata(payload.company, payload.industry, payload.stage);
     updateButtonStates(true);
