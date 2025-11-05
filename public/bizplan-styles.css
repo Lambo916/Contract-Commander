@@ -1035,6 +1035,15 @@
   gap: 6px;
 }
 
+.tooltip-wrapper {
+  position: relative;
+  display: inline-flex;
+}
+
+.tooltip-wrapper-menu {
+  position: relative;
+}
+
 .tooltip-icon {
   display: inline-flex;
   align-items: center;
@@ -1056,22 +1065,26 @@
   outline: none;
 }
 
-.tooltip-bubble {
+.tooltip-bubble,
+.tooltip-bubble-menu {
   position: absolute;
-  background: var(--ybg-panel);
-  border: 1px solid var(--ybg-border);
+  background: linear-gradient(135deg, var(--ybg-blue) 0%, rgba(77, 182, 231, 0.9) 100%);
+  border: 2px solid var(--ybg-yellow);
   border-radius: 8px;
-  padding: 8px 12px;
+  padding: 10px 14px;
   font-size: 13px;
-  color: var(--ybg-text);
+  color: #ffffff;
+  font-weight: 600;
   max-width: 250px;
   z-index: 10000;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  box-shadow: 0 6px 16px rgba(255, 235, 59, 0.3), 0 2px 8px rgba(0, 0, 0, 0.6);
   display: none;
   pointer-events: none;
+  line-height: 1.4;
 }
 
-.tooltip-bubble.active {
+.tooltip-bubble.active,
+.tooltip-bubble-menu.active {
   display: block;
 }
 
@@ -1079,6 +1092,11 @@
 @media (min-width: 769px) {
   .tooltip-icon {
     display: none;
+  }
+  
+  .tooltip-bubble,
+  .tooltip-bubble-menu {
+    display: none !important;
   }
   
   [data-tooltip] {
@@ -1091,17 +1109,19 @@
     position: absolute;
     bottom: 100%;
     left: 0;
-    background: var(--ybg-panel);
-    border: 1px solid var(--ybg-border);
+    background: linear-gradient(135deg, var(--ybg-blue) 0%, rgba(77, 182, 231, 0.9) 100%);
+    border: 2px solid var(--ybg-yellow);
     border-radius: 8px;
-    padding: 8px 12px;
+    padding: 10px 14px;
     font-size: 13px;
-    color: var(--ybg-text);
+    color: #ffffff;
+    font-weight: 600;
     max-width: 250px;
     z-index: 10000;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    box-shadow: 0 6px 16px rgba(255, 235, 59, 0.3), 0 2px 8px rgba(0, 0, 0, 0.6);
     margin-bottom: 8px;
     white-space: normal;
+    line-height: 1.4;
   }
 }
 
@@ -1109,6 +1129,15 @@
 @media (max-width: 768px) {
   .tooltip-bubble {
     pointer-events: auto;
+    left: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  
+  .tooltip-bubble-menu {
+    pointer-events: auto;
+    left: 0;
+    top: calc(100% + 8px);
   }
 }
 

@@ -1632,63 +1632,67 @@ function escapeHtml(text) {
 
 let activeTooltip = null;
 
-function showTooltipBubble(icon, text) {
-  // Remove any existing tooltip
-  if (activeTooltip) {
-    activeTooltip.remove();
-    activeTooltip = null;
-  }
-  
-  // Create tooltip bubble
-  const bubble = document.createElement('div');
-  bubble.className = 'tooltip-bubble active';
-  bubble.textContent = text;
-  bubble.setAttribute('role', 'tooltip');
-  document.body.appendChild(bubble);
-  
-  // Position the bubble near the icon
-  const rect = icon.getBoundingClientRect();
-  bubble.style.top = `${rect.bottom + 8}px`;
-  bubble.style.left = `${rect.left}px`;
-  
-  activeTooltip = bubble;
-}
-
-function hideTooltipBubble() {
-  if (activeTooltip) {
-    activeTooltip.remove();
-    activeTooltip = null;
-  }
+function hideAllTooltips() {
+  document.querySelectorAll('.tooltip-bubble.active, .tooltip-bubble-menu.active').forEach(bubble => {
+    bubble.classList.remove('active');
+  });
+  activeTooltip = null;
 }
 
 // Handle tooltip icon clicks/taps (mobile)
 document.querySelectorAll('.tooltip-icon').forEach(icon => {
   icon.addEventListener('click', (e) => {
     e.stopPropagation();
-    const tip = icon.getAttribute('data-tip');
+    const wrapper = icon.closest('.tooltip-wrapper');
+    const bubble = wrapper.querySelector('.tooltip-bubble');
     
-    if (activeTooltip && activeTooltip.textContent === tip) {
-      hideTooltipBubble();
+    if (bubble.classList.contains('active')) {
+      bubble.classList.remove('active');
+      activeTooltip = null;
     } else {
-      showTooltipBubble(icon, tip);
+      hideAllTooltips();
+      bubble.classList.add('active');
+      activeTooltip = bubble;
     }
   });
   
   icon.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      const tip = icon.getAttribute('data-tip');
+      const wrapper = icon.closest('.tooltip-wrapper');
+      const bubble = wrapper.querySelector('.tooltip-bubble');
       
-      if (activeTooltip && activeTooltip.textContent === tip) {
-        hideTooltipBubble();
+      if (bubble.classList.contains('active')) {
+        bubble.classList.remove('active');
+        activeTooltip = null;
       } else {
-        showTooltipBubble(icon, tip);
+        hideAllTooltips();
+        bubble.classList.add('active');
+        activeTooltip = bubble;
       }
+    }
+  });
+});
+
+// Handle menu button tooltips (File, Export)
+document.querySelectorAll('[data-tip].btn-command').forEach(btn => {
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const wrapper = btn.closest('.tooltip-wrapper-menu');
+    const bubble = wrapper.querySelector('.tooltip-bubble-menu');
+    
+    if (bubble.classList.contains('active')) {
+      bubble.classList.remove('active');
+      activeTooltip = null;
+    } else {
+      hideAllTooltips();
+      bubble.classList.add('active');
+      activeTooltip = bubble;
     }
   });
 });
 
 // Close tooltip when clicking outside
 document.addEventListener('click', () => {
-  hideTooltipBubble();
+  hideAllTooltips();
 });
