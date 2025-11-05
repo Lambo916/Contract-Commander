@@ -1198,45 +1198,6 @@
   color: var(--ybg-text);
 }
 
-/* Footer */
-.ybg-footer {
-  background: linear-gradient(135deg, #3598ca 0%, #2980b9 100%);
-  border-radius: 16px 16px 0 0;
-  padding: 20px 30px;
-  margin-top: 40px;
-  text-align: center;
-}
-
-.footer-links {
-  color: rgba(255, 255, 255, 0.95);
-  font-size: 14px;
-  margin-bottom: 8px;
-  line-height: 1.6;
-}
-
-.footer-links a {
-  color: rgba(255, 255, 255, 0.95);
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  transition: opacity 0.2s;
-}
-
-.footer-links a:hover {
-  opacity: 0.8;
-}
-
-.footer-links a:focus-visible {
-  outline: 2px solid rgba(255, 235, 59, 0.8);
-  outline-offset: 2px;
-  border-radius: 2px;
-}
-
-.footer-disclaimer {
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 12px;
-  line-height: 1.5;
-}
-
 @media print {
   body {
     background: white;
