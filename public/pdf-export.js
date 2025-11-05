@@ -353,10 +353,10 @@
       this.yPosition += TYPOGRAPHY.paragraphSpacing;
     }
 
-    addTable(headers, rows) {
+    addTable(headers, rows, columnWidths = null) {
       const startY = this.yPosition;
       
-      this.doc.autoTable({
+      const tableConfig = {
         head: [headers],
         body: rows,
         startY: startY,
@@ -372,7 +372,7 @@
         bodyStyles: {
           fontSize: 10,
           textColor: TYPOGRAPHY.colorText,
-          cellPadding: 3
+          cellPadding: 2.2
         },
         alternateRowStyles: {
           fillColor: [245, 245, 245]
@@ -388,7 +388,14 @@
             this.drawHeader();
           }
         }
-      });
+      };
+      
+      // Add custom column widths if provided
+      if (columnWidths) {
+        tableConfig.columnStyles = columnWidths;
+      }
+      
+      this.doc.autoTable(tableConfig);
 
       this.yPosition = this.doc.lastAutoTable.finalY + 8;
     }
@@ -468,7 +475,26 @@
       const companyName = reportData.company || 'Business';
       const mainContent = reportData.mainContent || reportData.fullPlan || '';
 
-      // ---- Page 1: Table of Contents (Placeholder) ----
+      // ---- Cover Page ----
+      doc.setFont(TYPOGRAPHY.fontFamily, "bold");
+      doc.setFontSize(18);
+      doc.setTextColor(...TYPOGRAPHY.colorHeader);
+      doc.text('BizPlan Builder | YourBizGuru.com', CONTENT.left, 40);
+      
+      doc.setFont(TYPOGRAPHY.fontFamily, "normal");
+      doc.setFontSize(12);
+      doc.setTextColor(...TYPOGRAPHY.colorText);
+      doc.text(`Generated: ${new Date().toLocaleString()}`, CONTENT.left, 55);
+      doc.text(`Company: ${companyName}`, CONTENT.left, 65);
+      if (reportData.industry) {
+        doc.text(`Industry: ${reportData.industry}`, CONTENT.left, 75);
+      }
+      if (reportData.stage) {
+        doc.text(`Stage: ${reportData.stage}`, CONTENT.left, 85);
+      }
+
+      // ---- Page 2: Table of Contents (Placeholder) ----
+      writer.addNewPage();
       // We'll record sections as we create them, then come back to update the TOC
       const tocStartY = writer.yPosition;
       const tocPageNumber = writer.pageNumber;
@@ -494,7 +520,10 @@
           ['Target Market', snapshot.targetMarket || '']
         ];
         
-        writer.addTable(['Field', 'Value'], snapshotData);
+        writer.addTable(['Field', 'Value'], snapshotData, {
+          0: { cellWidth: 45 },
+          1: { cellWidth: 'auto' }
+        });
 
         // Top 3 Goals
         if (snapshot.top3Goals && snapshot.top3Goals.length > 0) {
@@ -562,7 +591,12 @@
           kpi.timeframe || ''
         ]);
 
-        writer.addTable(headers, rows);
+        writer.addTable(headers, rows, {
+          0: { cellWidth: 60 },
+          1: { cellWidth: 40 },
+          2: { cellWidth: 30 },
+          3: { cellWidth: 30 }
+        });
 
         // Add KPI Chart if captured
         if (charts.kpi) {
@@ -592,7 +626,10 @@
             ['Average Profit Margin', `${profitMargin}%`]
           ];
 
-          writer.addTable(['Metric', 'Value'], summaryData);
+          writer.addTable(['Metric', 'Value'], summaryData, {
+            0: { cellWidth: 80 },
+            1: { cellWidth: 'auto' }
+          });
         }
 
         // Add Financial Charts
@@ -669,7 +706,7 @@
         doc.setFont(TYPOGRAPHY.fontFamily, "normal");
         doc.setFontSize(TYPOGRAPHY.footer.size);
         doc.setTextColor(...TYPOGRAPHY.colorMeta);
-        doc.text("Powered by YourBizGuru.com    For informational purposes only. Not legal, tax, or financial advice.", 
+        doc.text("Powered by YourBizGuru.com   For informational purposes only. Not legal, tax, or financial advice.", 
           MARGINS.left, y);
         
         // Page number

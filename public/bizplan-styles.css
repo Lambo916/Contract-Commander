@@ -1650,3 +1650,62 @@
     max-height: 300px;
   }
 }
+
+/* Section spacing + PDF-friendly print spacing */
+.section-block {
+  margin-top: 18px;
+}
+
+.section-block + .section-block {
+  margin-top: 26px;
+}
+
+/* Tighten tables in PDF and screen */
+.table-compact .jspdf-autotable td,
+.table-compact .jspdf-autotable th {
+  padding: 6px 8px;
+}
+
+/* AI Insights highlight */
+.ai-insights__title {
+  font-weight: 700;
+  font-size: 14px;
+  margin: 8px 0 6px;
+  border-left: 4px solid #FFEB3B;
+  padding-left: 8px;
+  color: var(--ybg-text);
+}
+
+.ai-insights-section {
+  background: rgba(255, 235, 59, 0.05);
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid #FFEB3B;
+  margin: 16px 0;
+}
+
+.ai-insights-section ul {
+  margin: 8px 0;
+  padding-left: 24px;
+}
+
+.ai-insights-section li {
+  margin: 6px 0;
+  color: var(--ybg-text);
+}
+
+/* Consistent chart titles */
+.chart-title {
+  font-weight: 600;
+  margin: 8px 0 10px;
+  font-size: 16px;
+  color: var(--ybg-text);
+}
+
+/* Light divider under H2s for PDF rendering */
+.h-rule {
+  height: 2px;
+  background: #FFEB3B;
+  opacity: 0.75;
+  margin: 8px 0 12px;
+}

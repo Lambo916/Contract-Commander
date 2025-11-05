@@ -70,6 +70,7 @@ export const bizPlanRequestSchema = z.object({
   stage: z.string().optional(),
   goals: z.string().optional(),
   tone: z.string().optional().default("Professional"),
+  detailLevel: z.string().optional().default("standard"),
 });
 
 export type BizPlanRequest = z.infer<typeof bizPlanRequestSchema>;

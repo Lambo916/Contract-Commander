@@ -563,10 +563,23 @@ IMPORTANT:
         revenue,
         stage,
         goals,
-        tone
+        tone,
+        detailLevel
       } = validatedData;
 
-      console.log(`Generating business plan for: ${company} - ${industry}`);
+      console.log(`Generating business plan for: ${company} - ${industry} (Detail: ${detailLevel})`);
+
+      // Adjust prompt based on detail level
+      let wordCount = '900-1400';
+      let depthGuidance = 'Make it crisp, skimmable, investor-ready.';
+      
+      if (detailLevel === 'expanded') {
+        wordCount = '1400-2000';
+        depthGuidance = 'Provide richer explanations with context on market dynamics and operational strategies. Include 2-3 examples where appropriate. Add numeric ranges or assumptions when helpful.';
+      } else if (detailLevel === 'comprehensive') {
+        wordCount = '2000-3000';
+        depthGuidance = 'Write 3-5 paragraphs per major section with specific, defensible details. Include assumptions, sample KPIs with targets, and brief benchmarks where relevant. Keep language practical and investor-focused.';
+      }
 
       // Build comprehensive business plan prompt with premium structured output
       const prompt = `
@@ -581,6 +594,7 @@ Revenue Model: ${revenue || 'N/A'}
 Stage: ${stage || 'N/A'}
 Top Goals (next 6-12 months): ${goals || 'N/A'}
 Tone: ${tone || 'Professional'}
+Detail Level: ${detailLevel || 'standard'}
 
 Generate a JSON object with this exact structure:
 
@@ -593,7 +607,7 @@ Generate a JSON object with this exact structure:
     "top3Goals": ["Extract and format the top 3 goals from: ${goals || 'Growth, Revenue, Market Entry'}"]
   },
   
-  "mainPlan": "Full business plan as markdown (900-1400 words). Include these sections with ## headings: Executive Summary, Market Analysis, Business Model, Go-to-Market Strategy, Product Roadmap, Financial Outlook, Risk Mitigation, Next Steps. Use ${tone} tone. Make it crisp, skimmable, investor-ready.",
+  "mainPlan": "Full business plan as markdown (${wordCount} words). Include these sections with ## headings: Executive Summary, Market Analysis, Business Model, Go-to-Market Strategy, Product Roadmap, Financial Outlook, Risk Mitigation, Next Steps. Use ${tone} tone. ${depthGuidance}",
   
   "kpiTable": [
     {

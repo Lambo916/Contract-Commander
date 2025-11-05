@@ -100,6 +100,20 @@
           </select>
         </div>
         <div>
+          <label class="label-with-tooltip" data-tooltip="Controls narrative depth in generated plan">
+            <span>Detail Level</span>
+            <span class="tooltip-wrapper">
+              <span class="tooltip-icon" tabindex="0" role="button" aria-label="Help" data-tip="Controls narrative depth in generated plan">i</span>
+              <span class="tooltip-bubble" role="tooltip">Controls narrative depth in generated plan</span>
+            </span>
+          </label>
+          <select id="detailLevel" data-testid="select-detail-level">
+            <option value="standard" selected>Standard</option>
+            <option value="expanded">Expanded</option>
+            <option value="comprehensive">Comprehensive</option>
+          </select>
+        </div>
+        <div>
           <label>&nbsp;</label>
           <button class="btn btn-primary btn-generate-inline" id="btn-generate" data-testid="button-generate" title="Generate business plan">Generate Plan</button>
         </div>

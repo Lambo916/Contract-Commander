@@ -73,7 +73,8 @@ function saveCurrentReport() {
       revenue: $('revenue').value.trim(),
       stage: $('stage').value.trim(),
       goals: $('goals').value.trim(),
-      tone: $('tone').value
+      tone: $('tone').value,
+      detailLevel: $('detailLevel')?.value || 'standard'
     };
     
     const saveData = {
@@ -107,6 +108,9 @@ function loadSavedReport() {
       $('stage').value = saveData.formData.stage || '';
       $('goals').value = saveData.formData.goals || '';
       $('tone').value = saveData.formData.tone || 'Professional';
+      if ($('detailLevel')) {
+        $('detailLevel').value = saveData.formData.detailLevel || 'standard';
+      }
     }
     
     // Restore report data
@@ -732,6 +736,25 @@ function attachKpiEditHandlers() {
 }
 
 
+// Chart title plugin for consistent branding
+function createChartTitlePlugin(titleText) {
+  return {
+    id: 'chartTitle_' + Math.random().toString(36).substr(2, 9),
+    beforeDraw(chart) {
+      const { ctx, chartArea } = chart;
+      if (!chartArea) return;
+      
+      const { top, left, width } = chartArea;
+      ctx.save();
+      ctx.font = '600 16px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--ybg-text') || '#1a1a1a';
+      ctx.fillText(titleText, left, top - 12);
+      ctx.restore();
+    }
+  };
+}
+
 let kpiChartInstance = null;
 
 function initializeKpiChart(kpiData, chartType = 'bar') {
@@ -776,6 +799,7 @@ function initializeKpiChart(kpiData, chartType = 'bar') {
         fill: chartType === 'line'
       }]
     },
+    plugins: [createChartTitlePlugin('KPI Progress Chart')],
     options: {
       responsive: true,
       maintainAspectRatio: true,
@@ -945,6 +969,7 @@ function initializeFinancialCharts(financialData, view = 'combined') {
           }
         ]
       },
+      plugins: [createChartTitlePlugin('Financial Projections (12-Month Forecast)')],
       options: {
         ...commonOptions,
         plugins: {
@@ -985,6 +1010,7 @@ function initializeFinancialCharts(financialData, view = 'combined') {
             fill: true
           }]
         },
+        plugins: [createChartTitlePlugin('Revenue Forecast')],
         options: commonOptions
       });
     }
@@ -1005,6 +1031,7 @@ function initializeFinancialCharts(financialData, view = 'combined') {
             fill: true
           }]
         },
+        plugins: [createChartTitlePlugin('Expenses Forecast')],
         options: commonOptions
       });
     }
@@ -1025,6 +1052,7 @@ function initializeFinancialCharts(financialData, view = 'combined') {
             fill: true
           }]
         },
+        plugins: [createChartTitlePlugin('Profit Forecast')],
         options: commonOptions
       });
     }
@@ -1151,7 +1179,8 @@ $('btn-generate').addEventListener('click', async () => {
     revenue: $('revenue').value.trim(),
     stage: $('stage').value.trim(),
     goals: $('goals').value.trim(),
-    tone: $('tone').value
+    tone: $('tone').value,
+    detailLevel: $('detailLevel')?.value || 'standard'
   };
   
   if (!payload.company || !payload.industry) {
