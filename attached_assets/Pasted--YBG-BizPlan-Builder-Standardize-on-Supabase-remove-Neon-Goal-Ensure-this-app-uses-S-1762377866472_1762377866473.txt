@@ -1,0 +1,164 @@
+# === YBG BizPlan Builder — Standardize on Supabase (remove Neon) ===
+# Goal: Ensure this app uses Supabase (not Neon) end-to-end before Vercel deploy.
+
+PLAN:
+1) Remove Neon/pg usage and envs; adopt Supabase JS everywhere.
+2) Add a shared Supabase client (server + browser).
+3) Create a simple DB health check route to confirm we’re on Supabase.
+4) Ensure CORS + PUBLIC_SITE_URL are correct.
+5) Verify build locally; then we’ll deploy to Vercel with Supabase Integration.
+
+# --------------------------------------------------------------------
+# 1) Dependencies
+# --------------------------------------------------------------------
+# If not already present, install supabase-js and @supabase/ssr (Next)/cookie helpers.
+# (If this is Express, supabase-js alone is fine.)
+npm i @supabase/supabase-js
+
+# Remove Neon/pg deps if present:
+npm rm pg @neondatabase/serverless
+
+# --------------------------------------------------------------------
+# 2) Env — keep only Supabase + app vars (do NOT delete keys, just stop using Neon vars)
+# --------------------------------------------------------------------
+# Required:
+#   SUPABASE_URL=...         # already set
+#   SUPABASE_ANON_KEY=...    # already set
+# Optional (for server-side admin ops): SUPABASE_SERVICE_ROLE_KEY=...
+# App:
+#   PUBLIC_SITE_URL=https://bizplan.yourbizguru.com
+#   CORS_ALLOWED_ORIGINS=https://bizplan.yourbizguru.com,https://*.vercel.app
+#   TOOL_NAME=BizPlanBuilder
+
+# NOTE: Leave the PG*/DATABASE_URL envs in Replit for now but we won’t reference them.
+# After deploy verification, we can delete PGHOST/PGUSER/PGPASSWORD/PGDATABASE/PGPORT/DATABASE_URL.
+
+# --------------------------------------------------------------------
+# 3) Supabase client helpers
+# --------------------------------------------------------------------
+# Create: /lib/supabase.ts
+apply_patch << 'PATCH'
+*** Begin Patch
+*** Add File: lib/supabase.ts
++import { createClient } from "@supabase/supabase-js";
++
++// Browser/client-side usage
++export function supabaseBrowser() {
++  return createClient(
++    process.env.SUPABASE_URL!,
++    process.env.SUPABASE_ANON_KEY!,
++    { auth: { persistSession: true, autoRefreshToken: true } }
++  );
++}
++
++// Server-side usage (Node/Express handlers)
++export function supabaseServer() {
++  return createClient(
++    process.env.SUPABASE_URL!,
++    process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY!,
++    { auth: { persistSession: false, autoRefreshToken: false } }
++  );
++}
+*** End Patch
+PATCH
+
+# --------------------------------------------------------------------
+# 4) Replace any Neon/pg DB calls with Supabase JS
+# --------------------------------------------------------------------
+# Find references to Neon/pg and replace with Supabase client.
+# Examples to replace:
+#   import { Pool } from "pg"           -> remove
+#   import { neon } from "@neondatabase/serverless" -> remove
+#   new Pool({ connectionString: process.env.DATABASE_URL }) -> remove
+#
+# Example pattern:
+# Before (Neon/pg):
+#   const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+#   const { rows } = await pool.query("SELECT 1");
+#
+# After (Supabase):
+#   const supabase = supabaseServer();
+#   const { data, error } = await supabase.from("ybg_reports").select("id").limit(1);
+#   if (error) throw error;
+
+# Agent: search & refactor
+ripgrep -n "(pg |from 'pg'|@neondatabase|DATABASE_URL|new Pool\(|neon\()" || true
+
+# Replace DB usage in routes/services with Supabase equivalents.
+# (Keep all business logic the same; only change the DB adapter.)
+
+# --------------------------------------------------------------------
+# 5) Add DB health route to prove we’re hitting Supabase
+# --------------------------------------------------------------------
+# Create: /routes/health/db.ts (Express)  OR /api/health-db.(ts|js) (depending on your setup)
+# Agent: detect framework; if Express exists (app.ts/server.ts), add Express route below.
+# If Next.js, create app/api/health-db/route.ts instead.
+if [ -f "app/api" ] || [ -d "app" ]; then
+  # Next.js App Router API route
+  mkdir -p app/api/health-db
+  cat > app/api/health-db/route.ts <<'EOF'
+import { NextResponse } from "next/server";
+import { supabaseServer } from "@/lib/supabase";
+
+export async function GET() {
+  try {
+    const supabase = supabaseServer();
+    const { data, error } = await supabase.from("ybg_reports").select("id").limit(1);
+    if (error) throw error;
+    return NextResponse.json({ ok: true, source: "supabase", sample: (data ?? []).length });
+  } catch (e:any) {
+    return NextResponse.json({ ok: false, source: "supabase", error: e.message }, { status: 500 });
+  }
+}
+EOF
+else
+  # Express route
+  mkdir -p routes
+  cat > routes/health-db.ts <<'EOF'
+import { Router } from "express";
+import { supabaseServer } from "../lib/supabase";
+const router = Router();
+
+router.get("/", async (_req, res) => {
+  try {
+    const supabase = supabaseServer();
+    const { data, error } = await supabase.from("ybg_reports").select("id").limit(1);
+    if (error) throw error;
+    res.json({ ok: true, source: "supabase", sample: (data ?? []).length });
+  } catch (e:any) {
+    res.status(500).json({ ok: false, source: "supabase", error: e.message });
+  }
+});
+
+export default router;
+EOF
+  # Wire into server (if using Express): in server.ts/app.ts add:
+  #   import healthDb from "./routes/health-db";
+  #   app.use("/health/db", healthDb);
+fi
+
+# --------------------------------------------------------------------
+# 6) CORS + site URL sanity
+# --------------------------------------------------------------------
+# Ensure these envs are set (from earlier steps) and used by your CORS middleware if applicable:
+#   PUBLIC_SITE_URL=https://bizplan.yourbizguru.com
+#   CORS_ALLOWED_ORIGINS=https://bizplan.yourbizguru.com,https://*.vercel.app
+# If an Express CORS config exists, include both origins.
+
+# --------------------------------------------------------------------
+# 7) Build + quick test
+# --------------------------------------------------------------------
+npm run build || npm run vercel-build || true
+npm run start || true
+
+# Test the health endpoint in the Replit webview:
+#   GET /api/health-db   (Next.js)
+#   GET /health/db       (Express)
+# You should see: { ok: true, source: "supabase", ... }
+
+# --------------------------------------------------------------------
+# 8) Cleanup note (after deploy verification)
+# --------------------------------------------------------------------
+# Once verified, remove Neon envs from Replit:
+#   PGHOST, PGUSER, PGPASSWORD, PGDATABASE, PGPORT, DATABASE_URL
+# And delete any leftover Neon imports in the repo.
