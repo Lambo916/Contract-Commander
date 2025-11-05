@@ -192,7 +192,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Serve static files from public folder
   app.use(express.static(path.join(process.cwd(), "public")));
   
-  // Database health check endpoint
+  // Database health check endpoint (Drizzle ORM)
   app.get("/api/db/ping", async (req, res) => {
     try {
       const result = await db.execute(sql`SELECT 1 as ping`);
@@ -207,6 +207,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ok: false, 
         error: error.message,
         database: 'disconnected'
+      });
+    }
+  });
+
+  // Supabase health check endpoint (verifies connection and shows database source)
+  app.get("/api/health/db", async (req, res) => {
+    try {
+      // Test Drizzle connection to Supabase
+      const result = await db.execute(sql`SELECT 1 as health_check`);
+      
+      // Query a table to verify schema access
+      const tableCheck = await db
+        .select()
+        .from(bizplanReports)
+        .limit(1);
+      
+      res.json({ 
+        ok: true, 
+        source: 'supabase',
+        connection: 'active',
+        healthCheck: result.rows[0],
+        tablesAccessible: true,
+        message: 'Successfully connected to Supabase PostgreSQL database'
+      });
+    } catch (error: any) {
+      console.error("Supabase health check failed:", error);
+      res.status(500).json({ 
+        ok: false, 
+        source: 'supabase',
+        connection: 'failed',
+        error: error.message
       });
     }
   });
