@@ -115,6 +115,9 @@ function loadSavedReport() {
       currentFileName = saveData.fileName;
       currentReportId = saveData.reportId;
       
+      // Expose to window for PDF export
+      window.currentReportData = currentReportData;
+      
       // Render the report
       const reportView = $('report-view');
       if (currentReportData.html) {
@@ -1191,6 +1194,9 @@ $('btn-generate').addEventListener('click', async () => {
       stage: payload.stage
     };
     
+    // Expose to window for PDF export
+    window.currentReportData = currentReportData;
+    
     // Set default filename if not already set
     if (!currentFileName) {
       currentFileName = generateDefaultFilename(payload.company);
@@ -1661,6 +1667,9 @@ window.loadReportById = async function(id) {
       industry: report.industry,
       stage: ''
     };
+    
+    // Expose to window for PDF export
+    window.currentReportData = currentReportData;
     
     showMetadata(report.company, report.industry, '');
     updateButtonStates(true);
