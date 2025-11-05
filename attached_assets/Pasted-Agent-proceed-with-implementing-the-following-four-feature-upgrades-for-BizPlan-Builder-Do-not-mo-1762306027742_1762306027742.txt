@@ -1,0 +1,35 @@
+Agent — proceed with implementing the following four feature upgrades for BizPlan Builder. Do not modify existing styling, color themes, or layout structure. Focus on seamless functionality and clean integration with current modules.
+
+---
+
+1️⃣ One-Click Template Library
+- Add a dropdown or modal where users can select from preset business plan templates (e.g., SaaS, Real Estate, Consulting, Nonprofit, etc.).
+- Selecting a template should auto-fill all input sections with relevant example data.
+- Allow users to edit any field after template selection.
+- Include a reset/clear option to revert back to blank input fields.
+
+2️⃣ AI-Powered Suggestions
+- Add an “AI Suggestions” button under the Results or Output section.
+- When clicked, it should generate tailored improvement tips for the user’s business plan content (e.g., strategy refinement, KPI optimization, executive summary tone).
+- Use existing OpenAI API logic for content generation.
+- Display suggestions in a collapsible card or modal for readability.
+
+3️⃣ Interactive Charts and Graphs
+- Add an option to visualize KPIs and metrics dynamically after generation.
+- Charts should pull data from the existing KPI table (Objective, KPI, Target, Timeframe).
+- Include at least two visual types: bar chart and line chart.
+- Charts should update automatically when KPI values are added or changed.
+- Ensure charts render correctly in both the app and exported PDF.
+
+4️⃣ Version History & Revert
+- Implement automatic version saving for each generated plan.
+- Each saved version should include timestamp and company name.
+- Add a small “Version History” button where users can view and restore previous saved versions.
+- Include “Revert to this version” functionality with confirmation prompt.
+- Store up to 10 previous versions locally for now (expandable later).
+
+---
+
+✅ Keep all current branding, layout, and styling consistent.
+✅ Ensure these features integrate cleanly into the existing navigation and export flow.
+✅ After implementation, test all new features end-to-end and confirm PDF export still functions properly.
