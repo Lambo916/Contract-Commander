@@ -1597,6 +1597,7 @@ function openModal(modalId) {
 
 function closeModal(modalId) {
   const modal = $(modalId);
+  if (!modal) return;
   modal.classList.remove('active');
   modal.removeEventListener('keydown', handleModalKeyboard);
 }
@@ -1633,9 +1634,25 @@ function escapeHtml(text) {
 let activeTooltip = null;
 
 function hideAllTooltips() {
-  document.querySelectorAll('.tooltip-bubble.active, .tooltip-bubble-menu.active').forEach(bubble => {
+  // Hide all tooltip bubbles and reset their triggers' aria-expanded
+  document.querySelectorAll('.tooltip-bubble.active').forEach(bubble => {
     bubble.classList.remove('active');
+    const wrapper = bubble.closest('.tooltip-wrapper');
+    if (wrapper) {
+      const icon = wrapper.querySelector('.tooltip-icon');
+      if (icon) icon.setAttribute('aria-expanded', 'false');
+    }
   });
+  
+  document.querySelectorAll('.tooltip-bubble-menu.active').forEach(bubble => {
+    bubble.classList.remove('active');
+    const wrapper = bubble.closest('.tooltip-wrapper-menu');
+    if (wrapper) {
+      const btn = wrapper.querySelector('[data-tip].btn-command');
+      if (btn) btn.setAttribute('aria-expanded', 'false');
+    }
+  });
+  
   activeTooltip = null;
 }
 
@@ -1648,10 +1665,12 @@ document.querySelectorAll('.tooltip-icon').forEach(icon => {
     
     if (bubble.classList.contains('active')) {
       bubble.classList.remove('active');
+      icon.setAttribute('aria-expanded', 'false');
       activeTooltip = null;
     } else {
       hideAllTooltips();
       bubble.classList.add('active');
+      icon.setAttribute('aria-expanded', 'true');
       activeTooltip = bubble;
     }
   });
@@ -1664,14 +1683,19 @@ document.querySelectorAll('.tooltip-icon').forEach(icon => {
       
       if (bubble.classList.contains('active')) {
         bubble.classList.remove('active');
+        icon.setAttribute('aria-expanded', 'false');
         activeTooltip = null;
       } else {
         hideAllTooltips();
         bubble.classList.add('active');
+        icon.setAttribute('aria-expanded', 'true');
         activeTooltip = bubble;
       }
     }
   });
+  
+  // Initialize aria-expanded
+  icon.setAttribute('aria-expanded', 'false');
 });
 
 // Handle menu button tooltips (File, Export)
@@ -1683,13 +1707,37 @@ document.querySelectorAll('[data-tip].btn-command').forEach(btn => {
     
     if (bubble.classList.contains('active')) {
       bubble.classList.remove('active');
+      btn.setAttribute('aria-expanded', 'false');
       activeTooltip = null;
     } else {
       hideAllTooltips();
       bubble.classList.add('active');
+      btn.setAttribute('aria-expanded', 'true');
       activeTooltip = bubble;
     }
   });
+  
+  btn.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const wrapper = btn.closest('.tooltip-wrapper-menu');
+      const bubble = wrapper.querySelector('.tooltip-bubble-menu');
+      
+      if (bubble.classList.contains('active')) {
+        bubble.classList.remove('active');
+        btn.setAttribute('aria-expanded', 'false');
+        activeTooltip = null;
+      } else {
+        hideAllTooltips();
+        bubble.classList.add('active');
+        btn.setAttribute('aria-expanded', 'true');
+        activeTooltip = bubble;
+      }
+    }
+  });
+  
+  // Initialize aria-expanded
+  btn.setAttribute('aria-expanded', 'false');
 });
 
 // Close tooltip when clicking outside
