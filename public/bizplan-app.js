@@ -122,7 +122,6 @@ function loadSavedReport() {
         
         // Reattach event handlers
         attachKpiEditHandlers();
-        attachAiSuggestionsHandler();
         attachKpiChartHandlers();
         
         // Show metadata
@@ -247,30 +246,6 @@ function showToast(message, type = 'success') {
   }, 3000);
 }
 
-// ==== MARKDOWN CONVERSION FUNCTIONS ====
-
-function htmlToMarkdown(html) {
-  if (!html) return '';
-  
-  let markdown = html;
-  
-  // Remove HTML tags and convert to markdown
-  markdown = markdown.replace(/<h1>(.*?)<\/h1>/gi, '# $1\n\n');
-  markdown = markdown.replace(/<h2>(.*?)<\/h2>/gi, '## $1\n\n');
-  markdown = markdown.replace(/<h3>(.*?)<\/h3>/gi, '### $1\n\n');
-  markdown = markdown.replace(/<h4>(.*?)<\/h4>/gi, '#### $1\n\n');
-  markdown = markdown.replace(/<p>(.*?)<\/p>/gi, '$1\n\n');
-  markdown = markdown.replace(/<strong>(.*?)<\/strong>/gi, '**$1**');
-  markdown = markdown.replace(/<em>(.*?)<\/em>/gi, '*$1*');
-  markdown = markdown.replace(/<li>(.*?)<\/li>/gi, '- $1\n');
-  markdown = markdown.replace(/<\/?ul>/gi, '\n');
-  markdown = markdown.replace(/<\/?ol>/gi, '\n');
-  
-  // Clean up extra newlines
-  markdown = markdown.replace(/\n{3,}/g, '\n\n');
-  
-  return markdown.trim();
-}
 
 // Business Plan Templates
 const BIZPLAN_TEMPLATES = {
@@ -540,33 +515,6 @@ function renderAiInsights(insights) {
   `;
 }
 
-function renderAiSuggestionsSection(aiSuggestions) {
-  let suggestionsContent = '';
-  let containerClass = 'ai-suggestions-card collapsed';
-  let buttonText = 'Get Suggestions';
-  
-  if (aiSuggestions && aiSuggestions.length > 0) {
-    const suggestionsHtml = aiSuggestions.map(s => `<li>${s}</li>`).join('');
-    suggestionsContent = `<ul>${suggestionsHtml}</ul>`;
-    containerClass = 'ai-suggestions-card'; // Remove collapsed class
-    buttonText = 'Refresh Suggestions';
-  }
-  
-  return `
-    <div class="ai-suggestions-section" data-testid="ai-suggestions-section">
-      <div class="ai-suggestions-header">
-        <h3 style="color: #1a1a1a; font-size: 20px; margin: 0;">Get AI-Powered Improvement Suggestions</h3>
-        <button class="btn-suggestion" id="btn-get-suggestions" data-testid="button-get-suggestions">
-          ${buttonText}
-        </button>
-      </div>
-      <div id="ai-suggestions-container" class="${containerClass}" data-testid="ai-suggestions-container">
-        <h4>AI Improvement Suggestions</h4>
-        <div id="suggestions-content">${suggestionsContent}</div>
-      </div>
-    </div>
-  `;
-}
 
 function renderKpiChartsSection(kpiData) {
   if (!kpiData || kpiData.length === 0) {
@@ -599,7 +547,6 @@ function renderPremiumReport(data) {
   const kpiTableHtml = renderKpiTable(data.kpiTable);
   const chartsHtml = renderKpiChartsSection(data.kpiTable);
   const insightsHtml = renderAiInsights(data.aiInsights);
-  const suggestionsHtml = renderAiSuggestionsSection(data.aiSuggestions);
   
   return `
     ${snapshotHtml}
@@ -609,7 +556,6 @@ function renderPremiumReport(data) {
     ${kpiTableHtml}
     ${chartsHtml}
     ${insightsHtml}
-    ${suggestionsHtml}
   `;
 }
 
@@ -707,72 +653,6 @@ function attachKpiEditHandlers() {
   });
 }
 
-function attachAiSuggestionsHandler() {
-  const suggestionsBtn = document.getElementById('btn-get-suggestions');
-  if (!suggestionsBtn) return;
-  
-  suggestionsBtn.addEventListener('click', async () => {
-    if (!currentReportData) return;
-    
-    const container = document.getElementById('ai-suggestions-container');
-    const content = document.getElementById('suggestions-content');
-    
-    suggestionsBtn.disabled = true;
-    suggestionsBtn.textContent = 'Generating...';
-    content.innerHTML = '<p style="color: #666; font-style: italic;">Analyzing your business plan...</p>';
-    container.classList.remove('collapsed');
-    
-    try {
-      const res = await fetch('/api/bizplan/suggestions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Client-Id': getClientId()
-        },
-        body: JSON.stringify({
-          company: currentReportData.company,
-          industry: currentReportData.industry,
-          markdown: currentReportData.markdown,
-          kpiTable: currentReportData.kpiTable
-        })
-      });
-      
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      
-      const data = await res.json();
-      
-      if (data.suggestions && data.suggestions.length > 0) {
-        const suggestionsHtml = data.suggestions.map(s => `<li>${s}</li>`).join('');
-        content.innerHTML = `<ul>${suggestionsHtml}</ul>`;
-        
-        // Store suggestions in currentReportData
-        currentReportData.aiSuggestions = data.suggestions;
-        
-        // Update HTML snapshot to include suggestions
-        currentReportData.html = renderPremiumReport({
-          executiveSnapshot: currentReportData.executiveSnapshot,
-          mainPlan: currentReportData.markdown,
-          kpiTable: currentReportData.kpiTable,
-          aiInsights: currentReportData.aiInsights,
-          aiSuggestions: currentReportData.aiSuggestions
-        });
-        
-        // Auto-save
-        saveCurrentReport();
-      } else {
-        content.innerHTML = '<p style="color: #999;">No suggestions generated. Your plan looks solid!</p>';
-      }
-      
-      suggestionsBtn.textContent = 'Refresh Suggestions';
-      
-    } catch (e) {
-      content.innerHTML = `<p style="color: #ff6b6b;">Error generating suggestions: ${e.message}</p>`;
-      suggestionsBtn.textContent = 'Try Again';
-    } finally {
-      suggestionsBtn.disabled = false;
-    }
-  });
-}
 
 let kpiChartInstance = null;
 
@@ -906,8 +786,7 @@ function syncKpiTableData() {
     executiveSnapshot: currentReportData.executiveSnapshot,
     mainPlan: currentReportData.markdown,
     kpiTable: currentReportData.kpiTable,
-    aiInsights: currentReportData.aiInsights,
-    aiSuggestions: currentReportData.aiSuggestions
+    aiInsights: currentReportData.aiInsights
   });
   
   // Mark as unsaved
@@ -1008,7 +887,6 @@ $('btn-generate').addEventListener('click', async () => {
       markdown: data.mainPlan || data.markdown || '',
       kpiTable: data.kpiTable || [],
       aiInsights: data.aiInsights || [],
-      aiSuggestions: data.aiSuggestions || [],
       html: fullHtml,
       company: payload.company,
       industry: payload.industry,
@@ -1023,16 +901,10 @@ $('btn-generate').addEventListener('click', async () => {
     // Attach KPI edit handlers
     attachKpiEditHandlers();
     
-    // Attach AI suggestions handler
-    attachAiSuggestionsHandler();
-    
     // Attach KPI chart handlers
     attachKpiChartHandlers();
     
     showMetadata(payload.company, payload.industry, payload.stage);
-    
-    // Save to version history
-    saveToVersionHistory();
     
     // Mark as unsaved changes
     markUnsaved();
@@ -1163,62 +1035,11 @@ $('btn-rename').addEventListener('click', () => {
   $('file-menu').classList.remove('active');
 });
 
-$('btn-version-history').addEventListener('click', () => {
-  handleVersionHistory();
-  $('file-menu').classList.remove('active');
-});
-
-$('btn-delete').addEventListener('click', async () => {
-  if (!currentReportId) {
-    showToast('No report to delete', 'error');
-    return;
-  }
-  
-  if (!confirm(`Delete "${currentFileName || 'this report'}"? This cannot be undone.`)) {
-    return;
-  }
-  
-  try {
-    const res = await fetch(`${REPORTS_PATH}/${currentReportId}`, {
-      method: 'DELETE',
-      headers: {
-        'X-Client-Id': getClientId()
-      }
-    });
-    
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    
-    // Clear current report
-    $('report-view').innerHTML = '';
-    currentReportData = null;
-    currentFileName = null;
-    currentReportId = null;
-    hasUnsavedChanges = false;
-    hideMetadata();
-    
-    showToast('Report deleted', 'success');
-    
-  } catch (e) {
-    showToast(`Error: ${e.message}`, 'error');
-  }
-  
-  $('file-menu').classList.remove('active');
-});
 
 // ==== EXPORT MENU HANDLERS ====
 
 $('btn-export-pdf').addEventListener('click', () => {
   handleExportPDF();
-  $('export-menu').classList.remove('active');
-});
-
-$('btn-export-markdown').addEventListener('click', () => {
-  handleExportMarkdown();
-  $('export-menu').classList.remove('active');
-});
-
-$('btn-export-docx').addEventListener('click', () => {
-  handleExportDOCX();
   $('export-menu').classList.remove('active');
 });
 
@@ -1412,33 +1233,6 @@ async function handleExportPDF() {
   }
 }
 
-function handleExportMarkdown() {
-  if (!currentReportData || !currentReportData.markdown) {
-    showToast('No report to export', 'error');
-    return;
-  }
-  
-  try {
-    const markdown = currentReportData.markdown;
-    const filename = (currentFileName || generateDefaultFilename(currentReportData.company)) + '.md';
-    
-    // Create a blob and download
-    const blob = new Blob([markdown], { type: 'text/markdown' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    showToast('Markdown downloaded', 'success');
-    
-  } catch (e) {
-    showToast(`Error exporting markdown: ${e.message}`, 'error');
-  }
-}
 
 async function handleCopyMarkdown() {
   if (!currentReportData || !currentReportData.markdown) {
@@ -1484,189 +1278,7 @@ async function handleCopySummary() {
   }
 }
 
-function handleExportDOCX() {
-  if (!currentReportData || !currentReportData.html) {
-    showToast('No report to export', 'error');
-    return;
-  }
-  
-  try {
-    // Create a Word-compatible HTML document
-    const htmlContent = currentReportData.html;
-    const filename = (currentFileName || generateDefaultFilename(currentReportData?.company || 'BizPlan')) + '.docx';
-    
-    // Create a minimal Word document format (HTML-based)
-    const docContent = `
-      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
-      <head>
-        <meta charset='utf-8'>
-        <title>${currentReportData.company || 'Business Plan'}</title>
-        <style>
-          body { font-family: 'Calibri', sans-serif; font-size: 11pt; line-height: 1.6; }
-          h1 { font-size: 18pt; font-weight: bold; margin-top: 12pt; }
-          h2 { font-size: 14pt; font-weight: bold; margin-top: 10pt; }
-          h3 { font-size: 12pt; font-weight: bold; margin-top: 8pt; }
-          p { margin: 6pt 0; }
-          table { border-collapse: collapse; width: 100%; margin: 12pt 0; }
-          th, td { border: 1px solid #ddd; padding: 8pt; text-align: left; }
-          th { background-color: #f0f0f0; font-weight: bold; }
-        </style>
-      </head>
-      <body>
-        ${htmlContent}
-      </body>
-      </html>
-    `;
-    
-    // Create blob and download
-    const blob = new Blob(['\ufeff', docContent], {
-      type: 'application/msword'
-    });
-    
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = filename;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    showToast('DOCX downloaded', 'success');
-    
-  } catch (e) {
-    showToast(`Error exporting DOCX: ${e.message}`, 'error');
-  }
-}
 
-function handleVersionHistory() {
-  openModal('version-history-modal');
-  renderVersionHistory();
-}
-
-// ==== VERSION HISTORY FUNCTIONS ====
-const VERSION_HISTORY_KEY = 'bizplan-version-history';
-const MAX_VERSIONS = 10;
-
-function saveToVersionHistory() {
-  if (!currentReportData) return;
-  
-  try {
-    const versions = getVersionHistory();
-    
-    const newVersion = {
-      id: Date.now(),
-      timestamp: new Date().toISOString(),
-      company: currentReportData.company,
-      industry: currentReportData.industry,
-      stage: currentReportData.stage,
-      data: currentReportData
-    };
-    
-    // Add new version at the beginning
-    versions.unshift(newVersion);
-    
-    // Keep only last MAX_VERSIONS
-    if (versions.length > MAX_VERSIONS) {
-      versions.splice(MAX_VERSIONS);
-    }
-    
-    localStorage.setItem(VERSION_HISTORY_KEY, JSON.stringify(versions));
-  } catch (e) {
-    console.error('Failed to save version:', e);
-  }
-}
-
-function getVersionHistory() {
-  try {
-    const stored = localStorage.getItem(VERSION_HISTORY_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch (e) {
-    console.error('Failed to load version history:', e);
-    return [];
-  }
-}
-
-function restoreVersion(versionId) {
-  const versions = getVersionHistory();
-  const version = versions.find(v => v.id === versionId);
-  
-  if (!version) {
-    alert('Version not found');
-    return;
-  }
-  
-  if (!confirm(`Restore version from ${new Date(version.timestamp).toLocaleString()}?\n\nCompany: ${version.company}\n\nThis will replace your current view.`)) {
-    return;
-  }
-  
-  // Restore the version data
-  currentReportData = version.data;
-  
-  // Re-render the report
-  const reportView = $('report-view');
-  reportView.innerHTML = currentReportData.html;
-  
-  // Re-attach KPI handlers
-  attachKpiEditHandlers();
-  
-  // Update metadata
-  showMetadata(currentReportData.company, currentReportData.industry, currentReportData.stage);
-  updateButtonStates(true);
-  
-  closeModal('version-history-modal');
-}
-
-function renderVersionHistory() {
-  const versions = getVersionHistory();
-  const versionList = $('version-list');
-  
-  if (versions.length === 0) {
-    versionList.innerHTML = '<p style="color: #999; text-align: center; padding: 2rem;">No version history available yet.<br>Generate and save business plans to build your version history.</p>';
-    return;
-  }
-  
-  const versionsHtml = versions.map(version => {
-    const date = new Date(version.timestamp);
-    const dateStr = date.toLocaleDateString();
-    const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    
-    // Create a preview snippet from the markdown
-    const preview = version.data.markdown ? 
-      version.data.markdown.substring(0, 150).replace(/[#*\n]/g, ' ').trim() + '...' : 
-      'No preview available';
-    
-    return `
-      <div class="version-item" data-testid="version-item-${version.id}">
-        <div class="version-header">
-          <div class="version-title">
-            <strong>${version.company || 'Untitled Plan'}</strong>
-            <span class="version-badge">${version.industry || 'N/A'}</span>
-          </div>
-          <div class="version-meta">
-            <span>${dateStr}</span>
-            <span>${timeStr}</span>
-          </div>
-        </div>
-        <div class="version-preview">${preview}</div>
-        <div class="version-actions">
-          <button class="btn btn-primary btn-sm" onclick="restoreVersion(${version.id})" data-testid="button-restore-${version.id}">
-            Restore This Version
-          </button>
-        </div>
-      </div>
-    `;
-  }).join('');
-  
-  versionList.innerHTML = versionsHtml;
-}
-
-$('version-cancel').addEventListener('click', () => {
-  closeModal('version-history-modal');
-});
-
-// Make restoreVersion globally available
-window.restoreVersion = restoreVersion;
 
 async function fetchReportsList(search = '') {
   const reportsList = $('reports-list');

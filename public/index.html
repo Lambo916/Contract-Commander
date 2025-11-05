@@ -118,7 +118,6 @@
               <button class="dropdown-item" id="btn-save" data-testid="button-save" title="Save this report">Save</button>
               <button class="dropdown-item" id="btn-save-as" data-testid="button-save-as" title="Save with a new name">Save As...</button>
               <button class="dropdown-item" id="btn-rename" data-testid="button-rename" title="Rename current file">Rename...</button>
-              <button class="dropdown-item" id="btn-delete" data-testid="button-delete" title="Delete this report">Delete</button>
             </div>
           </div>
 
@@ -128,8 +127,6 @@
             </button>
             <div class="dropdown-menu" id="export-menu">
               <button class="dropdown-item" id="btn-export-pdf" data-testid="button-export-pdf" title="Download as PDF">PDF</button>
-              <button class="dropdown-item" id="btn-export-docx" data-testid="button-export-docx" title="Download as DOCX">DOCX</button>
-              <button class="dropdown-item" id="btn-export-markdown" data-testid="button-export-markdown" title="Download as Markdown">Markdown</button>
             </div>
           </div>
 
@@ -140,7 +137,6 @@
             <div class="dropdown-menu" id="tools-menu">
               <button class="dropdown-item" id="btn-load-template" data-testid="button-load-template" title="Load a template">Load Template...</button>
               <button class="dropdown-item" id="btn-clear-all" data-testid="button-clear-all" title="Clear all inputs and results">Clear All</button>
-              <button class="dropdown-item" id="btn-version-history" data-testid="button-version-history" title="View previous versions">Version History</button>
             </div>
           </div>
         </div>
@@ -237,21 +233,6 @@
     </div>
   </div>
 
-  <!-- Version History Modal -->
-  <div id="version-history-modal" class="modal" role="dialog" aria-labelledby="version-history-title" aria-hidden="true">
-    <div class="modal-content modal-large">
-      <div class="modal-header">
-        <h2 id="version-history-title">Version History</h2>
-        <button class="modal-close" data-testid="button-close-version-modal" aria-label="Close">&times;</button>
-      </div>
-      <div class="modal-body">
-        <div id="version-list" class="version-list" data-testid="list-versions"></div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-ghost" id="version-cancel" data-testid="button-version-cancel">Close</button>
-      </div>
-    </div>
-  </div>
 
   <!-- Save As / Rename Modal -->
   <div id="saveas-modal" class="modal" role="dialog" aria-labelledby="saveas-modal-title" aria-hidden="true">
