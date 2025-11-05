@@ -289,12 +289,12 @@
       this.doc.text(pageText, CONTENT.right - pageWidth, y);
     }
 
-    addNewPage(totalPages) {
+    addNewPage() {
       this.doc.addPage();
       this.pageNumber++;
       this.yPosition = CONTENT.top;
       this.drawHeader();
-      this.drawFooter(totalPages);
+      // Note: Footer will be added in final pass with correct total page count
     }
 
     needsNewPage(requiredHeight) {
@@ -462,52 +462,16 @@
       const reportData = window.currentReportData || {};
       const companyName = reportData.company || 'Business';
 
-      // ---- Page 1: Table of Contents ----
+      // ---- Page 1: Table of Contents (Placeholder) ----
+      // We'll record sections as we create them, then come back to update the TOC
+      const tocStartY = writer.yPosition;
+      const tocPageNumber = writer.pageNumber;
+      
       writer.addSectionHeader('Table of Contents');
       
-      // Parse main content to build TOC
-      const mainContent = reportData.markdown || '';
-      const tocSections = [];
-      
-      // Add standard sections
-      if (reportData.executiveSnapshot) tocSections.push('Executive Snapshot');
-      if (mainContent) {
-        const lines = mainContent.split('\n');
-        for (const line of lines) {
-          if (line.startsWith('## ')) {
-            const sectionTitle = line.substring(3).trim();
-            if (sectionTitle && !sectionTitle.startsWith('#')) {
-              tocSections.push(sectionTitle);
-            }
-          }
-        }
-      }
-      if (reportData.kpiTable && reportData.kpiTable.length > 0) {
-        tocSections.push('Key Performance Indicators');
-      }
-      if (reportData.financialProjections) {
-        tocSections.push('Financial Projections');
-      }
-      if (reportData.aiInsights && reportData.aiInsights.length > 0) {
-        tocSections.push('AI Insights');
-      }
-
-      // Render TOC
-      doc.setFont(TYPOGRAPHY.fontFamily, "normal");
-      doc.setFontSize(11);
-      doc.setTextColor(...TYPOGRAPHY.colorText);
-      
-      for (const section of tocSections) {
-        if (writer.needsNewPage(7)) {
-          writer.addNewPage();
-        }
-        doc.text(`• ${section}`, CONTENT.left + 5, writer.yPosition);
-        writer.yPosition += 7;
-      }
-
-      // Add divider after TOC
-      writer.yPosition += 5;
-      writer.addDivider();
+      // Reserve space for TOC (we'll fill it in later)
+      const tocReservedSpace = 150; // mm - enough for ~20 sections
+      writer.yPosition += tocReservedSpace;
 
       // ---- Executive Snapshot ----
       if (reportData.executiveSnapshot) {
@@ -655,6 +619,32 @@
           writer.yPosition += TYPOGRAPHY.lineHeight + 2;
         }
       }
+
+      // ---- Render Table of Contents with Page Numbers ----
+      // Now that all sections are created, go back to page 1 and fill in the TOC
+      doc.setPage(tocPageNumber);
+      let tocY = tocStartY + 15; // Start below the "Table of Contents" header
+
+      doc.setFont(TYPOGRAPHY.fontFamily, "normal");
+      doc.setFontSize(11);
+      doc.setTextColor(...TYPOGRAPHY.colorText);
+
+      for (const section of writer.sections) {
+        doc.text(`• ${section.title}`, CONTENT.left + 5, tocY);
+        
+        // Page number (right-aligned)
+        const pageNumText = `${section.page}`;
+        const pageNumWidth = doc.getTextWidth(pageNumText);
+        doc.text(pageNumText, CONTENT.right - pageNumWidth, tocY);
+        
+        tocY += 7;
+      }
+
+      // Add divider after TOC
+      tocY += 3;
+      doc.setDrawColor(...TYPOGRAPHY.colorYellow);
+      doc.setLineWidth(0.34);
+      doc.line(CONTENT.left, tocY, CONTENT.right, tocY);
 
       // ---- Finalize: Add headers and footers to all pages ----
       const totalPages = doc.internal.pages.length - 1; // -1 because first element is null
