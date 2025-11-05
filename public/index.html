@@ -77,6 +77,20 @@
       </div>
 
       <div class="ybg-actions">
+        <div class="dropdown">
+          <button class="btn btn-secondary" id="btn-templates" data-testid="button-templates" title="Load example business plan template">
+            Load Template ▾
+          </button>
+          <div class="dropdown-menu" id="template-menu">
+            <button class="dropdown-item" data-template="saas" data-testid="template-saas">SaaS Startup</button>
+            <button class="dropdown-item" data-template="realestate" data-testid="template-realestate">Real Estate Investment</button>
+            <button class="dropdown-item" data-template="consulting" data-testid="template-consulting">Management Consulting</button>
+            <button class="dropdown-item" data-template="nonprofit" data-testid="template-nonprofit">Nonprofit Organization</button>
+            <button class="dropdown-item" data-template="ecommerce" data-testid="template-ecommerce">E-Commerce Store</button>
+            <button class="dropdown-item" data-template="restaurant" data-testid="template-restaurant">Restaurant / Food Service</button>
+          </div>
+        </div>
+        <button class="btn btn-secondary" id="btn-clear-inputs" data-testid="button-clear-inputs" title="Clear all input fields">Clear All</button>
         <button class="btn btn-primary" id="btn-generate" data-testid="button-generate" title="Generate business plan">Generate Plan</button>
       </div>
 
@@ -103,6 +117,7 @@
           </div>
 
           <button class="btn btn-toolbar inactive" id="btn-clear" data-testid="button-clear" title="Remove the current report from the page">Clear</button>
+          <button class="btn btn-toolbar inactive" id="btn-version-history" data-testid="button-version-history" title="View previous versions">Version History</button>
         </div>
       </div>
 
