@@ -242,42 +242,31 @@ window.YBG_PDF = window.YBG_PDF || {};
 
   // ---- Footer Drawing ------------------------------------------------------
   async function drawFooter(doc, pageNum, totalPages) {
-    const mainFooterY = PAGE.height - MARGINS.bottom - 12;
-    const disclaimerY = PAGE.height - MARGINS.bottom - 4;
+    const line1Y = PAGE.height - MARGINS.bottom - 14;
+    const dividerY = PAGE.height - MARGINS.bottom - 10;
+    const line2Y = PAGE.height - MARGINS.bottom - 4;
     
-    // Gold accent line above footer (YBG branding)
-    doc.setDrawColor(...TYPOGRAPHY.colorYellow); // YBG gold #FFEB3B
-    doc.setLineWidth(0.4);
-    doc.line(CONTENT.left, CONTENT.bottom + 6, CONTENT.right, CONTENT.bottom + 6);
-    
-    // Main footer row
+    // Line 1: "Powered by YourBizGuru.com" (left-aligned)
     doc.setFont(TYPOGRAPHY.fontFamily, "normal");
     doc.setFontSize(TYPOGRAPHY.footerSize);
     doc.setTextColor(...TYPOGRAPHY.colorMeta);
+    doc.text("Powered by YourBizGuru.com", CONTENT.left, line1Y);
     
-    // Left side: "Powered by YourBizGuru • Generated {timestamp}"
-    const timestamp = new Date().toLocaleString('en-US', {
-      month: '2-digit',
-      day: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true
-    });
-    doc.text(`Powered by YourBizGuru • Generated ${timestamp}`, CONTENT.left, mainFooterY);
+    // Thin horizontal divider beneath Line 1
+    doc.setDrawColor(120, 120, 120); // Gray divider
+    doc.setLineWidth(0.2);
+    doc.line(CONTENT.left, dividerY, CONTENT.right, dividerY);
     
-    // Right side: "Page X of Y"
+    // Line 2: Disclaimer (left-aligned)
+    doc.setFont(TYPOGRAPHY.fontFamily, "normal");
+    doc.setFontSize(TYPOGRAPHY.footerSize);
+    doc.setTextColor(...TYPOGRAPHY.colorMeta);
+    doc.text("For informational purposes only. Not legal, tax, or financial advice.", CONTENT.left, line2Y);
+    
+    // Page number (far right, aligned with Line 2)
     const pageText = `Page ${pageNum} of ${totalPages}`;
     const pageWidth = doc.getTextWidth(pageText);
-    doc.text(pageText, CONTENT.right - pageWidth, mainFooterY);
-    
-    // Disclaimer below (small, muted, centered)
-    doc.setFont(TYPOGRAPHY.fontFamily, "normal");
-    doc.setFontSize(7); // Smaller than footer size
-    doc.setTextColor(120, 120, 120); // More muted gray
-    const disclaimer = "For informational use only.";
-    const disclaimerWidth = doc.getTextWidth(disclaimer);
-    doc.text(disclaimer, (PAGE.width - disclaimerWidth) / 2, disclaimerY);
+    doc.text(pageText, CONTENT.right - pageWidth, line2Y);
     
     // Reset to body typography
     applyGlobalTypography(doc);
