@@ -1,0 +1,361 @@
+PATCH: BizPlan Builder — polish & depth upgrade (UI + PDF + “Detail Level”)
+
+───────────────────────────────────────────────────────────────────────────────
+A) styles.css  (append at bottom)
+───────────────────────────────────────────────────────────────────────────────
+/* Section spacing + PDF-friendly print spacing */
+.section-block { margin-top: 18px; }
+.section-block + .section-block { margin-top: 26px; }
+
+/* Tighten tables in PDF and screen */
+.table-compact .jspdf-autotable td,
+.table-compact .jspdf-autotable th { padding: 6px 8px; }
+
+/* AI Insights highlight */
+.ai-insights__title {
+  font-weight: 700; font-size: 14px; margin: 8px 0 6px;
+  border-left: 4px solid #FFEB3B; padding-left: 8px;
+}
+
+/* Consistent chart titles */
+.chart-title { font-weight: 600; margin: 8px 0 10px; }
+
+/* Light divider under H2s for PDF rendering */
+.h-rule { height: 2px; background: #FFEB3B; opacity: .75; margin: 8px 0 12px; }
+
+
+───────────────────────────────────────────────────────────────────────────────
+B) index.html  (near your existing “Tone” control; add this small block)
+───────────────────────────────────────────────────────────────────────────────
+<!-- Detail Level control -->
+<div class="control-row">
+  <label for="detailLevel" title="Controls narrative depth in generated plan">
+    Detail Level
+  </label>
+  <select id="detailLevel">
+    <option value="standard" selected>Standard</option>
+    <option value="expanded">Expanded</option>
+    <option value="comprehensive">Comprehensive</option>
+  </select>
+</div>
+
+
+───────────────────────────────────────────────────────────────────────────────
+C) prompt.js (or wherever you build the OpenAI prompt) – drop-in helper
+   Call:  const fullPrompt = buildBizPlanPrompt(userInputs, tone, detailLevel);
+───────────────────────────────────────────────────────────────────────────────
+export function buildBizPlanPrompt(inputs, tone = "Professional", detailLevel = "standard") {
+  const {
+    company, industry, targetCustomer, productService, revenueModel,
+    currentStage, topGoals = []
+  } = inputs;
+
+  const base = `
+You are BizPlan Builder, a planning analyst for founders.
+Write in a ${tone} tone with clear, investor-ready structure.
+
+Company: ${company}
+Industry: ${industry}
+Target Customer: ${targetCustomer}
+Offering: ${productService}
+Revenue Model: ${revenueModel}
+Current Stage: ${currentStage}
+Top Goals (6–12 months): ${topGoals.join("; ")}
+
+Sections to produce in order:
+- Executive Summary
+- Market Analysis
+- Business Model
+- Go-To-Market Strategy
+- Product Roadmap
+- Financial Outlook
+- Risk Mitigation (table: Risk | Likelihood | Impact | Mitigation)
+- Milestones Timeline (quarter-by-quarter bullets)
+- Key Performance Indicators (table w/ metric, target, timeframe)
+- AI Insights (actionable bullets)
+`;
+
+  let depthHint = "";
+  switch (detailLevel) {
+    case "expanded":
+      depthHint = `
+Depth Mode: EXPANDED.
+• Provide richer explanations with context on market dynamics and operational strategies.
+• Include 2–3 examples where appropriate.
+• Add numeric ranges or assumptions when helpful.`;
+      break;
+    case "comprehensive":
+      depthHint = `
+Depth Mode: COMPREHENSIVE (long-form).
+• Write 3–5 paragraphs per major section with specific, defensible details.
+• Include assumptions, sample KPIs with targets, and brief benchmarks where relevant.
+• Keep language practical and investor-focused.`;
+      break;
+    default:
+      depthHint = `Depth Mode: STANDARD. Keep it concise but substantive.`;
+  }
+
+  const outputRules = `
+Output Rules:
+• Use concise headings and short paragraphs. No fluff.
+• Prefer concrete actions, numbers, and milestones.
+• Keep any tables simple and printable (no markdown pipes; plain text bullets ok).
+`;
+
+  return `${base}\n${depthHint}\n${outputRules}`.trim();
+}
+
+
+───────────────────────────────────────────────────────────────────────────────
+D) ui-wire.js (hook up the new control to your existing Generate flow)
+───────────────────────────────────────────────────────────────────────────────
+/**
+ * Wire “Detail Level” into your existing generate handler.
+ * Assumes you already gather inputs and have a function `generatePlan(prompt)`.
+ */
+const detailEl = document.getElementById("detailLevel");
+
+async function onGenerateClick() {
+  const inputs = collectUserInputs();               // your existing function
+  const tone = document.getElementById("tone")?.value || "Professional";
+  const detailLevel = detailEl?.value || "standard";
+
+  const prompt = buildBizPlanPrompt(inputs, tone, detailLevel); // from (C)
+  await generatePlan(prompt);                        // your existing function
+}
+
+document.getElementById("generateBtn")?.addEventListener("click", onGenerateClick);
+
+
+───────────────────────────────────────────────────────────────────────────────
+E) charts.js – titles + consistent naming
+   (apply to both UI charts before rendering)
+───────────────────────────────────────────────────────────────────────────────
+function titlePlugin(text) {
+  return {
+    id: "titlePlugin",
+    beforeDraw(chart) {
+      const { ctx, chartArea: { top, left, width } } = chart;
+      ctx.save();
+      ctx.font = "600 14px system-ui, -apple-system, Segoe UI, Roboto, sans-serif";
+      ctx.textAlign = "left";
+      ctx.fillStyle = "#121212";
+      ctx.fillText(text, left + 8, top - 8);
+      ctx.restore();
+    }
+  };
+}
+
+// Example usage:
+const kpiChart = new Chart(kpiCtx, {
+  type: "bar",
+  data: kpiData,
+  options: { /* … your options … */ },
+  plugins: [ titlePlugin("KPI Progress Chart") ]
+});
+
+const finChart = new Chart(finCtx, {
+  type: "line",
+  data: finData,
+  options: { /* … your options … */ },
+  plugins: [ titlePlugin("Financial Projections (12-Month Forecast)") ]
+});
+
+
+───────────────────────────────────────────────────────────────────────────────
+F) pdf-export.js – spacing, headings, autoTable column sizing, and cover page
+───────────────────────────────────────────────────────────────────────────────
+import jsPDF from "jspdf";
+import "jspdf-autotable";
+
+// small helper to add section title with yellow rule
+function pdfSectionHeader(doc, title, y, brand="#FFEB3B") {
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(14);
+  doc.text(title, 14, y);
+  doc.setDrawColor(255, 235, 59); // #FFEB3B
+  doc.setLineWidth(0.8);
+  doc.line(14, y + 3, 196, y + 3);
+  return y + 10;
+}
+
+export async function exportBizPlanPDF(report) {
+  const site = (process.env.PUBLIC_SITE_URL || "https://bizplan.yourbizguru.com");
+  const tool = (process.env.TOOL_NAME || "BizPlanBuilder");
+
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const marginX = 14;
+  let y = 20;
+
+  // ── Cover page (simple, printable)
+  doc.setFont("helvetica", "bold"); doc.setFontSize(18);
+  doc.text(`${tool} | YourBizGuru.com`, marginX, y);
+  y += 10;
+  doc.setFont("helvetica", "normal"); doc.setFontSize(12);
+  doc.text(`Generated: ${new Date().toLocaleString()}`, marginX, y);
+  y += 10;
+  doc.text(`Company: ${report?.company || "-"}`, marginX, y);
+  y += 10;
+  doc.text(`Industry: ${report?.industry || "-"}`, marginX, y);
+
+  // footer for every page
+  const footer = () => {
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(9);
+      doc.setTextColor(80);
+      doc.text(
+        "Powered by YourBizGuru.com   For informational purposes only. Not legal, tax, or financial advice.",
+        marginX, 287
+      );
+      doc.text(`Page ${i} of ${pageCount}`, 196 - marginX, 287, { align: "right" });
+    }
+  };
+
+  doc.addPage(); // start main content
+
+  // ── Table of Contents (auto)
+  y = pdfSectionHeader(doc, "Table of Contents", 20);
+  const toc = [
+    "Executive Snapshot",
+    "Key Performance Indicators",
+    "KPI Progress Chart",
+    "Financial Projections (12-Month Forecast)",
+    "AI Insights"
+  ];
+  doc.setFontSize(11); doc.setFont("helvetica", "normal");
+  toc.forEach((line, idx) => {
+    doc.text(`• ${line}`, marginX, y + (idx * 7));
+  });
+
+  // ── Executive Snapshot
+  doc.addPage();
+  y = pdfSectionHeader(doc, "Executive Snapshot", 20);
+  const snapRows = [
+    ["Company", report.company],
+    ["Stage", report.currentStage],
+    ["Industry", report.industry],
+    ["Target Market", report.targetCustomer]
+  ];
+  doc.autoTable({
+    startY: y + 2,
+    head: [["Field", "Value"]],
+    body: snapRows,
+    styles: { fontSize: 10, cellPadding: 2.2 },
+    headStyles: { fillColor: [77, 182, 231] }, // #4DB6E7
+    columnStyles: {
+      0: { cellWidth: 45 },  // balance long field names
+      1: { cellWidth: 'auto' }
+    },
+    margin: { left: marginX, right: marginX }
+  });
+  y = doc.lastAutoTable.finalY + 6;
+
+  // ── KPIs
+  y = pdfSectionHeader(doc, "Key Performance Indicators", y);
+  doc.autoTable({
+    startY: y + 2,
+    head: [["Objective", "KPI", "Target", "Timeframe"]],
+    body: (report.kpis || []).map(k => [k.objective, k.kpi, k.target, k.timeframe]),
+    styles: { fontSize: 10, cellPadding: 2.2 },
+    headStyles: { fillColor: [77, 182, 231] },
+    columnStyles: {
+      0: { cellWidth: 60 },
+      1: { cellWidth: 40 },
+      2: { cellWidth: 30 },
+      3: { cellWidth: 30 },
+    },
+    margin: { left: marginX, right: marginX }
+  });
+  y = doc.lastAutoTable.finalY + 8;
+
+  // ── KPI Progress Chart (html2canvas snapshot)
+  y = pdfSectionHeader(doc, "KPI Progress Chart", y);
+  if (report.kpiChartDataUrl) {
+    doc.addImage(report.kpiChartDataUrl, "PNG", marginX, y, 182, 70);
+    y += 78;
+  }
+
+  // ── Financial Projections
+  y = pdfSectionHeader(doc, "Financial Projections (12-Month Forecast)", y);
+  doc.autoTable({
+    startY: y + 2,
+    head: [["Metric", "Value"]],
+    body: [
+      ["Total Year 1 Revenue", report.financials?.totalRevenue || "-"],
+      ["Total Year 1 Expenses", report.financials?.totalExpenses || "-"],
+      ["Total Year 1 Profit", report.financials?.totalProfit || "-"],
+      ["Average Profit Margin", report.financials?.avgMargin || "-"],
+    ],
+    styles: { fontSize: 10, cellPadding: 2.2 },
+    headStyles: { fillColor: [77, 182, 231] },
+    columnStyles: { 0: { cellWidth: 80 }, 1: { cellWidth: 'auto' } },
+    margin: { left: marginX, right: marginX }
+  });
+  y = doc.lastAutoTable.finalY + 6;
+
+  if (report.financialChartDataUrl) {
+    doc.addImage(report.financialChartDataUrl, "PNG", marginX, y, 182, 70);
+    y += 78;
+  }
+
+  // ── AI Insights
+  y = pdfSectionHeader(doc, "AI Insights — Generated Recommendations for Growth", y);
+  doc.setFontSize(11);
+  const insights = (report.aiInsights || []).map(b => `• ${b}`);
+  let yy = y + 4;
+  insights.forEach(line => {
+    if (yy > 275) { doc.addPage(); yy = 20; }
+    doc.text(line, marginX, yy);
+    yy += 6;
+  });
+
+  footer();
+  const fname = `BizPlanBuilder_${(report.company || "Company").replace(/\s+/g,"")}_${new Date().toISOString().slice(0,10).replace(/-/g,"")}.pdf`;
+  doc.save(fname);
+}
+
+
+───────────────────────────────────────────────────────────────────────────────
+G) html2canvas scaling (if not already set) — ensures crisp chart exports
+───────────────────────────────────────────────────────────────────────────────
+/**
+ * Use when rasterizing any DOM node for PDF images:
+ */
+async function snapElToDataUrl(el, scale = 2) {
+  const canvas = await html2canvas(el, {
+    backgroundColor: "#ffffff",
+    scale,
+    useCORS: true,
+    logging: false
+  });
+  return canvas.toDataURL("image/png");
+}
+
+// Example when preparing `report.kpiChartDataUrl` / `report.financialChartDataUrl`:
+// report.kpiChartDataUrl = await snapElToDataUrl(document.getElementById("kpiChart"));
+// report.financialChartDataUrl = await snapElToDataUrl(document.getElementById("finChart"));
+
+
+───────────────────────────────────────────────────────────────────────────────
+H) Small rename (UI labels) – keep consistent with PDF
+───────────────────────────────────────────────────────────────────────────────
+// Wherever you render the headings in-screen:
+document.querySelector('#kpiVizTitle')!.textContent = "KPI Progress Chart";
+document.querySelector('#finProjTitle')!.textContent = "Financial Projections (12-Month Forecast)";
+
+// Add the visible title above AI Insights block:
+const aiTitle = document.createElement("div");
+aiTitle.className = "ai-insights__title";
+aiTitle.textContent = "AI Insights — Generated Recommendations for Growth";
+document.querySelector('#aiInsightsBlock')?.prepend(aiTitle);
+
+
+───────────────────────────────────────────────────────────────────────────────
+NOTES
+- This patch keeps your current flow intact, adds a “Detail Level” control that
+  expands narrative depth via the prompt, tightens tables, standardizes titles,
+  improves margins, and ensures crisp chart exports in PDF.
+- If file boundaries differ, your dev can paste each section into the closest
+  matching file and keep function names as provided.
