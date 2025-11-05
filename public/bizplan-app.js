@@ -280,11 +280,29 @@ function renderAiInsights(insights) {
   `;
 }
 
+function renderAiSuggestionsSection() {
+  return `
+    <div class="ai-suggestions-section" data-testid="ai-suggestions-section">
+      <div class="ai-suggestions-header">
+        <h3 style="color: #1a1a1a; font-size: 20px; margin: 0;">Get AI-Powered Improvement Suggestions</h3>
+        <button class="btn-suggestion" id="btn-get-suggestions" data-testid="button-get-suggestions">
+          Get Suggestions
+        </button>
+      </div>
+      <div id="ai-suggestions-container" class="ai-suggestions-card collapsed" data-testid="ai-suggestions-container">
+        <h4>AI Improvement Suggestions</h4>
+        <div id="suggestions-content"></div>
+      </div>
+    </div>
+  `;
+}
+
 function renderPremiumReport(data) {
   const snapshotHtml = renderExecutiveSnapshot(data.executiveSnapshot);
   const mainPlanHtml = markdownToHtml(data.mainPlan || data.markdown || '');
   const kpiTableHtml = renderKpiTable(data.kpiTable);
   const insightsHtml = renderAiInsights(data.aiInsights);
+  const suggestionsHtml = renderAiSuggestionsSection();
   
   return `
     ${snapshotHtml}
@@ -293,6 +311,7 @@ function renderPremiumReport(data) {
     </div>
     ${kpiTableHtml}
     ${insightsHtml}
+    ${suggestionsHtml}
   `;
 }
 
@@ -343,6 +362,58 @@ function attachKpiEditHandlers() {
     cell.addEventListener('blur', () => {
       syncKpiTableData();
     });
+  });
+}
+
+function attachAiSuggestionsHandler() {
+  const suggestionsBtn = document.getElementById('btn-get-suggestions');
+  if (!suggestionsBtn) return;
+  
+  suggestionsBtn.addEventListener('click', async () => {
+    if (!currentReportData) return;
+    
+    const container = document.getElementById('ai-suggestions-container');
+    const content = document.getElementById('suggestions-content');
+    
+    suggestionsBtn.disabled = true;
+    suggestionsBtn.textContent = 'Generating...';
+    content.innerHTML = '<p style="color: #666; font-style: italic;">Analyzing your business plan...</p>';
+    container.classList.remove('collapsed');
+    
+    try {
+      const res = await fetch('/api/bizplan/suggestions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Client-Id': getClientId()
+        },
+        body: JSON.stringify({
+          company: currentReportData.company,
+          industry: currentReportData.industry,
+          markdown: currentReportData.markdown,
+          kpiTable: currentReportData.kpiTable
+        })
+      });
+      
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      
+      const data = await res.json();
+      
+      if (data.suggestions && data.suggestions.length > 0) {
+        const suggestionsHtml = data.suggestions.map(s => `<li>${s}</li>`).join('');
+        content.innerHTML = `<ul>${suggestionsHtml}</ul>`;
+      } else {
+        content.innerHTML = '<p style="color: #999;">No suggestions generated. Your plan looks solid!</p>';
+      }
+      
+      suggestionsBtn.textContent = 'Refresh Suggestions';
+      
+    } catch (e) {
+      content.innerHTML = `<p style="color: #ff6b6b;">Error generating suggestions: ${e.message}</p>`;
+      suggestionsBtn.textContent = 'Try Again';
+    } finally {
+      suggestionsBtn.disabled = false;
+    }
   });
 }
 
@@ -471,6 +542,9 @@ $('btn-generate').addEventListener('click', async () => {
     
     // Attach KPI edit handlers
     attachKpiEditHandlers();
+    
+    // Attach AI suggestions handler
+    attachAiSuggestionsHandler();
     
     showMetadata(payload.company, payload.industry, payload.stage);
     updateButtonStates(true);

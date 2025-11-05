@@ -693,6 +693,107 @@ INSTRUCTIONS:
     }
   });
 
+  // BizPlan Builder - Generate AI Improvement Suggestions
+  app.post("/api/bizplan/suggestions", async (req, res) => {
+    try {
+      const { company, industry, markdown, kpiTable } = req.body;
+
+      if (!company || !industry || !markdown) {
+        return res.status(400).json({
+          error: "Missing required fields: company, industry, markdown"
+        });
+      }
+
+      console.log(`Generating AI suggestions for: ${company} - ${industry}`);
+
+      // Create concise summary of the plan for the prompt
+      const planSummary = markdown.substring(0, 2000);
+      const kpiSummary = kpiTable ? kpiTable.map((k: any) => `${k.objective}: ${k.kpi} (${k.target})`).join('; ') : 'None';
+
+      const prompt = `
+You are a business strategy consultant providing actionable improvement suggestions for a business plan.
+
+COMPANY: ${company}
+INDUSTRY: ${industry}
+
+PLAN SUMMARY:
+${planSummary}
+
+KPIS:
+${kpiSummary}
+
+Analyze this business plan and provide 4-6 specific, actionable improvement suggestions. Focus on:
+1. Strategic gaps or missed opportunities
+2. KPI optimization or additional metrics to track
+3. Market positioning or competitive advantages to emphasize
+4. Execution risks to address
+5. Resource allocation or timeline adjustments
+6. Customer acquisition or retention strategies
+
+Return a JSON object with this structure:
+{
+  "suggestions": [
+    "Specific suggestion 1 (1-2 sentences, actionable)",
+    "Specific suggestion 2...",
+    ...
+  ]
+}
+
+Make suggestions concrete and tailored to this specific business. Avoid generic advice.
+      `.trim();
+
+      // SDK-free fetch to OpenAI API
+      const apiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: 'gpt-4o',
+          messages: [
+            { role: 'system', content: 'You are an expert business strategy consultant providing actionable improvement suggestions.' },
+            { role: 'user', content: prompt }
+          ],
+          response_format: { type: 'json_object' },
+          temperature: 0.7,
+          max_tokens: 800
+        })
+      });
+
+      const data = await apiResponse.json();
+      
+      if (!apiResponse.ok) {
+        console.error("OpenAI API error:", data);
+        return res.status(apiResponse.status).json({
+          error: data.error?.message || 'OpenAI API error'
+        });
+      }
+
+      const content = data.choices?.[0]?.message?.content || "{}";
+      let parsedResponse;
+      
+      try {
+        parsedResponse = JSON.parse(content);
+        console.log("AI suggestions generated successfully");
+      } catch (parseError) {
+        console.error("Failed to parse OpenAI JSON response:", parseError);
+        return res.status(500).json({
+          error: "Failed to generate suggestions. Please try again."
+        });
+      }
+      
+      res.json({
+        suggestions: parsedResponse.suggestions || []
+      });
+    } catch (error: any) {
+      console.error("Error in /api/bizplan/suggestions:", error);
+      res.status(500).json({
+        error: "Failed to generate suggestions."
+      });
+    }
+  });
+
   // BizPlan Builder - Save report with 30-report limit and HTML sanitization
   app.post("/api/bizplan/reports/save", async (req, res) => {
     try {
