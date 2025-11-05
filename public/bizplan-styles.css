@@ -1020,8 +1020,12 @@
   padding: 12px 12px;
   font-size: 15px;
   font-weight: 700;
-  min-height: 44px;
+  height: 47px;
   border-radius: 12px;
+}
+
+#tone {
+  height: 47px;
 }
 
 /* ==== COMMAND BAR ==== */
