@@ -865,6 +865,19 @@
   transform: none;
 }
 
+/* Dark mode overrides for AI Suggestions */
+:root.dark .ai-suggestions-header h3 {
+  color: #f5f5f5 !important;
+}
+
+:root.dark .ai-suggestions-card h4 {
+  color: #f5f5f5;
+}
+
+:root.dark .ai-suggestions-card li {
+  color: #e0e0e0;
+}
+
 /* KPI Charts Styles */
 .kpi-charts-section {
   margin-top: 32px;

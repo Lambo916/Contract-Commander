@@ -576,6 +576,21 @@ window.YBG_PDF = window.YBG_PDF || {};
         continue;
       }
       
+      if (trimmed === '##AI_SUGGESTIONS##') {
+        const suggestions = [];
+        i++;
+        while (i < lines.length && lines[i].trim() !== '##END_AI_SUGGESTIONS##') {
+          const suggestionLine = lines[i].trim();
+          if (suggestionLine && suggestionLine.startsWith('→')) {
+            suggestions.push(suggestionLine.substring(1).trim());
+          }
+          i++;
+        }
+        blocks.push({ type: 'ai_suggestions', suggestions });
+        i++; // Skip END marker
+        continue;
+      }
+      
       if (trimmed === '##KPI_CHART##') {
         let chartImageData = '';
         i++;
@@ -1148,6 +1163,88 @@ window.YBG_PDF = window.YBG_PDF || {};
       applyGlobalTypography(this.doc);
     }
     
+    writeAiSuggestions(suggestions) {
+      if (!suggestions || suggestions.length === 0) return;
+      
+      const boxPadding = 5; // mm
+      const titleHeight = 8; // mm for title
+      const footerHeight = 5; // mm for footer text
+      const lineHeight = 4.5; // mm per line
+      
+      // Calculate actual box height based on wrapped content
+      let totalContentHeight = titleHeight;
+      this.doc.setFont(TYPOGRAPHY.fontFamily, "normal");
+      this.doc.setFontSize(10);
+      
+      const suggestionHeights = [];
+      for (const suggestion of suggestions) {
+        const maxTextWidth = CONTENT.width - 15;
+        const wrappedLines = wrapText(this.doc, suggestion, maxTextWidth, 10);
+        const itemHeight = wrappedLines.length * lineHeight + 1; // +1 for spacing
+        suggestionHeights.push({ lines: wrappedLines, height: itemHeight });
+        totalContentHeight += itemHeight;
+      }
+      
+      const boxHeight = totalContentHeight + footerHeight + (boxPadding * 2);
+      
+      // Check if we need a new page
+      if (this.needsNewPage(boxHeight + 5)) {
+        this.addNewPage();
+      }
+      
+      const boxStartY = this.yPosition;
+      
+      // Draw yellow gradient background box (lighter than insights)
+      this.doc.setFillColor(255, 249, 230); // Very light yellow
+      this.doc.rect(CONTENT.left, boxStartY, CONTENT.width, boxHeight, 'F');
+      
+      // Draw yellow left border
+      this.doc.setFillColor(255, 235, 59); // Yellow
+      this.doc.rect(CONTENT.left, boxStartY, 3, boxHeight, 'F');
+      
+      // Draw border
+      this.doc.setDrawColor(255, 235, 59);
+      this.doc.setLineWidth(0.5);
+      this.doc.rect(CONTENT.left, boxStartY, CONTENT.width, boxHeight);
+      
+      this.yPosition += boxPadding;
+      
+      // Title
+      this.doc.setFont(TYPOGRAPHY.fontFamily, "bold");
+      this.doc.setFontSize(12);
+      this.doc.setTextColor(...TYPOGRAPHY.colorHeading);
+      this.doc.text("AI IMPROVEMENT SUGGESTIONS", CONTENT.left + 5, this.yPosition + 5);
+      this.yPosition += titleHeight;
+      
+      // Draw suggestions as arrow list with proper multi-line wrapping
+      this.doc.setFont(TYPOGRAPHY.fontFamily, "normal");
+      this.doc.setFontSize(10);
+      this.doc.setTextColor(...TYPOGRAPHY.colorBody);
+      
+      for (const { lines, height } of suggestionHeights) {
+        // Draw arrow
+        this.doc.text("→", CONTENT.left + 5, this.yPosition + 4);
+        
+        // Draw all wrapped lines
+        let lineY = this.yPosition + 4;
+        for (const line of lines) {
+          this.doc.text(line, CONTENT.left + 10, lineY);
+          lineY += lineHeight;
+        }
+        
+        this.yPosition += height;
+      }
+      
+      // Footer text
+      this.doc.setFont(TYPOGRAPHY.fontFamily, "italic");
+      this.doc.setFontSize(8);
+      this.doc.setTextColor(120, 120, 120);
+      this.doc.text("AI-powered suggestions provided by YourBizGuru AI.", CONTENT.left + 5, this.yPosition + 3);
+      
+      this.yPosition += footerHeight + boxPadding + 3; // Extra space after box
+      applyGlobalTypography(this.doc);
+    }
+    
     writeChartImage(imageData) {
       if (!imageData || !imageData.startsWith('data:image')) return;
       
@@ -1311,6 +1408,11 @@ window.YBG_PDF = window.YBG_PDF || {};
       
       if (block.type === 'ai_insights') {
         this.writeAiInsights(block.insights);
+        return;
+      }
+      
+      if (block.type === 'ai_suggestions') {
+        this.writeAiSuggestions(block.suggestions);
         return;
       }
       
@@ -1727,6 +1829,20 @@ window.YBG_PDF = window.YBG_PDF || {};
             markdown += '• ' + item.textContent.trim() + '\n';
           }
           markdown += '##END_AI_INSIGHTS##\n\n';
+          return;
+        }
+        
+        if (node.classList && node.classList.contains('ai-suggestions-card')) {
+          markdown += '\n##AI_SUGGESTIONS##\n';
+          const items = node.querySelectorAll('li');
+          for (const item of items) {
+            // Remove the arrow prefix from the text if present
+            let text = item.textContent.trim();
+            // Extract just the text content without the arrow bullet
+            const textContent = text.replace(/^→\s*/, '');
+            markdown += '→ ' + textContent + '\n';
+          }
+          markdown += '##END_AI_SUGGESTIONS##\n\n';
           return;
         }
         
