@@ -23,5 +23,5 @@ textarea{min-height:120px;resize:vertical}
 .btn-quiet{background:var(--ybg-btn-quiet-bg);border:1px solid var(--ybg-btn-quiet-border);color:var(--ybg-muted)}
 .ybg-results{margin-top:16px}
 .ybg-prose{background:var(--ybg-prose-bg);border:1px dashed var(--ybg-prose-border);border-radius:12px;padding:14px;min-height:180px;color:var(--ybg-text);white-space:pre-wrap;overflow:auto}
-.ybg-footer{display:flex;justify-content:space-between;align-items:center;margin:22px 0 10px;color:var(--ybg-muted);font-size:14px}
+.ybg-footer{display:flex;flex-direction:column;align-items:center;margin:22px 0 10px;color:var(--ybg-muted);font-size:14px}
 .ybg-footer a{color:var(--ybg-blue);text-decoration:none}
