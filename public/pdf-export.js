@@ -700,4 +700,7 @@
 
   // Export to global scope
   window.exportBizPlanToPDF = exportToPDF;
+  
+  // Confirm script loaded
+  console.log('✓ PDF export module loaded successfully');
 })();

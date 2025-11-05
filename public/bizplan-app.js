@@ -1495,25 +1495,29 @@ async function handleSaveReport(filename, reportId) {
 }
 
 async function handleExportPDF() {
-  const reportView = $('report-view');
-  if (!reportView.innerHTML.trim() || !currentReportData) {
-    showToast('No report to export', 'error');
-    return;
-  }
-  
-  // Auto-save before export
-  saveCurrentReport();
-  
   try {
-    if (window.exportBizPlanToPDF) {
-      await window.exportBizPlanToPDF();
-    } else {
-      throw new Error('PDF export module not loaded');
+    const reportView = $('report-view');
+    if (!reportView.innerHTML.trim() || !currentReportData) {
+      showToast('No report to export', 'error');
+      return;
     }
+    
+    // Check if export function exists
+    if (typeof window.exportBizPlanToPDF !== 'function') {
+      console.error('PDF export function not found. Type:', typeof window.exportBizPlanToPDF);
+      showToast('PDF export module not loaded. Please refresh the page.', 'error');
+      return;
+    }
+    
+    // Auto-save before export
+    saveCurrentReport();
+    
+    // Call the export function
+    await window.exportBizPlanToPDF();
     
   } catch (e) {
     console.error('PDF export error:', e);
-    showToast(`Error exporting PDF: ${e.message}`, 'error');
+    showToast(`PDF export failed: ${e.message}`, 'error');
   }
 }
 
