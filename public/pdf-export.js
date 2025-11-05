@@ -427,6 +427,8 @@
   // ---- Main Export Function ----
   async function exportToPDF() {
     try {
+      console.log('Starting PDF export...');
+      
       // Show loading indicator
       const existingToast = document.querySelector('.toast');
       if (existingToast) existingToast.remove();
@@ -436,9 +438,12 @@
       toast.innerHTML = '<span class="spinner"></span> Preparing PDF export...';
       document.body.appendChild(toast);
 
+      console.log('Loading jsPDF library...');
       // Load libraries
       const jsPDF = await loadJsPDF();
+      console.log('jsPDF loaded, loading autoTable...');
       await loadJsPDFAutoTable();
+      console.log('AutoTable loaded');
 
       toast.innerHTML = '<span class="spinner"></span> Capturing charts...';
       
@@ -686,15 +691,20 @@
 
     } catch (error) {
       console.error('PDF export failed:', error);
+      console.error('Error details - message:', error?.message, 'stack:', error?.stack);
       
       const existingToast = document.querySelector('.toast');
       if (existingToast) existingToast.remove();
       
       const errorToast = document.createElement('div');
       errorToast.className = 'toast error';
-      errorToast.textContent = '✗ PDF export failed: ' + error.message;
+      const errorMsg = error?.message || error?.toString() || 'Unknown error';
+      errorToast.textContent = '✗ PDF export failed: ' + errorMsg;
       document.body.appendChild(errorToast);
       setTimeout(() => errorToast.remove(), 5000);
+      
+      // Re-throw to see full error in console
+      throw error;
     }
   }
 
