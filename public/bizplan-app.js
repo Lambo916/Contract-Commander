@@ -16,25 +16,31 @@ const REPORTS_LIMIT = 10;
 function setGeneratingState(generating) {
   isGenerating = generating;
   const generateBtn = $('btn-generate');
+  const generateToolbarBtn = $('btn-generate-toolbar');
   const fileBtn = $('btn-file');
   const exportBtn = $('btn-export');
-  const clearBtn = $('btn-clear');
-  const helpBtn = $('btn-help');
+  const resetBtn = $('btn-reset');
   
   if (generating) {
     generateBtn.disabled = true;
     generateBtn.innerHTML = '<span style="display: inline-flex; align-items: center; gap: 8px;"><span class="spinner"></span> Generating...</span>';
+    if (generateToolbarBtn) {
+      generateToolbarBtn.disabled = true;
+      generateToolbarBtn.innerHTML = '<span style="display: inline-flex; align-items: center; gap: 8px;"><span class="spinner"></span> Generating...</span>';
+    }
     fileBtn.disabled = true;
     exportBtn.disabled = true;
-    clearBtn.disabled = true;
-    helpBtn.disabled = true;
+    resetBtn.disabled = true;
   } else {
     generateBtn.disabled = false;
     generateBtn.textContent = 'Generate Plan';
+    if (generateToolbarBtn) {
+      generateToolbarBtn.disabled = false;
+      generateToolbarBtn.textContent = 'Generate';
+    }
     fileBtn.disabled = false;
     exportBtn.disabled = false;
-    clearBtn.disabled = false;
-    helpBtn.disabled = false;
+    resetBtn.disabled = false;
   }
 }
 
@@ -255,16 +261,16 @@ function markdownToHtml(markdown) {
 function updateButtonStates(hasReport) {
   const fileBtn = $('btn-file');
   const exportBtn = $('btn-export');
-  const clearBtn = $('btn-clear');
+  const resetBtn = $('btn-reset');
   
   if (hasReport) {
     fileBtn.classList.remove('inactive');
     exportBtn.classList.remove('inactive');
-    clearBtn.classList.remove('inactive');
+    resetBtn.classList.remove('inactive');
   } else {
     fileBtn.classList.add('inactive');
     exportBtn.classList.add('inactive');
-    clearBtn.classList.add('inactive');
+    resetBtn.classList.add('inactive');
   }
 }
 
@@ -827,9 +833,7 @@ $('btn-file').addEventListener('click', (e) => {
   e.stopPropagation();
   const menu = $('file-menu');
   const exportMenu = $('export-menu');
-  const helpMenu = $('help-menu');
   exportMenu.classList.remove('active');
-  helpMenu.classList.remove('active');
   menu.classList.toggle('active');
 });
 
@@ -837,26 +841,13 @@ $('btn-export').addEventListener('click', (e) => {
   e.stopPropagation();
   const menu = $('export-menu');
   const fileMenu = $('file-menu');
-  const helpMenu = $('help-menu');
   fileMenu.classList.remove('active');
-  helpMenu.classList.remove('active');
-  menu.classList.toggle('active');
-});
-
-$('btn-help').addEventListener('click', (e) => {
-  e.stopPropagation();
-  const menu = $('help-menu');
-  const fileMenu = $('file-menu');
-  const exportMenu = $('export-menu');
-  fileMenu.classList.remove('active');
-  exportMenu.classList.remove('active');
   menu.classList.toggle('active');
 });
 
 document.addEventListener('click', () => {
   $('file-menu').classList.remove('active');
   $('export-menu').classList.remove('active');
-  $('help-menu').classList.remove('active');
   $('template-menu').classList.remove('active');
 });
 
@@ -940,13 +931,13 @@ $('btn-version-history').addEventListener('click', () => {
   $('file-menu').classList.remove('active');
 });
 
-$('btn-move-trash').addEventListener('click', async () => {
+$('btn-delete').addEventListener('click', async () => {
   if (!currentReportId) {
     showToast('No report to delete', 'error');
     return;
   }
   
-  if (!confirm(`Move "${currentFileName || 'this report'}" to trash?`)) {
+  if (!confirm(`Delete "${currentFileName || 'this report'}"? This cannot be undone.`)) {
     return;
   }
   
@@ -968,7 +959,7 @@ $('btn-move-trash').addEventListener('click', async () => {
     hasUnsavedChanges = false;
     hideMetadata();
     
-    showToast('Report moved to trash', 'success');
+    showToast('Report deleted', 'success');
     
   } catch (e) {
     showToast(`Error: ${e.message}`, 'error');
@@ -994,15 +985,20 @@ $('btn-copy-markdown').addEventListener('click', () => {
   $('export-menu').classList.remove('active');
 });
 
-// ==== CLEAR BUTTON HANDLER ====
+$('btn-copy-summary').addEventListener('click', () => {
+  handleCopySummary();
+  $('export-menu').classList.remove('active');
+});
 
-$('btn-clear').addEventListener('click', () => {
+// ==== RESET BUTTON HANDLER ====
+
+$('btn-reset').addEventListener('click', () => {
   if (hasUnsavedChanges) {
-    if (!confirm('You have unsaved changes. Clear the current report?')) {
+    if (!confirm('You have unsaved changes. Reset the current report?')) {
       return;
     }
   } else {
-    if (!confirm('Clear the current report?')) {
+    if (!confirm('Reset the current report?')) {
       return;
     }
   }
@@ -1012,19 +1008,14 @@ $('btn-clear').addEventListener('click', () => {
   hasUnsavedChanges = false;
   hideMetadata();
   
-  showToast('Report cleared', 'success');
+  showToast('Report reset', 'success');
 });
 
-// ==== HELP MENU HANDLERS ====
+// ==== GENERATE TOOLBAR BUTTON HANDLER ====
 
-$('btn-help-guide').addEventListener('click', () => {
-  showToast('User guide coming soon!', 'success');
-  $('help-menu').classList.remove('active');
-});
-
-$('btn-help-about').addEventListener('click', () => {
-  alert('BizPlan Builder v1.0\n\nDraft investor-ready business plans with AI-powered assistance.\n\nPowered by YourBizGuru');
-  $('help-menu').classList.remove('active');
+$('btn-generate-toolbar').addEventListener('click', () => {
+  // Trigger the main generate button
+  $('btn-generate').click();
 });
 
 // ==== SAVE AS / RENAME MODAL HANDLERS ====
@@ -1196,6 +1187,36 @@ async function handleCopyMarkdown() {
     showToast('Markdown copied to clipboard', 'success');
   } catch (e) {
     showToast('Failed to copy to clipboard', 'error');
+  }
+}
+
+async function handleCopySummary() {
+  if (!currentReportData || !currentReportData.executiveSnapshot) {
+    showToast('No summary to copy', 'error');
+    return;
+  }
+  
+  try {
+    const snapshot = currentReportData.executiveSnapshot;
+    const goals = Array.isArray(snapshot.top3Goals) ? snapshot.top3Goals : [];
+    
+    let summaryText = '=== EXECUTIVE SUMMARY ===\n\n';
+    summaryText += `Company: ${snapshot.company || 'N/A'}\n`;
+    summaryText += `Industry: ${snapshot.industry || 'N/A'}\n`;
+    summaryText += `Stage: ${snapshot.stage || 'N/A'}\n`;
+    summaryText += `Target Market: ${snapshot.targetMarket || 'N/A'}\n`;
+    
+    if (goals.length > 0) {
+      summaryText += `\nTop Goals:\n`;
+      goals.forEach((goal, index) => {
+        summaryText += `${index + 1}. ${goal}\n`;
+      });
+    }
+    
+    await navigator.clipboard.writeText(summaryText);
+    showToast('Summary copied to clipboard', 'success');
+  } catch (e) {
+    showToast('Failed to copy summary', 'error');
   }
 }
 

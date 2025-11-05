@@ -108,7 +108,7 @@
               <button class="dropdown-item" id="btn-save-as" data-testid="button-save-as" title="Save with a new name">Save As...</button>
               <button class="dropdown-item" id="btn-rename" data-testid="button-rename" title="Rename current file">Rename...</button>
               <button class="dropdown-item" id="btn-version-history" data-testid="button-version-history" title="View previous versions">Version History...</button>
-              <button class="dropdown-item" id="btn-move-trash" data-testid="button-move-trash" title="Move to trash">Move to Trash...</button>
+              <button class="dropdown-item" id="btn-delete" data-testid="button-delete" title="Delete this report">Delete</button>
             </div>
           </div>
 
@@ -117,23 +117,16 @@
               Export ▾
             </button>
             <div class="dropdown-menu" id="export-menu">
-              <button class="dropdown-item" id="btn-export-pdf" data-testid="button-export-pdf" title="Download as PDF">Download PDF</button>
-              <button class="dropdown-item" id="btn-export-markdown" data-testid="button-export-markdown" title="Download as Markdown">Download Markdown</button>
-              <button class="dropdown-item" id="btn-copy-markdown" data-testid="button-copy-markdown" title="Copy Markdown to clipboard">Copy Markdown to Clipboard</button>
+              <button class="dropdown-item" id="btn-export-pdf" data-testid="button-export-pdf" title="Download as PDF">Download .pdf</button>
+              <button class="dropdown-item" id="btn-export-markdown" data-testid="button-export-markdown" title="Download as Markdown">Download .md</button>
+              <button class="dropdown-item" id="btn-copy-markdown" data-testid="button-copy-markdown" title="Copy Markdown to clipboard">Copy Markdown</button>
+              <button class="dropdown-item" id="btn-copy-summary" data-testid="button-copy-summary" title="Copy executive summary to clipboard">Copy Summary</button>
             </div>
           </div>
 
-          <button class="btn btn-toolbar" id="btn-clear" data-testid="button-clear" title="Clear the current report">Clear</button>
+          <button class="btn btn-toolbar" id="btn-generate-toolbar" data-testid="button-generate-toolbar" title="Generate business plan">Generate</button>
           
-          <div class="dropdown">
-            <button class="btn btn-toolbar" id="btn-help" data-testid="button-help" title="Help and information">
-              Help ▾
-            </button>
-            <div class="dropdown-menu" id="help-menu">
-              <button class="dropdown-item" id="btn-help-guide" data-testid="button-help-guide" title="View user guide">User Guide</button>
-              <button class="dropdown-item" id="btn-help-about" data-testid="button-help-about" title="About BizPlan Builder">About</button>
-            </div>
-          </div>
+          <button class="btn btn-toolbar" id="btn-reset" data-testid="button-reset" title="Reset the current report">Reset</button>
         </div>
       </div>
 
