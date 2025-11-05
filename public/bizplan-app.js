@@ -1448,7 +1448,11 @@ function handleModalKeyboard(e) {
 
 document.querySelectorAll('.modal-close').forEach(btn => {
   btn.addEventListener('click', () => {
-    closeModal(btn.dataset.modal);
+    // Find the parent modal and close it
+    const modal = btn.closest('.modal');
+    if (modal) {
+      closeModal(modal.id);
+    }
   });
 });
 
