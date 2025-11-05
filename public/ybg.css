@@ -3,7 +3,7 @@
 body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:radial-gradient(1200px 800px at 20% -10%,#163049 0%,#0e1b28 35%,var(--ybg-bg) 70%);color:var(--ybg-text)}
 .ybg-wrap{max-width:1080px;margin:0 auto;padding:20px}
 .ybg-hero{display:flex;align-items:center;gap:16px;margin:8px 0 16px}
-.ybg-logo{width:56px;height:56px}
+.ybg-logo{width:67px;height:67px}
 .ybg-title{font-size:28px;font-weight:800;letter-spacing:.2px}
 .ybg-sub{opacity:.85}
 .ybg-card{background:var(--ybg-panel);border:1px solid var(--ybg-border);border-radius:var(--ybg-radius);box-shadow:var(--ybg-shadow);padding:18px}
