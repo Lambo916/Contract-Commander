@@ -11,6 +11,46 @@ let isGenerating = false;
 let currentOffset = 0;
 const REPORTS_LIMIT = 10;
 
+// ==== THEME MANAGEMENT ====
+
+function getTheme() {
+  return localStorage.getItem('theme') || 'dark';
+}
+
+function setTheme(theme) {
+  localStorage.setItem('theme', theme);
+  const root = document.documentElement;
+  const themeToggle = $('theme-toggle');
+  const themeIcon = themeToggle.querySelector('.theme-icon');
+  
+  if (theme === 'light') {
+    root.classList.remove('dark');
+    root.classList.add('light');
+    themeIcon.textContent = '☀️';
+  } else {
+    root.classList.remove('light');
+    root.classList.add('dark');
+    themeIcon.textContent = '🌙';
+  }
+}
+
+function toggleTheme() {
+  const currentTheme = getTheme();
+  const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+  setTheme(newTheme);
+}
+
+// Initialize theme on page load
+document.addEventListener('DOMContentLoaded', () => {
+  setTheme(getTheme());
+  
+  // Add click handler to theme toggle button
+  const themeToggle = $('theme-toggle');
+  if (themeToggle) {
+    themeToggle.addEventListener('click', toggleTheme);
+  }
+});
+
 // ==== STATE MANAGEMENT FUNCTIONS ====
 
 function setGeneratingState(generating) {
