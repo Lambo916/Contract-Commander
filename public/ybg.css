@@ -5,7 +5,7 @@
 body{font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial;background:radial-gradient(1200px 800px at 20% -10%,var(--ybg-gradient-from) 0%,var(--ybg-gradient-mid) 35%,var(--ybg-bg) 70%);color:var(--ybg-text);transition:background .3s ease,color .3s ease}
 .ybg-wrap{max-width:1080px;margin:0 auto;padding:20px}
 .ybg-hero{display:flex;align-items:center;gap:16px;margin:8px 0 16px}
-.ybg-logo{width:64px;height:64px}
+.ybg-logo{width:65px;height:65px}
 .ybg-title{font-size:28px;font-weight:800;letter-spacing:.2px}
 .ybg-sub{opacity:.85}
 .ybg-card{background:var(--ybg-panel);border:1px solid var(--ybg-border);border-radius:var(--ybg-radius);box-shadow:var(--ybg-shadow);padding:18px}
