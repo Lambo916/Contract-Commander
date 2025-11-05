@@ -406,9 +406,13 @@
       const maxWidth = CONTENT.width;
       const maxHeight = 80; // mm
 
-      if (this.needsNewPage(maxHeight + 15)) {
+      // Check if new page needed first
+      if (this.needsNewPage(maxHeight + 25)) {
         this.addNewPage();
       }
+
+      // Add spacing before chart AFTER page check (10-15mm as requested)
+      this.yPosition += 12;
 
       try {
         this.doc.addImage(imageData, 'PNG', CONTENT.left, this.yPosition, maxWidth, maxHeight, '', 'FAST');
@@ -423,7 +427,8 @@
           this.yPosition += 5;
         }
 
-        this.yPosition += 8;
+        // Add more spacing after chart
+        this.yPosition += 12;
       } catch (e) {
         console.warn('Failed to add image:', e);
         this.addParagraph('[Chart visualization unavailable]');
@@ -550,9 +555,15 @@
           const trimmed = line.trim();
           
           if (trimmed.startsWith('## ')) {
-            // New section
+            // New section - only add new page if needed
             currentSection = trimmed.substring(3).trim();
-            writer.addNewPage();
+            
+            // Add extra spacing before section, new page only if insufficient space
+            writer.yPosition += 6;
+            if (writer.needsNewPage(20)) {
+              writer.addNewPage();
+            }
+            
             writer.addSectionHeader(currentSection);
           } else if (trimmed.startsWith('### ')) {
             // Subsection
@@ -580,7 +591,11 @@
 
       // ---- KPI Table & Chart ----
       if (reportData.kpiTable && reportData.kpiTable.length > 0) {
-        writer.addNewPage();
+        // Add spacing and only create new page if needed
+        writer.yPosition += 6;
+        if (writer.needsNewPage(40)) {
+          writer.addNewPage();
+        }
         writer.addSectionHeader('Key Performance Indicators');
 
         const headers = ['Objective', 'KPI', 'Target', 'Timeframe'];
@@ -607,7 +622,11 @@
 
       // ---- Financial Projections ----
       if (reportData.financialProjections) {
-        writer.addNewPage();
+        // Add spacing and only create new page if needed
+        writer.yPosition += 6;
+        if (writer.needsNewPage(40)) {
+          writer.addNewPage();
+        }
         writer.addSectionHeader('Financial Projections (12-Month Forecast)');
 
         const fp = reportData.financialProjections;
@@ -649,17 +668,28 @@
 
       // ---- AI Insights ----
       if (reportData.aiInsights && reportData.aiInsights.length > 0) {
-        writer.addNewPage();
+        // Add spacing and only create new page if needed
+        writer.yPosition += 6;
+        if (writer.needsNewPage(30)) {
+          writer.addNewPage();
+        }
         writer.addSectionHeader('AI Insights');
 
+        doc.setFont(TYPOGRAPHY.fontFamily, "normal");
+        doc.setFontSize(11);
+        
         for (const insight of reportData.aiInsights) {
-          if (writer.needsNewPage(TYPOGRAPHY.lineHeight)) {
+          // Use splitTextToSize to prevent text overflow
+          const maxWidth = CONTENT.width - 8; // Account for bullet and margins
+          const wrappedText = doc.splitTextToSize(`• ${insight}`, maxWidth);
+          const textHeight = wrappedText.length * TYPOGRAPHY.lineHeight;
+          
+          if (writer.needsNewPage(textHeight + 5)) {
             writer.addNewPage();
           }
-          doc.setFont(TYPOGRAPHY.fontFamily, "normal");
-          doc.setFontSize(11);
-          doc.text(`• ${insight}`, CONTENT.left + 3, writer.yPosition);
-          writer.yPosition += TYPOGRAPHY.lineHeight + 2;
+          
+          doc.text(wrappedText, CONTENT.left + 3, writer.yPosition);
+          writer.yPosition += textHeight + 3;
         }
       }
 
