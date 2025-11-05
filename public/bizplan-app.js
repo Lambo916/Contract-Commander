@@ -16,31 +16,39 @@ const REPORTS_LIMIT = 10;
 function setGeneratingState(generating) {
   isGenerating = generating;
   const generateBtn = $('btn-generate');
-  const generateToolbarBtn = $('btn-generate-toolbar');
   const fileBtn = $('btn-file');
   const exportBtn = $('btn-export');
-  const resetBtn = $('btn-reset');
+  const toolsBtn = $('btn-tools');
+  const progressBar = $('generation-progress');
   
   if (generating) {
+    // Update Generate button
     generateBtn.disabled = true;
     generateBtn.innerHTML = '<span style="display: inline-flex; align-items: center; gap: 8px;"><span class="spinner"></span> Generating...</span>';
-    if (generateToolbarBtn) {
-      generateToolbarBtn.disabled = true;
-      generateToolbarBtn.innerHTML = '<span style="display: inline-flex; align-items: center; gap: 8px;"><span class="spinner"></span> Generating...</span>';
-    }
+    
+    // Disable menu buttons
     fileBtn.disabled = true;
     exportBtn.disabled = true;
-    resetBtn.disabled = true;
+    toolsBtn.disabled = true;
+    
+    // Show progress bar inside Results panel
+    if (progressBar) {
+      progressBar.style.display = 'block';
+    }
   } else {
+    // Restore Generate button
     generateBtn.disabled = false;
     generateBtn.textContent = 'Generate Plan';
-    if (generateToolbarBtn) {
-      generateToolbarBtn.disabled = false;
-      generateToolbarBtn.textContent = 'Generate';
-    }
+    
+    // Enable menu buttons
     fileBtn.disabled = false;
     exportBtn.disabled = false;
-    resetBtn.disabled = false;
+    toolsBtn.disabled = false;
+    
+    // Hide progress bar
+    if (progressBar) {
+      progressBar.style.display = 'none';
+    }
   }
 }
 
@@ -259,19 +267,8 @@ function markdownToHtml(markdown) {
 }
 
 function updateButtonStates(hasReport) {
-  const fileBtn = $('btn-file');
-  const exportBtn = $('btn-export');
-  const resetBtn = $('btn-reset');
-  
-  if (hasReport) {
-    fileBtn.classList.remove('inactive');
-    exportBtn.classList.remove('inactive');
-    resetBtn.classList.remove('inactive');
-  } else {
-    fileBtn.classList.add('inactive');
-    exportBtn.classList.add('inactive');
-    resetBtn.classList.add('inactive');
-  }
+  // Buttons are always enabled in new design
+  // File, Export, and Tools menus handle their own state internally
 }
 
 function showMetadata(company, industry, stage) {
@@ -283,11 +280,17 @@ function showMetadata(company, industry, stage) {
   const now = new Date();
   $('meta-timestamp').textContent = now.toLocaleString();
   
-  metadataBar.style.display = 'flex';
+  // Metadata is now inside Results panel
+  if (metadataBar) {
+    metadataBar.style.display = 'flex';
+  }
 }
 
 function hideMetadata() {
-  $('report-metadata').style.display = 'none';
+  const metadataBar = $('report-metadata');
+  if (metadataBar) {
+    metadataBar.style.display = 'none';
+  }
 }
 
 // ==== PREMIUM REPORT RENDERING FUNCTIONS ====
@@ -724,23 +727,21 @@ function clearAllInputs() {
   }
 }
 
-// Template dropdown handler
-$('btn-templates').addEventListener('click', (e) => {
-  e.stopPropagation();
-  const menu = $('template-menu');
-  menu.classList.toggle('active');
+// Template modal handlers
+document.querySelectorAll('.template-card').forEach(card => {
+  card.addEventListener('click', (e) => {
+    const templateKey = card.dataset.template;
+    if (templateKey) {
+      loadTemplate(templateKey);
+      closeModal('template-modal');
+      showToast('Template loaded', 'success');
+    }
+  });
 });
 
-$('template-menu').addEventListener('click', (e) => {
-  const templateKey = e.target.dataset.template;
-  if (templateKey) {
-    loadTemplate(templateKey);
-  }
-  $('template-menu').classList.remove('active');
+$('template-cancel').addEventListener('click', () => {
+  closeModal('template-modal');
 });
-
-// Clear inputs button
-$('btn-clear-inputs').addEventListener('click', clearAllInputs);
 
 $('btn-generate').addEventListener('click', async () => {
   setGeneratingState(true);
@@ -833,7 +834,9 @@ $('btn-file').addEventListener('click', (e) => {
   e.stopPropagation();
   const menu = $('file-menu');
   const exportMenu = $('export-menu');
+  const toolsMenu = $('tools-menu');
   exportMenu.classList.remove('active');
+  toolsMenu.classList.remove('active');
   menu.classList.toggle('active');
 });
 
@@ -841,14 +844,26 @@ $('btn-export').addEventListener('click', (e) => {
   e.stopPropagation();
   const menu = $('export-menu');
   const fileMenu = $('file-menu');
+  const toolsMenu = $('tools-menu');
   fileMenu.classList.remove('active');
+  toolsMenu.classList.remove('active');
+  menu.classList.toggle('active');
+});
+
+$('btn-tools').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const menu = $('tools-menu');
+  const fileMenu = $('file-menu');
+  const exportMenu = $('export-menu');
+  fileMenu.classList.remove('active');
+  exportMenu.classList.remove('active');
   menu.classList.toggle('active');
 });
 
 document.addEventListener('click', () => {
   $('file-menu').classList.remove('active');
   $('export-menu').classList.remove('active');
-  $('template-menu').classList.remove('active');
+  if ($('tools-menu')) $('tools-menu').classList.remove('active');
 });
 
 // ==== FILE MENU HANDLERS ====
@@ -980,42 +995,49 @@ $('btn-export-markdown').addEventListener('click', () => {
   $('export-menu').classList.remove('active');
 });
 
-$('btn-copy-markdown').addEventListener('click', () => {
-  handleCopyMarkdown();
+$('btn-export-docx').addEventListener('click', () => {
+  handleExportDOCX();
   $('export-menu').classList.remove('active');
 });
 
-$('btn-copy-summary').addEventListener('click', () => {
-  handleCopySummary();
-  $('export-menu').classList.remove('active');
+// ==== TOOLS MENU HANDLERS ====
+
+$('btn-load-template').addEventListener('click', () => {
+  openModal('template-modal');
+  $('tools-menu').classList.remove('active');
 });
 
-// ==== RESET BUTTON HANDLER ====
-
-$('btn-reset').addEventListener('click', () => {
+$('btn-clear-all').addEventListener('click', () => {
   if (hasUnsavedChanges) {
-    if (!confirm('You have unsaved changes. Reset the current report?')) {
+    if (!confirm('You have unsaved changes. Clear all inputs and results?')) {
       return;
     }
   } else {
-    if (!confirm('Reset the current report?')) {
+    if (!confirm('Clear all inputs and results?')) {
       return;
     }
   }
   
+  // Clear all inputs
+  $('company').value = '';
+  $('industry').value = '';
+  $('target').value = '';
+  $('product').value = '';
+  $('revenue').value = '';
+  $('stage').value = '';
+  $('goals').value = '';
+  $('tone').value = 'Professional';
+  
+  // Clear results
   $('report-view').innerHTML = '';
   currentReportData = null;
+  currentFileName = null;
+  currentReportId = null;
   hasUnsavedChanges = false;
   hideMetadata();
   
-  showToast('Report reset', 'success');
-});
-
-// ==== GENERATE TOOLBAR BUTTON HANDLER ====
-
-$('btn-generate-toolbar').addEventListener('click', () => {
-  // Trigger the main generate button
-  $('btn-generate').click();
+  showToast('Cleared all inputs and results', 'success');
+  $('tools-menu').classList.remove('active');
 });
 
 // ==== SAVE AS / RENAME MODAL HANDLERS ====
@@ -1217,6 +1239,61 @@ async function handleCopySummary() {
     showToast('Summary copied to clipboard', 'success');
   } catch (e) {
     showToast('Failed to copy summary', 'error');
+  }
+}
+
+function handleExportDOCX() {
+  if (!currentReportData || !currentReportData.html) {
+    showToast('No report to export', 'error');
+    return;
+  }
+  
+  try {
+    // Create a Word-compatible HTML document
+    const htmlContent = currentReportData.html;
+    const filename = (currentFileName || generateDefaultFilename(currentReportData?.company || 'BizPlan')) + '.docx';
+    
+    // Create a minimal Word document format (HTML-based)
+    const docContent = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+      <head>
+        <meta charset='utf-8'>
+        <title>${currentReportData.company || 'Business Plan'}</title>
+        <style>
+          body { font-family: 'Calibri', sans-serif; font-size: 11pt; line-height: 1.6; }
+          h1 { font-size: 18pt; font-weight: bold; margin-top: 12pt; }
+          h2 { font-size: 14pt; font-weight: bold; margin-top: 10pt; }
+          h3 { font-size: 12pt; font-weight: bold; margin-top: 8pt; }
+          p { margin: 6pt 0; }
+          table { border-collapse: collapse; width: 100%; margin: 12pt 0; }
+          th, td { border: 1px solid #ddd; padding: 8pt; text-align: left; }
+          th { background-color: #f0f0f0; font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        ${htmlContent}
+      </body>
+      </html>
+    `;
+    
+    // Create blob and download
+    const blob = new Blob(['\ufeff', docContent], {
+      type: 'application/msword'
+    });
+    
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showToast('DOCX downloaded', 'success');
+    
+  } catch (e) {
+    showToast(`Error exporting DOCX: ${e.message}`, 'error');
   }
 }
 

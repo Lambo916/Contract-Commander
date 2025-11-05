@@ -1209,8 +1209,10 @@
   
   .ybg-hero,
   .ybg-card,
+  .command-bar,
   .toolbar,
-  .report-metadata,
+  .report-meta-inline,
+  .generation-progress,
   .ybg-footer,
   .toast-container {
     display: none !important;
