@@ -1,0 +1,58 @@
+Enhance the BizPlan Builder PDF export for a clean, investor-ready, professional layout.
+
+TASKS:
+1. **Chart Rendering Fix**
+   - Capture all visible Chart.js canvases with html2canvas before jsPDF export.
+   - Use {scale: 2, useCORS: true} for crisp vector-like rendering.
+   - Wait for chart animations to complete (use await or onRenderComplete) before capture.
+
+2. **Unified Layout & Margins**
+   - Apply consistent 20 px left/right and 25 px top/bottom page padding globally.
+   - Align all section text blocks uniformly and maintain equal spacing between headers and body text.
+
+3. **Visual Hierarchy / Dividers**
+   - Slim yellow divider lines by ≈ 15 %.
+   - Keep consistent 10 px top and 15 px bottom spacing around every divider.
+   - Use brand accent color #FFEB3B for light theme or #4DB6E7 for dark theme.
+
+4. **Typography & Branding**
+   - Use the same sans-serif font across all sections.
+   - Section headers: font-weight 600, size 14 pt.
+   - Body text: font-weight 400, size 11 pt.
+   - Optional: apply #4DB6E7 header accent underline for YourBizGuru brand consistency.
+
+5. **Duplicate Section Cleanup**
+   - Merge all “KPI Visualization” duplicates into a single KPI section containing the table and chart together.
+   - Remove redundant line “Generated insights provided by YourBizGuru AI” (footer already covers attribution).
+
+6. **Financial & AI Panels**
+   - Ensure Financial Summary and AI Insights export with matching light background color.
+   - Capture them via html2canvas before conversion to maintain visual fidelity.
+
+7. **Optional Summary Dashboard Page**
+   - After Executive Summary, insert a new summary page titled “Financial Snapshot.”
+   - Display the three main charts (Revenue, Expense, Profit) side-by-side or stacked evenly with captions.
+
+8. **Table of Contents (TOC)**
+   - Automatically generate a TOC on page 1 that lists each major section (Executive Snapshot, Executive Summary, Market Analysis, Business Model, Go-To-Market Strategy, Product Roadmap, Financial Outlook, KPI Visualization, AI Insights).
+   - Include section titles only (no page numbers required).
+   - Add a subtle horizontal divider below the TOC for a clean separation before the main content.
+
+9. **Header & Footer Consistency**
+   - Add repeating page header “BizPlan Builder | YourBizGuru.com” (top left).
+   - Keep footer “Powered by YourBizGuru.com    For informational purposes only. Not legal, tax, or financial advice.” on every page.
+   - Auto-number pages (e.g., “Page 2 of 6”) aligned bottom-right.
+
+10. **Export Fidelity**
+    - Use jsPDF autoTable for any tabular data (KPI, Financial Summary) to ensure line alignment.
+    - Set jsPDF margins = {top: 25, left: 20, right: 20, bottom: 25}.
+    - Enable compression to reduce PDF size without quality loss.
+
+11. **Final Polish & Testing**
+    - Verify all text blocks, tables, and charts fit within page margins (no clipping).
+    - Test in both light and dark modes.
+    - Final export filename format:  
+      `BizPlanBuilder_[CompanyName]_YYYYMMDD.pdf`
+    - Confirm result appears consistent, balanced, and professional — ready for investor presentation.
+
+Maintain all current generation logic and content flow. These updates are strictly to improve
