@@ -1,0 +1,43 @@
+Please implement the BizPlan Builder UI clean-up and behavior updates as follows (no changes to fonts or colors):
+
+1) Inputs & layout
+- Keep the current title/subtitle. Add a small “Last saved” timestamp aligned to the far right of the header area.
+- Use a 2-column responsive form grid (single column on narrow screens). Keep current labels but shorten where obvious (e.g., “Top Goals (6–12 mo)”).
+- Show helper text only for Product/Service and Goals; remove long placeholder paragraphs elsewhere.
+
+2) Sticky action toolbar (always visible)
+- Add a sticky toolbar directly under the Tone selector with buttons: File ▾ | Export ▾ | Generate Plan | Reset Form | Help ▾
+- Ensure this toolbar is visible before and after generation.
+- “Reset Form” replaces “Clear All” and clears inputs + results.
+- Generate Plan button shows an inline loading state (“Generating…”) with a spinner; remove the panel-level loading text.
+
+3) File menu behavior
+- File menu items: New, Open…, Save, Save As…, Rename…, Delete, Version History.
+- Implement Save As… modal: filename text input (pre-filled), optional description, Confirm/Cancel. On confirm: save a new file and set it as the active document name in the UI.
+- Ensure Save performs autosave of current active name. New clears the form and assigns an untitled name. Open… lists existing saved files.
+
+4) Export menu
+- Items: Download .md, Download .pdf, Copy Markdown, Copy Summary.
+- Keep existing PDF engine; no style changes except parity items in section 6.
+
+5) Meta strip above Results
+- Replace the current key/value row with pill badges: Company • Industry • Stage • Generated: <timestamp>
+- Clicking a pill focuses the underlying input (do not open dialogs).
+
+6) Results panel & components
+- Keep the current card style. Make each section collapsible with a caret; default: Executive Snapshot and Executive Summary expanded, others collapsed on mobile and expanded on desktop.
+- KPI table: editable cells, “+ Add KPI”, and a small “Export KPIs only” action.
+- AI Insights: keep the yellow callout styling; add a “Regenerate insights” button that refreshes only the insights using current inputs.
+
+7) PDF parity (no new fonts/colors)
+- Match on-screen section order/spacing in the PDF, including the KPI table layout and the AI Insights box appearance.
+- Footer per page: line 1 left-aligned “Powered by YourBizGuru.com”, then a thin divider line, then line 2 left-aligned disclaimer text that we already use across YBG. Keep existing page number placement.
+
+8) Mobile polish
+- Add a bottom fixed bar containing: File ▾  Export ▾  Generate  Reset (icons + labels). Hide this bar on desktop where the sticky toolbar is visible.
+- Ensure all interactive elements meet comfortable tap sizes and no content overflows.
+
+9) Notifications & errors
+- Use non-intrusive toasts for Save/Save As/Rename/Delete/Export success, and inline error messages at the control that failed.
+
+Please implement and wire these without altering the current theme tokens or introducing new font/color choices. Keep code organized (components/utils) and preserve existing routes and API calls.
