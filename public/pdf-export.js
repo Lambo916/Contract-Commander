@@ -576,6 +576,20 @@ window.YBG_PDF = window.YBG_PDF || {};
         continue;
       }
       
+      if (trimmed === '##KPI_CHART##') {
+        let chartImageData = '';
+        i++;
+        while (i < lines.length && lines[i].trim() !== '##END_KPI_CHART##') {
+          chartImageData += lines[i].trim();
+          i++;
+        }
+        if (chartImageData && chartImageData.startsWith('data:image')) {
+          blocks.push({ type: 'chart_image', imageData: chartImageData });
+        }
+        i++; // Skip END marker
+        continue;
+      }
+      
       // Check for table sections based on heading
       if (trimmed.startsWith('## ')) {
         const heading = trimmed.substring(3).trim().toLowerCase();
@@ -1133,6 +1147,65 @@ window.YBG_PDF = window.YBG_PDF || {};
       this.yPosition += footerHeight + boxPadding + 3; // Extra space after box
       applyGlobalTypography(this.doc);
     }
+    
+    writeChartImage(imageData) {
+      if (!imageData || !imageData.startsWith('data:image')) return;
+      
+      // Add spacing before chart
+      if (this.yPosition > CONTENT.top + 10) {
+        this.yPosition += TYPOGRAPHY.paragraphSpacing * 1.5;
+      }
+      
+      // Title with gold underline
+      this.doc.setFont(TYPOGRAPHY.fontFamily, "bold");
+      this.doc.setFontSize(12);
+      this.doc.setTextColor(...TYPOGRAPHY.colorHeading);
+      this.doc.text("KPI Visualization", CONTENT.left, this.yPosition);
+      this.yPosition += 5;
+      
+      // Gold underline
+      this.doc.setDrawColor(...TYPOGRAPHY.colorYellow);
+      this.doc.setLineWidth(0.6);
+      this.doc.line(CONTENT.left, this.yPosition, CONTENT.left + 60, this.yPosition);
+      this.yPosition += 6;
+      
+      // Calculate chart dimensions (maintain aspect ratio)
+      const maxChartWidth = CONTENT.width;
+      const maxChartHeight = 80; // mm - reasonable height for chart
+      const chartWidth = maxChartWidth;
+      const chartHeight = maxChartHeight;
+      
+      // Check if we need a new page for the chart
+      if (this.needsNewPage(chartHeight + 10)) {
+        this.addNewPage();
+        // Redraw title and underline on new page
+        this.doc.setFont(TYPOGRAPHY.fontFamily, "bold");
+        this.doc.setFontSize(12);
+        this.doc.setTextColor(...TYPOGRAPHY.colorHeading);
+        this.doc.text("KPI Visualization", CONTENT.left, this.yPosition);
+        this.yPosition += 5;
+        this.doc.setDrawColor(...TYPOGRAPHY.colorYellow);
+        this.doc.setLineWidth(0.6);
+        this.doc.line(CONTENT.left, this.yPosition, CONTENT.left + 60, this.yPosition);
+        this.yPosition += 6;
+      }
+      
+      try {
+        // Add chart image to PDF
+        this.doc.addImage(imageData, "PNG", CONTENT.left, this.yPosition, chartWidth, chartHeight, "", "FAST");
+        this.yPosition += chartHeight + 6; // Add spacing after chart
+      } catch (e) {
+        console.warn('Failed to add chart image to PDF:', e);
+        // Add fallback text
+        this.doc.setFont(TYPOGRAPHY.fontFamily, "normal");
+        this.doc.setFontSize(10);
+        this.doc.setTextColor(120, 120, 120);
+        this.doc.text("Chart visualization could not be rendered in PDF.", CONTENT.left, this.yPosition);
+        this.yPosition += 8;
+      }
+      
+      applyGlobalTypography(this.doc);
+    }
 
     writeTable(table) {
       // Calculate column widths
@@ -1238,6 +1311,11 @@ window.YBG_PDF = window.YBG_PDF || {};
       
       if (block.type === 'ai_insights') {
         this.writeAiInsights(block.insights);
+        return;
+      }
+      
+      if (block.type === 'chart_image') {
+        this.writeChartImage(block.imageData);
         return;
       }
       

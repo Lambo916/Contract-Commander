@@ -515,6 +515,50 @@ function renderPremiumReport(data) {
   `;
 }
 
+// Generate PDF-ready content with special markers for PDF parser
+function generatePDFContent(data) {
+  let pdfText = '';
+  
+  // Add Executive Snapshot with markers
+  if (data.executiveSnapshot) {
+    pdfText += '##EXECUTIVE_SNAPSHOT##\n';
+    pdfText += `Company: ${data.executiveSnapshot.company || 'N/A'}\n`;
+    pdfText += `Industry: ${data.executiveSnapshot.industry || 'N/A'}\n`;
+    pdfText += `Stage: ${data.executiveSnapshot.stage || 'N/A'}\n`;
+    pdfText += `Target Market: ${data.executiveSnapshot.targetMarket || 'N/A'}\n`;
+    if (data.executiveSnapshot.top3Goals && data.executiveSnapshot.top3Goals.length > 0) {
+      pdfText += `Top 3 Goals: ${data.executiveSnapshot.top3Goals.join(', ')}\n`;
+    }
+    pdfText += '##END_EXECUTIVE_SNAPSHOT##\n\n';
+  }
+  
+  // Add main plan content
+  if (data.mainPlan || data.markdown) {
+    pdfText += (data.mainPlan || data.markdown) + '\n\n';
+  }
+  
+  // Add KPI Table with markers
+  if (data.kpiTable && data.kpiTable.length > 0) {
+    pdfText += '##KPI_TABLE##\n';
+    pdfText += 'Objective | KPI | Target | Timeframe\n';
+    data.kpiTable.forEach(kpi => {
+      pdfText += `${kpi.objective || ''} | ${kpi.kpi || ''} | ${kpi.target || ''} | ${kpi.timeframe || ''}\n`;
+    });
+    pdfText += '##END_KPI_TABLE##\n\n';
+  }
+  
+  // Add AI Insights with markers
+  if (data.aiInsights && data.aiInsights.length > 0) {
+    pdfText += '##AI_INSIGHTS##\n';
+    data.aiInsights.forEach(insight => {
+      pdfText += `• ${insight}\n`;
+    });
+    pdfText += '##END_AI_INSIGHTS##\n\n';
+  }
+  
+  return pdfText;
+}
+
 function attachKpiEditHandlers() {
   // Add row handler
   const addBtn = document.getElementById('add-kpi-row');
@@ -1201,20 +1245,37 @@ async function handleSaveReport(filename, reportId) {
   }
 }
 
-function handleExportPDF() {
+async function handleExportPDF() {
   const reportView = $('report-view');
-  if (!reportView.innerHTML.trim()) {
+  if (!reportView.innerHTML.trim() || !currentReportData) {
     showToast('No report to export', 'error');
     return;
   }
   
   try {
     const filename = (currentFileName || generateDefaultFilename(currentReportData?.company || 'BizPlan')) + '.pdf';
-    const htmlContent = reportView.innerHTML;
+    
+    // Generate PDF-ready text content with special markers
+    let pdfContent = generatePDFContent(currentReportData);
+    
+    // Capture chart as image if it exists
+    const chartCanvas = document.getElementById('kpi-chart');
+    let chartImageData = null;
+    if (chartCanvas && kpiChartInstance) {
+      try {
+        chartImageData = chartCanvas.toDataURL('image/png');
+        // Add chart marker to PDF content
+        pdfContent += '\n##KPI_CHART##\n';
+        pdfContent += chartImageData + '\n';
+        pdfContent += '##END_KPI_CHART##\n';
+      } catch (e) {
+        console.warn('Could not capture chart image:', e);
+      }
+    }
     
     if (window.exportAllResultsToPDF) {
       window.exportAllResultsToPDF([{
-        html: htmlContent,
+        html: pdfContent,
         fileName: filename
       }]);
       showToast('PDF downloaded', 'success');
