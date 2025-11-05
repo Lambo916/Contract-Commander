@@ -57,7 +57,7 @@
         }
         
         /* Dark Theme Tokens */
-        html.theme-dark {
+        html.dark {
             --bg: 10, 10, 10;
             --bg-gradient: linear-gradient(135deg, #0A0A0A, #1A1A1A, #0f0f0f);
             --card: 26, 26, 26;
@@ -274,22 +274,19 @@
     </div>
     
     <script>
-        // Theme Synchronization - Read from localStorage and apply immediately
+        // Theme Synchronization - Match BizPlan Builder theme system
         (function() {
-            const STORAGE_KEY = 'ybg-theme';
-            const THEME_LIGHT = 'theme-light';
-            const THEME_DARK = 'theme-dark';
+            // Read theme from localStorage (same key as main app)
+            const theme = localStorage.getItem('theme') || 'dark';
+            const root = document.documentElement;
             
-            // Get stored theme from localStorage
-            const storedTheme = localStorage.getItem(STORAGE_KEY);
-            
-            // If there's a stored theme, apply it immediately
-            if (storedTheme) {
-                document.documentElement.classList.remove(THEME_LIGHT, THEME_DARK);
-                document.documentElement.classList.add(storedTheme);
+            // Apply theme classes (matching main app behavior)
+            if (theme === 'light') {
+                root.classList.remove('dark');
+                root.classList.add('light');
             } else {
-                // Default to light theme if no preference stored
-                document.documentElement.classList.add(THEME_LIGHT);
+                root.classList.remove('light');
+                root.classList.add('dark');
             }
         })();
     </script>
