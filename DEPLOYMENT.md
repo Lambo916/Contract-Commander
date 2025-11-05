@@ -81,7 +81,7 @@ In Vercel Dashboard → Settings → Environment Variables, add:
 |----------|-------|-------------|
 | `SUPABASE_URL` | https://juijtvagjaaxjqjhmrxp.supabase.co | Your Supabase project URL |
 | `SUPABASE_ANON_KEY` | eyJhbGci... | Supabase anonymous/public key |
-| `DATABASE_URL` | postgresql://... | Supabase PostgreSQL connection string |
+| `DATABASE_URL` | postgresql://... | Supabase PostgreSQL connection string (Transaction pooler, port 5432) |
 | `OPENAI_API_KEY` | sk-proj-... | OpenAI API key for GPT-5 |
 | `NODE_ENV` | production | Environment mode |
 
@@ -167,7 +167,7 @@ The build process (`npm run build`) does:
 ### Production Stack
 - **Frontend**: React + Vite (Static files in `dist/client/`)
 - **Backend**: Express.js + TypeScript (Compiled to `dist/index.js`)
-- **Database**: Supabase PostgreSQL (Neon)
+- **Database**: Supabase PostgreSQL
 - **Authentication**: Supabase JWT
 - **AI**: OpenAI GPT-5
 - **Hosting**: Vercel Serverless
