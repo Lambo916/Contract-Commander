@@ -667,6 +667,15 @@
   font-weight: 700;
 }
 
+/* Dark mode overrides for AI Insights */
+:root.dark .insights-title {
+  color: #f5f5f5;
+}
+
+:root.dark .insights-list li {
+  color: #e0e0e0;
+}
+
 /* Mobile Responsive */
 @media (max-width: 768px) {
   .executive-snapshot {
