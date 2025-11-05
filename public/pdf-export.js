@@ -466,6 +466,7 @@
       // Get report data from current session
       const reportData = window.currentReportData || {};
       const companyName = reportData.company || 'Business';
+      const mainContent = reportData.mainContent || reportData.fullPlan || '';
 
       // ---- Page 1: Table of Contents (Placeholder) ----
       // We'll record sections as we create them, then come back to update the TOC
