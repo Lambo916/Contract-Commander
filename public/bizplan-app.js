@@ -1346,7 +1346,6 @@ $('btn-rename').addEventListener('click', () => {
 // ==== EXPORT MENU HANDLERS ====
 
 $('btn-export-pdf').addEventListener('click', () => {
-  console.log('Export PDF button clicked!');
   handleExportPDF();
   $('export-menu').classList.remove('active');
 });
@@ -1496,11 +1495,6 @@ async function handleSaveReport(filename, reportId) {
 }
 
 async function handleExportPDF() {
-  console.log('handleExportPDF called');
-  console.log('currentReportData:', currentReportData);
-  console.log('window.currentReportData:', window.currentReportData);
-  console.log('window.exportBizPlanToPDF:', typeof window.exportBizPlanToPDF);
-  
   const reportView = $('report-view');
   if (!reportView.innerHTML.trim() || !currentReportData) {
     showToast('No report to export', 'error');
@@ -1512,9 +1506,7 @@ async function handleExportPDF() {
   
   try {
     if (window.exportBizPlanToPDF) {
-      console.log('Calling exportBizPlanToPDF...');
       await window.exportBizPlanToPDF();
-      console.log('PDF export completed');
     } else {
       throw new Error('PDF export module not loaded');
     }
