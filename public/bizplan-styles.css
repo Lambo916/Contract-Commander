@@ -1382,6 +1382,31 @@
   color: var(--ybg-text);
 }
 
+/* Light mode gradients for depth and visual interest */
+:root.light .ybg-card {
+  background: var(--ybg-panel-gradient);
+}
+
+:root.light .report-view {
+  background: var(--ybg-report-gradient);
+}
+
+:root.light .dropdown-menu {
+  background: var(--ybg-card-gradient);
+}
+
+:root.light .modal-content {
+  background: var(--ybg-card-gradient);
+}
+
+:root.light .btn-toolbar {
+  background: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(248,252,254,0.95) 100%);
+}
+
+:root.light .btn-toolbar:hover {
+  background: linear-gradient(135deg, rgba(77,182,231,0.12) 0%, rgba(77,182,231,0.08) 100%);
+}
+
 @media print {
   body {
     background: white;
