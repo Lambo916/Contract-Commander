@@ -49,7 +49,94 @@ document.addEventListener('DOMContentLoaded', () => {
   if (themeToggle) {
     themeToggle.addEventListener('click', toggleTheme);
   }
+  
+  // Load saved report if it exists
+  loadSavedReport();
 });
+
+// Auto-save before page unload
+window.addEventListener('beforeunload', () => {
+  saveCurrentReport();
+});
+
+// ==== AUTO-SAVE/LOAD FUNCTIONS ====
+
+const AUTOSAVE_KEY = 'ybg-bizplan-autosave';
+
+function saveCurrentReport() {
+  try {
+    const formData = {
+      company: $('company').value.trim(),
+      industry: $('industry').value.trim(),
+      target: $('target').value.trim(),
+      product: $('product').value.trim(),
+      revenue: $('revenue').value.trim(),
+      stage: $('stage').value.trim(),
+      goals: $('goals').value.trim(),
+      tone: $('tone').value
+    };
+    
+    const saveData = {
+      formData,
+      reportData: currentReportData,
+      fileName: currentFileName,
+      reportId: currentReportId,
+      timestamp: Date.now()
+    };
+    
+    localStorage.setItem(AUTOSAVE_KEY, JSON.stringify(saveData));
+  } catch (e) {
+    console.error('Failed to auto-save report:', e);
+  }
+}
+
+function loadSavedReport() {
+  try {
+    const saved = localStorage.getItem(AUTOSAVE_KEY);
+    if (!saved) return;
+    
+    const saveData = JSON.parse(saved);
+    
+    // Restore form data
+    if (saveData.formData) {
+      $('company').value = saveData.formData.company || '';
+      $('industry').value = saveData.formData.industry || '';
+      $('target').value = saveData.formData.target || '';
+      $('product').value = saveData.formData.product || '';
+      $('revenue').value = saveData.formData.revenue || '';
+      $('stage').value = saveData.formData.stage || '';
+      $('goals').value = saveData.formData.goals || '';
+      $('tone').value = saveData.formData.tone || 'Professional';
+    }
+    
+    // Restore report data
+    if (saveData.reportData) {
+      currentReportData = saveData.reportData;
+      currentFileName = saveData.fileName;
+      currentReportId = saveData.reportId;
+      
+      // Render the report
+      const reportView = $('report-view');
+      if (currentReportData.html) {
+        reportView.innerHTML = currentReportData.html;
+        
+        // Reattach event handlers
+        attachKpiEditHandlers();
+        attachAiSuggestionsHandler();
+        attachKpiChartHandlers();
+        
+        // Show metadata
+        showMetadata(
+          currentReportData.company, 
+          currentReportData.industry, 
+          currentReportData.stage
+        );
+      }
+    }
+  } catch (e) {
+    console.error('Failed to load saved report:', e);
+  }
+}
 
 // ==== STATE MANAGEMENT FUNCTIONS ====
 
@@ -798,6 +885,9 @@ function syncKpiTableData() {
   
   // Mark as unsaved
   markUnsaved();
+  
+  // Auto-save changes
+  saveCurrentReport();
 }
 
 // Template loading functions
@@ -918,6 +1008,9 @@ $('btn-generate').addEventListener('click', async () => {
     
     // Mark as unsaved changes
     markUnsaved();
+    
+    // Auto-save to localStorage
+    saveCurrentReport();
     
     showToast('Business plan generated successfully!', 'success');
     
@@ -1251,6 +1344,9 @@ async function handleExportPDF() {
     showToast('No report to export', 'error');
     return;
   }
+  
+  // Auto-save before export
+  saveCurrentReport();
   
   try {
     const filename = (currentFileName || generateDefaultFilename(currentReportData?.company || 'BizPlan')) + '.pdf';

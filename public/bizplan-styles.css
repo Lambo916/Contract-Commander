@@ -1137,7 +1137,7 @@
   .tooltip-bubble-menu {
     pointer-events: auto;
     left: 0;
-    top: calc(100% + 8px);
+    top: calc(100% + 16px);
   }
 }
 
