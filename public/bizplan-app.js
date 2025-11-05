@@ -1499,32 +1499,8 @@ async function handleExportPDF() {
   saveCurrentReport();
   
   try {
-    const filename = (currentFileName || generateDefaultFilename(currentReportData?.company || 'BizPlan')) + '.pdf';
-    
-    // Generate PDF-ready text content with special markers
-    let pdfContent = generatePDFContent(currentReportData);
-    
-    // Capture chart as image if it exists
-    const chartCanvas = document.getElementById('kpi-chart');
-    let chartImageData = null;
-    if (chartCanvas && kpiChartInstance) {
-      try {
-        chartImageData = chartCanvas.toDataURL('image/png');
-        // Add chart marker to PDF content
-        pdfContent += '\n##KPI_CHART##\n';
-        pdfContent += chartImageData + '\n';
-        pdfContent += '##END_KPI_CHART##\n';
-      } catch (e) {
-        console.warn('Could not capture chart image:', e);
-      }
-    }
-    
-    if (window.exportAllResultsToPDF) {
-      window.exportAllResultsToPDF([{
-        html: pdfContent,
-        fileName: filename
-      }]);
-      showToast('PDF downloaded', 'success');
+    if (window.exportBizPlanToPDF) {
+      await window.exportBizPlanToPDF();
     } else {
       throw new Error('PDF export module not loaded');
     }
