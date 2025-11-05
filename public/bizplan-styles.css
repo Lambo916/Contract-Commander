@@ -1139,6 +1139,11 @@
     left: 0;
     top: calc(100% + 16px);
   }
+  
+  /* Hide tooltips when dropdown menu is active */
+  .dropdown.active .tooltip-bubble-menu {
+    display: none !important;
+  }
 }
 
 /* ==== LOADING SPINNER ==== */
