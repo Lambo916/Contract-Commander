@@ -77,70 +77,69 @@
         </div>
       </div>
 
-      <div class="ybg-actions">
-        <div class="dropdown">
-          <button class="btn btn-secondary" id="btn-templates" data-testid="button-templates" title="Load example business plan template">
-            Load Template ▾
-          </button>
-          <div class="dropdown-menu" id="template-menu">
-            <button class="dropdown-item" data-template="saas" data-testid="template-saas">SaaS Startup</button>
-            <button class="dropdown-item" data-template="realestate" data-testid="template-realestate">Real Estate Investment</button>
-            <button class="dropdown-item" data-template="consulting" data-testid="template-consulting">Management Consulting</button>
-            <button class="dropdown-item" data-template="nonprofit" data-testid="template-nonprofit">Nonprofit Organization</button>
-            <button class="dropdown-item" data-template="ecommerce" data-testid="template-ecommerce">E-Commerce Store</button>
-            <button class="dropdown-item" data-template="restaurant" data-testid="template-restaurant">Restaurant / Food Service</button>
-          </div>
-        </div>
-        <button class="btn btn-secondary" id="btn-clear-inputs" data-testid="button-clear-inputs" title="Clear all input fields">Clear All</button>
-        <button class="btn btn-primary" id="btn-generate" data-testid="button-generate" title="Generate business plan">Generate Plan</button>
-      </div>
-
-      <div id="toolbar" class="toolbar">
-        <div class="toolbar-group">
+      <!-- Unified Command Bar -->
+      <div id="command-bar" class="command-bar">
+        <div class="command-bar-group">
           <div class="dropdown">
-            <button class="btn btn-toolbar" id="btn-file" data-testid="button-file" title="File operations">
+            <button class="btn btn-command" id="btn-file" data-testid="button-file" title="File operations">
               File ▾
             </button>
             <div class="dropdown-menu" id="file-menu">
-              <button class="dropdown-item" id="btn-new-plan" data-testid="button-new-plan" title="Start a new business plan">New Plan</button>
-              <button class="dropdown-item" id="btn-open" data-testid="button-open" title="Open a saved report">Open...</button>
+              <button class="dropdown-item" id="btn-new-plan" data-testid="button-new-plan" title="Start a new business plan">New</button>
+              <button class="dropdown-item" id="btn-open" data-testid="button-open" title="Open a saved report">Open</button>
               <button class="dropdown-item" id="btn-save" data-testid="button-save" title="Save this report">Save</button>
               <button class="dropdown-item" id="btn-save-as" data-testid="button-save-as" title="Save with a new name">Save As...</button>
               <button class="dropdown-item" id="btn-rename" data-testid="button-rename" title="Rename current file">Rename...</button>
-              <button class="dropdown-item" id="btn-version-history" data-testid="button-version-history" title="View previous versions">Version History...</button>
               <button class="dropdown-item" id="btn-delete" data-testid="button-delete" title="Delete this report">Delete</button>
             </div>
           </div>
 
           <div class="dropdown">
-            <button class="btn btn-toolbar" id="btn-export" data-testid="button-export" title="Export your report">
+            <button class="btn btn-command" id="btn-export" data-testid="button-export" title="Export your report">
               Export ▾
             </button>
             <div class="dropdown-menu" id="export-menu">
-              <button class="dropdown-item" id="btn-export-pdf" data-testid="button-export-pdf" title="Download as PDF">Download .pdf</button>
-              <button class="dropdown-item" id="btn-export-markdown" data-testid="button-export-markdown" title="Download as Markdown">Download .md</button>
-              <button class="dropdown-item" id="btn-copy-markdown" data-testid="button-copy-markdown" title="Copy Markdown to clipboard">Copy Markdown</button>
-              <button class="dropdown-item" id="btn-copy-summary" data-testid="button-copy-summary" title="Copy executive summary to clipboard">Copy Summary</button>
+              <button class="dropdown-item" id="btn-export-pdf" data-testid="button-export-pdf" title="Download as PDF">PDF</button>
+              <button class="dropdown-item" id="btn-export-docx" data-testid="button-export-docx" title="Download as DOCX">DOCX</button>
+              <button class="dropdown-item" id="btn-export-markdown" data-testid="button-export-markdown" title="Download as Markdown">Markdown</button>
             </div>
           </div>
 
-          <button class="btn btn-toolbar" id="btn-generate-toolbar" data-testid="button-generate-toolbar" title="Generate business plan">Generate</button>
-          
-          <button class="btn btn-toolbar" id="btn-reset" data-testid="button-reset" title="Reset the current report">Reset</button>
-        </div>
-      </div>
+          <div class="dropdown">
+            <button class="btn btn-command" id="btn-tools" data-testid="button-tools" title="Tools and utilities">
+              Tools ▾
+            </button>
+            <div class="dropdown-menu" id="tools-menu">
+              <button class="dropdown-item" id="btn-load-template" data-testid="button-load-template" title="Load a template">Load Template...</button>
+              <button class="dropdown-item" id="btn-clear-all" data-testid="button-clear-all" title="Clear all inputs and results">Clear All</button>
+              <button class="dropdown-item" id="btn-version-history" data-testid="button-version-history" title="View previous versions">Version History</button>
+            </div>
+          </div>
 
-      <!-- Report Metadata Bar (hidden until report is generated) -->
-      <div id="report-metadata" class="report-meta" style="display:none;">
-        <div class="meta-item"><strong>Company:</strong> <span id="meta-company">—</span></div>
-        <div class="meta-item"><strong>Industry:</strong> <span id="meta-industry">—</span></div>
-        <div class="meta-item"><strong>Stage:</strong> <span id="meta-stage">—</span></div>
-        <div class="meta-item"><strong>Generated:</strong> <span id="meta-timestamp">—</span></div>
+          <button class="btn btn-primary" id="btn-generate" data-testid="button-generate" title="Generate business plan">Generate Plan</button>
+        </div>
       </div>
 
       <!-- Report View Container -->
       <div class="ybg-results">
         <div class="ybg-section-title">Results</div>
+        
+        <!-- Loading Progress (shown during generation) -->
+        <div id="generation-progress" class="generation-progress" style="display:none;">
+          <div class="progress-bar">
+            <div class="progress-bar-fill"></div>
+          </div>
+          <div class="progress-text">Generating your business plan...</div>
+        </div>
+        
+        <!-- Report Metadata (shown after generation, inside Results panel) -->
+        <div id="report-metadata" class="report-meta-inline" style="display:none;">
+          <div class="meta-item"><strong>Company:</strong> <span id="meta-company">—</span></div>
+          <div class="meta-item"><strong>Industry:</strong> <span id="meta-industry">—</span></div>
+          <div class="meta-item"><strong>Stage:</strong> <span id="meta-stage">—</span></div>
+          <div class="meta-item"><strong>Generated:</strong> <span id="meta-timestamp">—</span></div>
+        </div>
+        
         <div id="report-view" class="report-view"></div>
       </div>
     </div>
@@ -244,6 +243,48 @@
       <div class="modal-footer">
         <button class="btn btn-ghost" id="saveas-cancel" data-testid="button-saveas-cancel">Cancel</button>
         <button class="btn btn-primary" id="saveas-confirm" data-testid="button-saveas-confirm">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Template Loading Modal -->
+  <div id="template-modal" class="modal" role="dialog" aria-labelledby="template-modal-title" aria-hidden="true">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2 id="template-modal-title">Load Template</h2>
+        <button class="modal-close" data-testid="button-close-template-modal" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-hint">Choose a template to pre-fill your business plan inputs</p>
+        <div class="template-grid">
+          <button class="template-card" data-template="saas" data-testid="template-saas">
+            <div class="template-name">SaaS Startup</div>
+            <div class="template-desc">Software-as-a-Service platform with recurring revenue</div>
+          </button>
+          <button class="template-card" data-template="realestate" data-testid="template-realestate">
+            <div class="template-name">Real Estate Investment</div>
+            <div class="template-desc">Property acquisition, development, and management</div>
+          </button>
+          <button class="template-card" data-template="consulting" data-testid="template-consulting">
+            <div class="template-name">Management Consulting</div>
+            <div class="template-desc">Professional services and advisory practice</div>
+          </button>
+          <button class="template-card" data-template="nonprofit" data-testid="template-nonprofit">
+            <div class="template-name">Nonprofit Organization</div>
+            <div class="template-desc">Mission-driven organization with community impact</div>
+          </button>
+          <button class="template-card" data-template="ecommerce" data-testid="template-ecommerce">
+            <div class="template-name">E-Commerce Store</div>
+            <div class="template-desc">Online retail and product sales platform</div>
+          </button>
+          <button class="template-card" data-template="restaurant" data-testid="template-restaurant">
+            <div class="template-name">Restaurant / Food Service</div>
+            <div class="template-desc">Dining establishment or food delivery service</div>
+          </button>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="template-cancel" data-testid="button-template-cancel">Cancel</button>
       </div>
     </div>
   </div>

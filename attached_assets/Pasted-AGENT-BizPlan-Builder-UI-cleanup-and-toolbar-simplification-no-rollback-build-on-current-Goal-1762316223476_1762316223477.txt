@@ -1,0 +1,71 @@
+AGENT: BizPlan Builder – UI cleanup and toolbar simplification (no rollback, build on current)
+
+Goals
+- Remove redundancy, use one clean command bar, and keep all metadata inside the Results panel.
+- Keep existing theme/branding and current fonts/colors.
+
+Changes to implement
+1) Generate button
+   - Remove the duplicate “Generate…” button. Keep ONE primary “Generate Plan” button.
+   - Primary location: in the bottom command bar (sticky on mobile/desktop).
+   - Button states: Idle = “Generate Plan”; Busy = “Generating…” with spinner; Disabled when required fields are missing.
+
+2) Command bar (single row, sticky)
+   - Keep exactly three dropdowns + one primary button:
+     • File ▾
+       – New
+       – Open
+       – Save
+       – Save As… (PROMPT for filename before saving; do NOT autosave silently)
+       – Rename… (PROMPT for new name)
+       – Delete
+     • Export ▾
+       – PDF (uses current polished YBG PDF layout)
+       – DOCX
+       – Markdown
+     • Tools ▾   (new)
+       – Load Template… (opens modal with template list/preview)
+       – Clear All (resets inputs and results with confirm)
+       – Version History (open/restore previously saved versions)
+     • [Primary] Generate Plan  (see #1)
+
+   - Remove any second/legacy toolbar or floating controls below the tone selector.
+
+3) Load Template UX
+   - Move “Load Template” into Tools ▾ (remove the standalone pill button).
+   - Modal includes: list with small descriptions, search/filter, and “Load” action.
+   - After load, show a subtle toast “Template loaded”.
+
+4) Metadata placement
+   - Remove the separate metadata header above the Results panel.
+   - Add a compact “Plan Meta” strip INSIDE the Results panel at the top (Company, Industry, Stage, Generated timestamp).
+   - Keep this strip in the export as well (top of page 1 under the title block).
+
+5) Results panel polish
+   - Ensure the Results card keeps the same padding, radius, and shadows as the rest of the app.
+   - No extra banners or labels outside the panel; all status messages and metadata live inside.
+   - When generating, show a slim inline progress bar at the very top INSIDE the Results panel (beneath the Meta strip), not as a separate global banner.
+
+6) Footer (app pages)
+   - Keep the centered two-line footer as implemented:
+     Line 1: clickable YourBizGuru.com • Privacy Policy • Terms of Service
+     Line 2: disclaimer text
+   - No style changes; reuse current theme.
+
+7) Mobile behavior
+   - Command bar is sticky at bottom with dropdowns collapsing properly.
+   - Ensure dropdowns are full-width on small screens and don’t overflow the viewport.
+   - Maintain consistent spacing between the Tone selector and the command bar.
+
+8) Persistence
+   - “Save As…” must allow custom naming at save time.
+   - Persist last-used template and reopen it on next visit (if available), with an option in Tools ▾ to “Start from Blank”.
+
+9) QA checklist
+   - Verify: only one Generate button visible across all viewports.
+   - Verify: Load Template appears only in Tools ▾ and the old pill is removed.
+   - Verify: Metadata no longer appears above Results; instead it’s inside the panel.
+   - Verify: PDF export still uses the unified YBG layout and the new Meta strip appears under the title on page 1.
+   - Verify: App footer remains centered two-line; PDF footer remains left-aligned with the separator line between the two footer lines.
+
+Please implement these UI/UX changes now without altering existing color tokens or typography.
