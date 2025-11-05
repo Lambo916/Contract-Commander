@@ -83,6 +83,7 @@ export const bizplanReports = pgTable("bizplan_reports", {
   company: text("company"),
   industry: text("industry"),
   contentHtml: text("content_html").notNull(),
+  metadata: json("metadata"),
   approxCharCount: integer("approx_char_count").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),

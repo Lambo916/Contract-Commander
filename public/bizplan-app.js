@@ -1214,6 +1214,7 @@ $('btn-generate').addEventListener('click', async () => {
     currentReportData = {
       executiveSnapshot: data.executiveSnapshot,
       markdown: data.mainPlan || data.markdown || '',
+      mainContent: data.mainPlan || data.markdown || '',
       kpiTable: data.kpiTable || [],
       aiInsights: data.aiInsights || [],
       financialProjections: data.financialProjections || null,
@@ -1503,7 +1504,15 @@ async function handleSaveReport(filename, reportId) {
         contentHtml: currentReportData.html,
         company: currentReportData.company,
         industry: currentReportData.industry,
-        title: saveFilename
+        title: saveFilename,
+        metadata: {
+          executiveSnapshot: currentReportData.executiveSnapshot,
+          mainContent: currentReportData.mainContent,
+          kpiTable: currentReportData.kpiTable,
+          aiInsights: currentReportData.aiInsights,
+          financialProjections: currentReportData.financialProjections,
+          stage: currentReportData.stage
+        }
       })
     });
     
@@ -1699,17 +1708,29 @@ window.loadReportById = async function(id) {
     
     $('report-view').innerHTML = report.contentHtml;
     
+    // Restore structured data from metadata for PDF export
+    const metadata = report.metadata || {};
     currentReportData = {
       html: report.contentHtml,
       company: report.company,
       industry: report.industry,
-      stage: ''
+      stage: metadata.stage || '',
+      executiveSnapshot: metadata.executiveSnapshot || null,
+      mainContent: metadata.mainContent || '',
+      kpiTable: metadata.kpiTable || [],
+      aiInsights: metadata.aiInsights || [],
+      financialProjections: metadata.financialProjections || null
     };
     
     // Expose to window for PDF export
     window.currentReportData = currentReportData;
     
-    showMetadata(report.company, report.industry, '');
+    // Reattach event handlers for interactive elements
+    attachKpiEditHandlers();
+    attachKpiChartHandlers();
+    attachFinancialChartHandlers();
+    
+    showMetadata(report.company, report.industry, metadata.stage || '');
     updateButtonStates(true);
     
     closeModal('load-modal');

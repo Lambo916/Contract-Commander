@@ -836,7 +836,7 @@ Make suggestions concrete and tailored to this specific business. Avoid generic 
         throw error;
       }
 
-      const { contentHtml, company, industry } = req.body;
+      const { contentHtml, company, industry, metadata } = req.body;
 
       // Validate required fields
       if (!contentHtml || typeof contentHtml !== 'string') {
@@ -902,6 +902,7 @@ Make suggestions concrete and tailored to this specific business. Avoid generic 
           company: company || null,
           industry: industry || null,
           contentHtml: sanitizedHtml,
+          metadata: metadata || null,
           approxCharCount,
         })
         .returning();
