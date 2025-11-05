@@ -1046,9 +1046,11 @@
   font-weight: 700;
   height: 44px;
   border-radius: 12px;
+  margin-top: 8px;
 }
 
-#tone {
+#tone,
+#detailLevel {
   height: 44px;
 }
 
