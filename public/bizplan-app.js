@@ -20,7 +20,7 @@ function setGeneratingState(generating) {
   const exportBtn = $('btn-export');
   const toolsBtn = $('btn-tools');
   const progressBar = $('generation-progress');
-  const resultsContainer = $('report-view');
+  const resultsContainer = $('results-container');
   
   if (generating) {
     // Update Generate button with ARIA
