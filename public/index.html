@@ -197,6 +197,22 @@
     </div>
   </div>
 
+  <!-- Version History Modal -->
+  <div id="version-history-modal" class="modal" role="dialog" aria-labelledby="version-history-title" aria-hidden="true">
+    <div class="modal-content modal-large">
+      <div class="modal-header">
+        <h2 id="version-history-title">Version History</h2>
+        <button class="modal-close" data-testid="button-close-version-modal" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="version-list" class="version-list" data-testid="list-versions"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="version-cancel" data-testid="button-version-cancel">Close</button>
+      </div>
+    </div>
+  </div>
+
   <script src="/bizplan-app.js"></script>
 </body>
 </html>

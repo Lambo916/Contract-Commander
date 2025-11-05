@@ -475,6 +475,9 @@ $('btn-generate').addEventListener('click', async () => {
     showMetadata(payload.company, payload.industry, payload.stage);
     updateButtonStates(true);
     
+    // Save to version history
+    saveToVersionHistory();
+    
   } catch (e) {
     reportView.innerHTML = `<p style="color: #ff6b6b;">Error generating plan: ${e.message}</p>`;
     updateButtonStates(false);
@@ -529,6 +532,135 @@ $('btn-clear').addEventListener('click', () => {
     updateButtonStates(false);
   }
 });
+
+// ==== VERSION HISTORY FUNCTIONS ====
+const VERSION_HISTORY_KEY = 'bizplan-version-history';
+const MAX_VERSIONS = 10;
+
+function saveToVersionHistory() {
+  if (!currentReportData) return;
+  
+  try {
+    const versions = getVersionHistory();
+    
+    const newVersion = {
+      id: Date.now(),
+      timestamp: new Date().toISOString(),
+      company: currentReportData.company,
+      industry: currentReportData.industry,
+      stage: currentReportData.stage,
+      data: currentReportData
+    };
+    
+    // Add new version at the beginning
+    versions.unshift(newVersion);
+    
+    // Keep only last MAX_VERSIONS
+    if (versions.length > MAX_VERSIONS) {
+      versions.splice(MAX_VERSIONS);
+    }
+    
+    localStorage.setItem(VERSION_HISTORY_KEY, JSON.stringify(versions));
+  } catch (e) {
+    console.error('Failed to save version:', e);
+  }
+}
+
+function getVersionHistory() {
+  try {
+    const stored = localStorage.getItem(VERSION_HISTORY_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch (e) {
+    console.error('Failed to load version history:', e);
+    return [];
+  }
+}
+
+function restoreVersion(versionId) {
+  const versions = getVersionHistory();
+  const version = versions.find(v => v.id === versionId);
+  
+  if (!version) {
+    alert('Version not found');
+    return;
+  }
+  
+  if (!confirm(`Restore version from ${new Date(version.timestamp).toLocaleString()}?\n\nCompany: ${version.company}\n\nThis will replace your current view.`)) {
+    return;
+  }
+  
+  // Restore the version data
+  currentReportData = version.data;
+  
+  // Re-render the report
+  const reportView = $('report-view');
+  reportView.innerHTML = currentReportData.html;
+  
+  // Re-attach KPI handlers
+  attachKpiEditHandlers();
+  
+  // Update metadata
+  showMetadata(currentReportData.company, currentReportData.industry, currentReportData.stage);
+  updateButtonStates(true);
+  
+  closeModal('version-history-modal');
+}
+
+function renderVersionHistory() {
+  const versions = getVersionHistory();
+  const versionList = $('version-list');
+  
+  if (versions.length === 0) {
+    versionList.innerHTML = '<p style="color: #999; text-align: center; padding: 2rem;">No version history available yet.<br>Generate and save business plans to build your version history.</p>';
+    return;
+  }
+  
+  const versionsHtml = versions.map(version => {
+    const date = new Date(version.timestamp);
+    const dateStr = date.toLocaleDateString();
+    const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    // Create a preview snippet from the markdown
+    const preview = version.data.markdown ? 
+      version.data.markdown.substring(0, 150).replace(/[#*\n]/g, ' ').trim() + '...' : 
+      'No preview available';
+    
+    return `
+      <div class="version-item" data-testid="version-item-${version.id}">
+        <div class="version-header">
+          <div class="version-title">
+            <strong>${version.company || 'Untitled Plan'}</strong>
+            <span class="version-badge">${version.industry || 'N/A'}</span>
+          </div>
+          <div class="version-meta">
+            <span>${dateStr}</span>
+            <span>${timeStr}</span>
+          </div>
+        </div>
+        <div class="version-preview">${preview}</div>
+        <div class="version-actions">
+          <button class="btn btn-primary btn-sm" onclick="restoreVersion(${version.id})" data-testid="button-restore-${version.id}">
+            Restore This Version
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+  
+  versionList.innerHTML = versionsHtml;
+}
+
+$('btn-version-history').addEventListener('click', () => {
+  openModal('version-history-modal');
+  renderVersionHistory();
+});
+
+$('version-cancel').addEventListener('click', () => {
+  closeModal('version-history-modal');
+});
+
+// Make restoreVersion globally available
+window.restoreVersion = restoreVersion;
 
 async function handleSaveReport() {
   if (!currentReportData) {
