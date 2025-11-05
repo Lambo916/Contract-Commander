@@ -1,0 +1,89 @@
+AGENT: UI CLEANUP + SAVE/EXPORT UX — BizPlan Builder (no code details, just implement)
+
+GOAL
+Make the bottom action area clean, consistent, and brand-aligned. Keep a minimal, always-visible toolbar. Ensure users can name files on Save As. Add proper loading state on the Generate Plan button (not inside the results panel).
+
+A) TOOLBAR (ALWAYS VISIBLE, ABOVE RESULTS CARD)
+Show these, left→right:
+1) File ▾
+2) Export ▾
+3) Clear (button)
+4) (Optional) Help ▾  — move “Version History” here or into File (see below)
+
+• Remove any extra/duplicate buttons or labels currently shown in the results area.
+• Ensure this toolbar is sticky on mobile so it stays visible at the top of the results card.
+
+B) FILE MENU (FUNCTIONAL, NO CODE SHOWN)
+File ▾ items (in order):
+- New Plan  — clears inputs + results after confirm
+- Open…     — open previously saved plan (list modal with search)
+- Save      — saves current plan (silent)
+- Save As…  — open modal to name the plan before saving (see C)
+- Rename…   — rename current file (modal)
+- Version History… — shows prior saves for this plan
+- Move to Trash… — soft delete (with confirm)
+
+C) “SAVE AS” / “RENAME” MODAL (REQUIRED)
+• Single text field pre-filled with suggested name: `{CompanyName or Untitled} – BizPlan – {YYYY-MM-DD_HH-mm}`.
+• User can edit before saving.
+• Show small helper line with example and where it will be stored.
+• On success: toast “Saved as <name>”.
+• If autosave is enabled, keep it, but still allow Save As to create a new named copy (do NOT overwrite).
+• Ensure the selected name propagates to:
+  - File menu current name
+  - PDF/Markdown default export filenames
+  - In-app header “Results – <name>” (small, subtle)
+
+D) EXPORT MENU
+Export ▾ items (match other toolkits):
+- Download PDF
+- Download Markdown (.md)
+- Copy Markdown to Clipboard
+
+• Do NOT hide Export before a generation. If there’s no current result, Export should prompt: “No content yet. Open a saved plan or Generate first.” (with quick links).
+
+E) CLEAR BUTTON
+• Label: “Clear”
+• One-line confirm: “Clear inputs and results?” [Cancel] [Clear]
+• If a file has unsaved changes, show a warning and offer Save first.
+
+F) GENERATE PLAN BUTTON
+• Primary style, consistent with brand.
+• Loading behavior:
+  - While generating: disable toolbar actions except “Cancel” (if supported) and show button state “Generating…” with a spinner inside the button.
+  - Do NOT show “Loading” text inside the results panel.
+  - Re-enable actions on completion or failure.
+
+G) RESULTS PANEL POLISH
+• Keep the results card clean and brand-consistent (same spacing, radii, divider styles as other toolkits).
+• Above the results, show a tiny metadata line: `Company: <name>  •  Stage: <stage>  •  Generated: <timestamp>`
+• Below metadata, keep sections in this order (only if present): Executive Snapshot → Executive Summary → Market Analysis → Business Model → Go-to-Market Strategy → Product Roadmap → Financial Outlook → Risk Mitigation → Next Steps → KPI Table → AI Insights.
+• Ensure KPI table styling and AI Insights box match the in-app look (no extra borders/noise).
+
+H) FOOTERS / DISCLAIMERS
+• App footer (homepage and tool page): first line centered with clickable “YourBizGuru.com”, then centered links “Privacy” • “Terms” on the same line; second line is the standard disclaimer. Keep all centered.
+• PDF footer (each page): left-aligned two lines:
+  Line 1: “Powered by YourBizGuru.com”
+  —thin divider line—
+  Line 2: Standard disclaimer text (unchanged).
+• Do not change fonts/colors beyond current theme.
+
+I) ACCESSIBILITY & MOBILE
+• Hit targets ≥ 44px on touch.
+• Ensure toolbar wraps gracefully on small screens (two rows if needed).
+• Keep focus states visible; preserve keyboard navigation.
+
+J) STATE & ERRORS
+• Disable Export/Clear/New/Open while “Generating…” (except if safe).
+• Non-blocking toasts for success/error (top-right).
+• If a plan is unsaved and user navigates away (New/Open/Clear), prompt to Save/Discard.
+
+K) CONSISTENCY
+• Use the same button sizes, weights, and spacing scale as the other toolkits (GrantGenie, CompliPilot, Elev8 Analyzer).
+• Ensure iconography (if any) is consistent across menus.
+
+Please implement all of the above. When done, verify:
+- “Save As” actually lets me name a new file and that name drives default export filenames.
+- Toolbar is always visible (even before any generation) and looks the same on mobile and desktop.
+- “Generating…” state appears only on the Generate Plan button and returns to normal afterward.
+- PDF footer uses two lines with a divider between them, as specified.
