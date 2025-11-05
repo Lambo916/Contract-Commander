@@ -1222,8 +1222,12 @@ $('btn-generate').addEventListener('click', async () => {
     showToast('Business plan generated successfully!', 'success');
     
   } catch (e) {
-    reportView.innerHTML = `<p style="color: #ff6b6b;">Error generating plan: ${e.message}</p>`;
-    showToast(`Error: ${e.message}`, 'error');
+    console.error('Generation error:', e);
+    const errorMsg = e.message === 'Failed to fetch' || e.message === 'Load failed' 
+      ? 'Cannot connect to server. Please refresh the page and try again.'
+      : e.message;
+    reportView.innerHTML = `<p style="color: #ff6b6b;">Error: ${errorMsg}</p><p style="color: #999; font-size: 14px; margin-top: 10px;">If this persists, try: 1) Close this tab completely, 2) Clear Safari cache, 3) Reopen the page</p>`;
+    showToast(`Error: ${errorMsg}`, 'error');
   } finally {
     setGeneratingState(false);
   }
