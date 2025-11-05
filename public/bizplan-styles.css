@@ -1015,10 +1015,30 @@
 }
 
 /* ==== COMMAND BAR ==== */
+/* Generate Button Container */
+.generate-button-container {
+  display: flex;
+  justify-content: center;
+  margin: 20px 0 12px 0;
+}
+
+.btn-generate-main {
+  padding: 14px 32px;
+  font-size: 16px;
+  font-weight: 700;
+  min-height: 48px;
+  box-shadow: 0 4px 12px rgba(77, 182, 231, 0.3);
+}
+
+.btn-generate-main:hover {
+  box-shadow: 0 6px 16px rgba(77, 182, 231, 0.4);
+  transform: translateY(-1px);
+}
+
 .command-bar {
   display: flex;
   gap: 12px;
-  margin: 16px 0;
+  margin: 0 0 16px 0;
   padding: 12px;
   background: rgba(18, 24, 32, 0.6);
   border: 1px solid var(--ybg-border);
@@ -1074,6 +1094,15 @@
 }
 
 @media (max-width: 768px) {
+  .generate-button-container {
+    margin: 16px 0 12px 0;
+  }
+  
+  .btn-generate-main {
+    width: 100%;
+    max-width: 400px;
+  }
+  
   .command-bar .dropdown {
     flex: 1;
   }
@@ -1209,6 +1238,7 @@
   
   .ybg-hero,
   .ybg-card,
+  .generate-button-container,
   .command-bar,
   .toolbar,
   .report-meta-inline,
