@@ -54,6 +54,10 @@ git push origin main
    DATABASE_URL=postgresql://[your-supabase-connection-string]
    OPENAI_API_KEY=sk-proj-...
    NODE_ENV=production
+   
+   # Frontend variables (prefixed with VITE_ for Vite)
+   VITE_SUPABASE_URL=https://juijtvagjaaxjqjhmrxp.supabase.co
+   VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
    ```
 
 6. Click **"Deploy"**
@@ -79,8 +83,10 @@ In Vercel Dashboard → Settings → Environment Variables, add:
 
 | Variable | Value | Description |
 |----------|-------|-------------|
-| `SUPABASE_URL` | https://juijtvagjaaxjqjhmrxp.supabase.co | Your Supabase project URL |
-| `SUPABASE_ANON_KEY` | eyJhbGci... | Supabase anonymous/public key |
+| `SUPABASE_URL` | https://juijtvagjaaxjqjhmrxp.supabase.co | Your Supabase project URL (backend) |
+| `SUPABASE_ANON_KEY` | eyJhbGci... | Supabase anonymous/public key (backend) |
+| `VITE_SUPABASE_URL` | https://juijtvagjaaxjqjhmrxp.supabase.co | Your Supabase project URL (frontend) |
+| `VITE_SUPABASE_ANON_KEY` | eyJhbGci... | Supabase anonymous/public key (frontend) |
 | `DATABASE_URL` | postgresql://... | Supabase PostgreSQL connection string (Transaction pooler, port 5432) |
 | `OPENAI_API_KEY` | sk-proj-... | OpenAI API key for GPT-5 |
 | `NODE_ENV` | production | Environment mode |

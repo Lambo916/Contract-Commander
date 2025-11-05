@@ -2,12 +2,13 @@ import { createClient } from "@supabase/supabase-js";
 
 // Browser/client-side Supabase client
 // For future auth features and client-side database operations
+// Uses import.meta.env for Vite compatibility
 export function supabaseBrowser() {
-  const supabaseUrl = process.env.SUPABASE_URL;
-  const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
   if (!supabaseUrl || !supabaseAnonKey) {
-    throw new Error("SUPABASE_URL and SUPABASE_ANON_KEY must be set");
+    throw new Error("VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY must be set");
   }
 
   return createClient(supabaseUrl, supabaseAnonKey, {

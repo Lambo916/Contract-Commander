@@ -55,8 +55,15 @@ Set these in the Vercel dashboard (Settings → Environment Variables):
 NODE_ENV=production
 DATABASE_URL=postgresql://postgres.[PROJECT]:[PASSWORD]@aws-0-us-west-1.pooler.supabase.com:5432/postgres
 # ^ Supabase Transaction pooler connection string (port 5432)
+
+# Backend Supabase credentials
 SUPABASE_URL=https://[PROJECT].supabase.co
 SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+# Frontend Supabase credentials (prefixed with VITE_ for Vite)
+VITE_SUPABASE_URL=https://[PROJECT].supabase.co
+VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
 OPENAI_API_KEY=sk-proj-...
 ```
 
