@@ -570,15 +570,15 @@ IMPORTANT:
       console.log(`Generating business plan for: ${company} - ${industry} (Detail: ${detailLevel})`);
 
       // Adjust prompt based on detail level
-      let wordCount = '900-1400';
-      let depthGuidance = 'Make it crisp, skimmable, investor-ready.';
+      let wordCount = '1500-2200';
+      let depthGuidance = 'Write 2-3 substantial paragraphs per major section. Each section should include: (1) Strategic overview and context, (2) Specific actionable steps your client can implement, (3) Success metrics and timelines. Include real-world examples relevant to the industry. Make content immediately actionable for business planning.';
       
       if (detailLevel === 'expanded') {
-        wordCount = '1400-2000';
-        depthGuidance = 'Provide richer explanations with context on market dynamics and operational strategies. Include 2-3 examples where appropriate. Add numeric ranges or assumptions when helpful.';
+        wordCount = '2200-3200';
+        depthGuidance = 'Write 3-4 detailed paragraphs per major section. Each section must include: (1) Strategic overview with market context and trends, (2) Detailed actionable tactics and implementation steps, (3) Metrics, KPIs, and success criteria with specific targets, (4) Real-world examples, case studies, or best practices from the industry. Add potential pitfalls to avoid and resource requirements. Provide specific next steps with timelines (30/60/90 day plans where relevant).';
       } else if (detailLevel === 'comprehensive') {
-        wordCount = '2000-3000';
-        depthGuidance = 'Write 3-5 paragraphs per major section with specific, defensible details. Include assumptions, sample KPIs with targets, and brief benchmarks where relevant. Keep language practical and investor-focused.';
+        wordCount = '3200-4500';
+        depthGuidance = 'Write 4-6 comprehensive paragraphs per major section. Each section must include: (1) In-depth strategic overview with market dynamics, competitive landscape, and trends, (2) Detailed step-by-step actionable tactics with implementation roadmap, (3) Comprehensive metrics, KPIs, and success criteria with specific numeric targets and benchmarks, (4) Multiple real-world examples, case studies, and industry best practices, (5) Risk analysis with specific mitigation strategies, (6) Resource requirements (budget, team, tools) with recommendations. Include multiple scenarios (conservative/moderate/optimistic), specific timelines with milestones, and quarterly planning guidance. Make every section a complete playbook your client can follow.';
       }
 
       // Build comprehensive business plan prompt with premium structured output
@@ -619,7 +619,7 @@ Generate a JSON object with this exact structure:
   ],
   
   "aiInsights": [
-    "Generate 3-5 practical, actionable insights based on the business plan. Focus on: immediate priorities, risks to watch, opportunities to capitalize on. Keep each insight concise (1-2 sentences). Examples: 'Focus next 90 days on revenue traction and brand visibility.', 'Consider partnering with established players in ${industry} to accelerate market entry.'"
+    "Generate 4-6 practical, actionable insights based on the business plan. Focus on: immediate priorities (specific next steps), risks to watch, opportunities to capitalize on, resource optimization, and strategic partnerships. Keep each insight concise but specific (1-2 sentences with concrete recommendations). Examples: 'Focus next 90 days on revenue traction and brand visibility by launching beta program with 10 early customers.', 'Consider partnering with established players in ${industry} to accelerate market entry and reduce customer acquisition costs by 40%.'"
   ],
   
   "financialProjections": {
@@ -632,9 +632,9 @@ Generate a JSON object with this exact structure:
 
 INSTRUCTIONS:
 - executiveSnapshot: Auto-populate from inputs, keep factual
-- mainPlan: Write comprehensive markdown business plan, professional ${tone} tone
-- kpiTable: Intelligently suggest 4-6 KPIs based on goals and stage (e.g., "sales" → Revenue Growth %; "users" → User Acquisition Rate)
-- aiInsights: Generate strategic recommendations tied to plan content, forward-looking and actionable
+- mainPlan: Write comprehensive, actionable markdown business plan (${wordCount} words) with professional ${tone} tone. ${depthGuidance} Each major section MUST have multiple substantial paragraphs. Focus on practical, implementable guidance that helps clients build their business. Include specific examples, timelines, metrics, and next steps in every section.
+- kpiTable: Intelligently suggest 4-6 KPIs based on goals and stage (e.g., "sales" → Revenue Growth %; "users" → User Acquisition Rate). Make them specific and measurable.
+- aiInsights: Generate 4-6 strategic, actionable insights tied to the plan. Focus on immediate priorities, risks to watch, opportunities to capitalize on, and specific next steps. Each insight should be practical and implementable.
 - financialProjections: Generate realistic 12-month financial projections based on the business model, stage, and revenue information. Include monthly values for revenue, expenses, and profit. Ensure values show realistic growth trajectory for ${stage} stage in ${industry} industry. Revenue should align with stated revenue model: ${revenue}. Make expenses realistic (60-80% of revenue initially, decreasing over time as business scales).
 - Return ONLY valid JSON, no explanations
       `.trim();
@@ -649,12 +649,12 @@ INSTRUCTIONS:
         body: JSON.stringify({
           model: 'gpt-4o',
           messages: [
-            { role: 'system', content: 'You are an expert business planning consultant generating premium, investor-ready business plans with structured insights.' },
+            { role: 'system', content: 'You are an expert business planning consultant generating premium, investor-ready business plans with comprehensive, actionable insights.' },
             { role: 'user', content: prompt }
           ],
           response_format: { type: 'json_object' },
           temperature: 0.7,
-          max_tokens: 3500
+          max_tokens: 6000
         })
       });
 
