@@ -1,0 +1,55 @@
+ROLLBACK & SCOPED FIXES — DO NOT CHANGE THEME, FONTS, OR LAYOUT SPACING
+
+1) Roll back the repo to the checkpoint immediately BEFORE the recent UI overhaul.
+   - Target: the checkpoint after the PDF polish was confirmed (Executive Snapshot + KPI table + AI Insights + PDF footer divider). 
+   - Keep ALL of those PDF improvements intact.
+
+2) Restore the original on-screen layout and styling exactly as before the overhaul.
+   - No bottom fixed action bar.
+   - No additional helper text or re-labeled fields.
+   - No repositioning of elements beyond what’s specified below.
+
+3) Minimal UI updates (only these):
+   A) Toolbar visibility
+      - Ensure the top action toolbar with buttons is ALWAYS visible (even before generation).
+      - Buttons: File ▾ | Export ▾ | Clear | Generate Plan
+      - Match existing button style/colors (do not introduce new variants).
+
+   B) Generate button behavior
+      - When clicked, show a spinner + the text “Generating…” INSIDE the Generate button.
+      - Remove any panel-level loading text/overlay.
+
+   C) File menu behaviors (no visual restyle)
+      - Items: New, Open…, Save, Save As…, Rename…, Delete, Version History.
+      - Implement Save As… modal:
+         * Text input pre-filled with current name; user can edit.
+         * Optional description field.
+         * Confirm/Cancel. On Confirm, save as a new document and set it as the active name.
+      - Save continues autosaving the active name.
+
+   D) Export menu (unchanged visuals)
+      - Items: Download .md, Download .pdf, Copy Markdown, Copy Summary.
+
+4) Results panel
+   - Keep current card visuals exactly as before.
+   - KPI table remains editable with “+ Add KPI”.
+   - AI Insights section remains as implemented. Add a small “Regenerate insights” button that refreshes only insights (no full re-generate).
+
+5) PDF export parity (already implemented)
+   - Keep the Executive Snapshot, KPI table styling, and AI Insights box.
+   - Footer on every page: 
+       Line 1 (left): “Powered by YourBizGuru.com”
+       Divider line between lines
+       Line 2 (left): “For informational purposes only. Not legal, tax, or financial advice.”
+     (Do not change fonts/colors. Keep existing page numbers.)
+
+6) App footer (homepage/footer area)
+   - Center the three links on one line: YourBizGuru.com (clickable) • Privacy • Terms
+   - Add the disclaimer on the line below.
+   - No other visual changes.
+
+7) Clean-up / consistency
+   - Ensure all toolbar buttons use the existing primary/secondary styles for color consistency.
+   - Keep spacing, paddings, and grid exactly as the pre-overhaul version.
+
+Please confirm rollback success, then apply only the above deltas. Do not introduce additional layout or style changes beyond this list.
