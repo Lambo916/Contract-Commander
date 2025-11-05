@@ -67,10 +67,17 @@ function showToast(message, type = 'success') {
   
   const icon = type === 'success' ? '✓' : '✕';
   
-  toast.innerHTML = `
-    <span class="toast-icon">${icon}</span>
-    <span class="toast-message">${message}</span>
-  `;
+  // Create elements safely to prevent XSS
+  const iconSpan = document.createElement('span');
+  iconSpan.className = 'toast-icon';
+  iconSpan.textContent = icon;
+  
+  const messageSpan = document.createElement('span');
+  messageSpan.className = 'toast-message';
+  messageSpan.textContent = message; // Use textContent to prevent XSS
+  
+  toast.appendChild(iconSpan);
+  toast.appendChild(messageSpan);
   
   container.appendChild(toast);
   
