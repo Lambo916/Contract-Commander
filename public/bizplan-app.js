@@ -123,6 +123,7 @@ function loadSavedReport() {
         // Reattach event handlers
         attachKpiEditHandlers();
         attachKpiChartHandlers();
+        attachFinancialChartHandlers();
         
         // Show metadata
         showMetadata(
@@ -541,11 +542,84 @@ function renderKpiChartsSection(kpiData) {
   `;
 }
 
+function renderFinancialChartsSection(financialData) {
+  if (!financialData || !financialData.months || !financialData.revenue) {
+    return '';
+  }
+  
+  return `
+    <div class="financial-charts-section" data-testid="financial-charts-section">
+      <div class="financial-charts-header">
+        <h3 style="color: #1a1a1a; font-size: 20px; margin: 0;">📊 Financial Projections (12-Month Forecast)</h3>
+        <div class="chart-view-selector">
+          <button class="chart-view-btn active" data-view="combined" data-testid="button-view-combined">
+            Combined View
+          </button>
+          <button class="chart-view-btn" data-view="individual" data-testid="button-view-individual">
+            Individual Charts
+          </button>
+        </div>
+      </div>
+      
+      <!-- Combined Chart View -->
+      <div class="financial-chart-container" id="combined-chart-view">
+        <canvas id="financial-chart-combined" data-testid="canvas-financial-combined"></canvas>
+      </div>
+      
+      <!-- Individual Charts View -->
+      <div class="financial-chart-container hidden" id="individual-charts-view">
+        <div class="individual-chart-row">
+          <div class="individual-chart-item">
+            <h4>Revenue Forecast</h4>
+            <canvas id="financial-chart-revenue" data-testid="canvas-financial-revenue"></canvas>
+          </div>
+          <div class="individual-chart-item">
+            <h4>Expense Projection</h4>
+            <canvas id="financial-chart-expenses" data-testid="canvas-financial-expenses"></canvas>
+          </div>
+        </div>
+        <div class="individual-chart-row">
+          <div class="individual-chart-item">
+            <h4>Profit Trend</h4>
+            <canvas id="financial-chart-profit" data-testid="canvas-financial-profit"></canvas>
+          </div>
+          <div class="individual-chart-item">
+            <h4>Financial Summary</h4>
+            <div class="financial-summary-stats">
+              <div class="summary-stat">
+                <div class="stat-label">Total Year 1 Revenue</div>
+                <div class="stat-value" style="color: #4DB6E7;">$${formatNumber(financialData.revenue.reduce((a, b) => a + b, 0))}</div>
+              </div>
+              <div class="summary-stat">
+                <div class="stat-label">Total Year 1 Expenses</div>
+                <div class="stat-value" style="color: #FF6B6B;">$${formatNumber(financialData.expenses.reduce((a, b) => a + b, 0))}</div>
+              </div>
+              <div class="summary-stat">
+                <div class="stat-label">Total Year 1 Profit</div>
+                <div class="stat-value" style="color: #51CF66;">$${formatNumber(financialData.profit.reduce((a, b) => a + b, 0))}</div>
+              </div>
+              <div class="summary-stat">
+                <div class="stat-label">Avg. Profit Margin</div>
+                <div class="stat-value">${Math.round((financialData.profit.reduce((a, b) => a + b, 0) / financialData.revenue.reduce((a, b) => a + b, 0)) * 100)}%</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+function formatNumber(num) {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+}
+
 function renderPremiumReport(data) {
   const snapshotHtml = renderExecutiveSnapshot(data.executiveSnapshot);
   const mainPlanHtml = markdownToHtml(data.mainPlan || data.markdown || '');
   const kpiTableHtml = renderKpiTable(data.kpiTable);
-  const chartsHtml = renderKpiChartsSection(data.kpiTable);
+  const kpiChartsHtml = renderKpiChartsSection(data.kpiTable);
+  const financialChartsHtml = renderFinancialChartsSection(data.financialProjections);
   const insightsHtml = renderAiInsights(data.aiInsights);
   
   return `
@@ -554,7 +628,8 @@ function renderPremiumReport(data) {
       ${mainPlanHtml}
     </div>
     ${kpiTableHtml}
-    ${chartsHtml}
+    ${kpiChartsHtml}
+    ${financialChartsHtml}
     ${insightsHtml}
   `;
 }
@@ -764,6 +839,227 @@ function attachKpiChartHandlers() {
   });
 }
 
+// Financial Charts
+let financialChartInstances = {
+  combined: null,
+  revenue: null,
+  expenses: null,
+  profit: null
+};
+
+function initializeFinancialCharts(financialData, view = 'combined') {
+  if (!financialData || !financialData.months) return;
+  
+  const chartColors = {
+    revenue: '#4DB6E7',
+    expenses: '#FF6B6B',
+    profit: '#51CF66',
+    grid: 'rgba(0, 0, 0, 0.1)',
+    text: '#1a1a1a'
+  };
+  
+  // Common chart options
+  const commonOptions = {
+    responsive: true,
+    maintainAspectRatio: true,
+    plugins: {
+      legend: {
+        display: false
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            return '$' + formatNumber(context.parsed.y);
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          color: chartColors.grid
+        },
+        ticks: {
+          color: chartColors.text,
+          callback: function(value) {
+            return '$' + (value >= 1000 ? (value/1000) + 'K' : value);
+          }
+        }
+      },
+      x: {
+        grid: {
+          display: false
+        },
+        ticks: {
+          color: chartColors.text
+        }
+      }
+    }
+  };
+  
+  if (view === 'combined') {
+    // Destroy existing combined chart
+    if (financialChartInstances.combined) {
+      financialChartInstances.combined.destroy();
+    }
+    
+    const canvas = document.getElementById('financial-chart-combined');
+    if (!canvas) return;
+    
+    const ctx = canvas.getContext('2d');
+    financialChartInstances.combined = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: financialData.months,
+        datasets: [
+          {
+            label: 'Revenue',
+            data: financialData.revenue,
+            borderColor: chartColors.revenue,
+            backgroundColor: 'rgba(77, 182, 231, 0.1)',
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true
+          },
+          {
+            label: 'Expenses',
+            data: financialData.expenses,
+            borderColor: chartColors.expenses,
+            backgroundColor: 'rgba(255, 107, 107, 0.1)',
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true
+          },
+          {
+            label: 'Profit',
+            data: financialData.profit,
+            borderColor: chartColors.profit,
+            backgroundColor: 'rgba(81, 207, 102, 0.1)',
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true
+          }
+        ]
+      },
+      options: {
+        ...commonOptions,
+        plugins: {
+          ...commonOptions.plugins,
+          legend: {
+            display: true,
+            position: 'top',
+            labels: {
+              usePointStyle: true,
+              padding: 20,
+              font: {
+                size: 13
+              }
+            }
+          }
+        }
+      }
+    });
+  } else {
+    // Destroy existing individual charts
+    if (financialChartInstances.revenue) financialChartInstances.revenue.destroy();
+    if (financialChartInstances.expenses) financialChartInstances.expenses.destroy();
+    if (financialChartInstances.profit) financialChartInstances.profit.destroy();
+    
+    // Revenue Chart
+    const revenueCanvas = document.getElementById('financial-chart-revenue');
+    if (revenueCanvas) {
+      financialChartInstances.revenue = new Chart(revenueCanvas.getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: financialData.months,
+          datasets: [{
+            data: financialData.revenue,
+            borderColor: chartColors.revenue,
+            backgroundColor: 'rgba(77, 182, 231, 0.2)',
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true
+          }]
+        },
+        options: commonOptions
+      });
+    }
+    
+    // Expenses Chart
+    const expensesCanvas = document.getElementById('financial-chart-expenses');
+    if (expensesCanvas) {
+      financialChartInstances.expenses = new Chart(expensesCanvas.getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: financialData.months,
+          datasets: [{
+            data: financialData.expenses,
+            borderColor: chartColors.expenses,
+            backgroundColor: 'rgba(255, 107, 107, 0.2)',
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true
+          }]
+        },
+        options: commonOptions
+      });
+    }
+    
+    // Profit Chart
+    const profitCanvas = document.getElementById('financial-chart-profit');
+    if (profitCanvas) {
+      financialChartInstances.profit = new Chart(profitCanvas.getContext('2d'), {
+        type: 'line',
+        data: {
+          labels: financialData.months,
+          datasets: [{
+            data: financialData.profit,
+            borderColor: chartColors.profit,
+            backgroundColor: 'rgba(81, 207, 102, 0.2)',
+            borderWidth: 3,
+            tension: 0.4,
+            fill: true
+          }]
+        },
+        options: commonOptions
+      });
+    }
+  }
+}
+
+function attachFinancialChartHandlers() {
+  if (!currentReportData || !currentReportData.financialProjections) return;
+  
+  // Initialize with combined view
+  initializeFinancialCharts(currentReportData.financialProjections, 'combined');
+  
+  // View switcher
+  document.querySelectorAll('.chart-view-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const view = btn.dataset.view;
+      
+      // Update active state
+      document.querySelectorAll('.chart-view-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      // Toggle views
+      const combinedView = document.getElementById('combined-chart-view');
+      const individualView = document.getElementById('individual-charts-view');
+      
+      if (view === 'combined') {
+        combinedView.classList.remove('hidden');
+        individualView.classList.add('hidden');
+        initializeFinancialCharts(currentReportData.financialProjections, 'combined');
+      } else {
+        combinedView.classList.add('hidden');
+        individualView.classList.remove('hidden');
+        initializeFinancialCharts(currentReportData.financialProjections, 'individual');
+      }
+    });
+  });
+}
+
 function syncKpiTableData() {
   if (!currentReportData) return;
   
@@ -786,7 +1082,8 @@ function syncKpiTableData() {
     executiveSnapshot: currentReportData.executiveSnapshot,
     mainPlan: currentReportData.markdown,
     kpiTable: currentReportData.kpiTable,
-    aiInsights: currentReportData.aiInsights
+    aiInsights: currentReportData.aiInsights,
+    financialProjections: currentReportData.financialProjections
   });
   
   // Mark as unsaved
@@ -887,6 +1184,7 @@ $('btn-generate').addEventListener('click', async () => {
       markdown: data.mainPlan || data.markdown || '',
       kpiTable: data.kpiTable || [],
       aiInsights: data.aiInsights || [],
+      financialProjections: data.financialProjections || null,
       html: fullHtml,
       company: payload.company,
       industry: payload.industry,
@@ -903,6 +1201,9 @@ $('btn-generate').addEventListener('click', async () => {
     
     // Attach KPI chart handlers
     attachKpiChartHandlers();
+    
+    // Attach Financial chart handlers
+    attachFinancialChartHandlers();
     
     showMetadata(payload.company, payload.industry, payload.stage);
     

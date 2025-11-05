@@ -606,7 +606,14 @@ Generate a JSON object with this exact structure:
   
   "aiInsights": [
     "Generate 3-5 practical, actionable insights based on the business plan. Focus on: immediate priorities, risks to watch, opportunities to capitalize on. Keep each insight concise (1-2 sentences). Examples: 'Focus next 90 days on revenue traction and brand visibility.', 'Consider partnering with established players in ${industry} to accelerate market entry.'"
-  ]
+  ],
+  
+  "financialProjections": {
+    "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "revenue": [10000, 12000, 15000, 18000, 22000, 28000, 35000, 42000, 50000, 60000, 72000, 85000],
+    "expenses": [8000, 9000, 10000, 11000, 12000, 14000, 16000, 18000, 20000, 22000, 24000, 26000],
+    "profit": [2000, 3000, 5000, 7000, 10000, 14000, 19000, 24000, 30000, 38000, 48000, 59000]
+  }
 }
 
 INSTRUCTIONS:
@@ -614,6 +621,7 @@ INSTRUCTIONS:
 - mainPlan: Write comprehensive markdown business plan, professional ${tone} tone
 - kpiTable: Intelligently suggest 4-6 KPIs based on goals and stage (e.g., "sales" → Revenue Growth %; "users" → User Acquisition Rate)
 - aiInsights: Generate strategic recommendations tied to plan content, forward-looking and actionable
+- financialProjections: Generate realistic 12-month financial projections based on the business model, stage, and revenue information. Include monthly values for revenue, expenses, and profit. Ensure values show realistic growth trajectory for ${stage} stage in ${industry} industry. Revenue should align with stated revenue model: ${revenue}. Make expenses realistic (60-80% of revenue initially, decreasing over time as business scales).
 - Return ONLY valid JSON, no explanations
       `.trim();
 
@@ -672,6 +680,12 @@ INSTRUCTIONS:
         mainPlan: parsedResponse.mainPlan || "Business plan content not available",
         kpiTable: parsedResponse.kpiTable || [],
         aiInsights: parsedResponse.aiInsights || [],
+        financialProjections: parsedResponse.financialProjections || {
+          months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+          revenue: [5000, 7500, 11000, 15000, 20000, 26000, 33000, 41000, 50000, 60000, 72000, 85000],
+          expenses: [4000, 5000, 6500, 8000, 10000, 12000, 15000, 18000, 21000, 24000, 27000, 30000],
+          profit: [1000, 2500, 4500, 7000, 10000, 14000, 18000, 23000, 29000, 36000, 45000, 55000]
+        },
         // Legacy support - also return as markdown for compatibility
         markdown: parsedResponse.mainPlan || ""
       });
