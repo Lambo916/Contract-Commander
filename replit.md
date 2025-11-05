@@ -22,17 +22,21 @@ Preferred communication style: Simple, everyday language.
 - **Error Handling**: Comprehensive input validation and structured error responses with appropriate HTTP status codes
 
 ## Database and Storage
+- **Database**: Supabase PostgreSQL for production-grade data storage with automatic backups and scaling
 - **ORM**: Drizzle ORM with PostgreSQL dialect for type-safe database operations
 - **Schema Management**: Database migrations handled through drizzle-kit with proper connection configuration
 - **Report Persistence**: PostgreSQL compliance_reports table stores saved reports with name, entity details, jurisdiction, filing type, deadline, HTML content, checksum, metadata (JSON), and creation timestamp
+- **BizPlan Reports**: PostgreSQL bizplan_reports table stores business plan reports with user ID, title, company, industry, HTML content, metadata, and timestamps
 - **API Endpoints**: RESTful CRUD operations (/api/reports/save, /api/reports/list, /api/reports/:id) for report management
 - **Local Storage**: Browser localStorage for caching current working report
 - **Session Management**: PostgreSQL sessions with connect-pg-simple for user authentication (future feature)
+- **Health Monitoring**: /api/health/db endpoint provides Supabase connection status and diagnostics
 
 ## Authentication and Authorization
-- **User Management**: Basic user schema with username/password authentication
+- **User Management**: Supabase authentication with JWT tokens for secure user management
 - **Session Handling**: Server-side session storage using PostgreSQL with proper security configurations
 - **API Security**: Environment variable protection for sensitive keys (OpenAI API, database URLs)
+- **Supabase Integration**: lib/supabase.ts provides browser and server clients for authentication and database operations
 
 ## AI Integration
 - **Provider**: OpenAI GPT-4o integration for content generation
@@ -44,9 +48,9 @@ Preferred communication style: Simple, everyday language.
 # External Dependencies
 
 ## Third-Party Services
-- **OpenAI API**: GPT-5 model for AI-powered content generation with configurable API key management
+- **OpenAI API**: GPT-4o model for AI-powered content generation with configurable API key management
 - **Vercel Platform**: Production deployment and serverless function hosting with custom routing configuration
-- **Neon Database**: PostgreSQL database service via @neondatabase/serverless for production data storage
+- **Supabase**: PostgreSQL database service with authentication, real-time capabilities, and automatic backups
 
 ## Development Tools
 - **Package Management**: npm with lockfile for consistent dependency versions
