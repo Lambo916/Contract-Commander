@@ -4,8 +4,108 @@ const REPORTS_PATH = "/api/bizplan/reports";
 
 const $ = (id) => document.getElementById(id);
 let currentReportData = null;
+let currentFileName = null;
+let currentReportId = null;
+let hasUnsavedChanges = false;
+let isGenerating = false;
 let currentOffset = 0;
 const REPORTS_LIMIT = 10;
+
+// ==== STATE MANAGEMENT FUNCTIONS ====
+
+function setGeneratingState(generating) {
+  isGenerating = generating;
+  const generateBtn = $('btn-generate');
+  const fileBtn = $('btn-file');
+  const exportBtn = $('btn-export');
+  const clearBtn = $('btn-clear');
+  const helpBtn = $('btn-help');
+  
+  if (generating) {
+    generateBtn.disabled = true;
+    generateBtn.innerHTML = '<span style="display: inline-flex; align-items: center; gap: 8px;"><span class="spinner"></span> Generating...</span>';
+    fileBtn.disabled = true;
+    exportBtn.disabled = true;
+    clearBtn.disabled = true;
+    helpBtn.disabled = true;
+  } else {
+    generateBtn.disabled = false;
+    generateBtn.textContent = 'Generate Plan';
+    fileBtn.disabled = false;
+    exportBtn.disabled = false;
+    clearBtn.disabled = false;
+    helpBtn.disabled = false;
+  }
+}
+
+function markUnsaved() {
+  hasUnsavedChanges = true;
+}
+
+function markSaved() {
+  hasUnsavedChanges = false;
+}
+
+function generateDefaultFilename(companyName) {
+  const company = companyName || 'Untitled';
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  const hour = String(now.getHours()).padStart(2, '0');
+  const minute = String(now.getMinutes()).padStart(2, '0');
+  
+  return `${company} - BizPlan - ${year}-${month}-${day}_${hour}-${minute}`;
+}
+
+// ==== TOAST NOTIFICATION SYSTEM ====
+
+function showToast(message, type = 'success') {
+  const container = $('toast-container');
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  
+  const icon = type === 'success' ? '✓' : '✕';
+  
+  toast.innerHTML = `
+    <span class="toast-icon">${icon}</span>
+    <span class="toast-message">${message}</span>
+  `;
+  
+  container.appendChild(toast);
+  
+  setTimeout(() => {
+    toast.classList.add('removing');
+    setTimeout(() => {
+      toast.remove();
+    }, 300);
+  }, 3000);
+}
+
+// ==== MARKDOWN CONVERSION FUNCTIONS ====
+
+function htmlToMarkdown(html) {
+  if (!html) return '';
+  
+  let markdown = html;
+  
+  // Remove HTML tags and convert to markdown
+  markdown = markdown.replace(/<h1>(.*?)<\/h1>/gi, '# $1\n\n');
+  markdown = markdown.replace(/<h2>(.*?)<\/h2>/gi, '## $1\n\n');
+  markdown = markdown.replace(/<h3>(.*?)<\/h3>/gi, '### $1\n\n');
+  markdown = markdown.replace(/<h4>(.*?)<\/h4>/gi, '#### $1\n\n');
+  markdown = markdown.replace(/<p>(.*?)<\/p>/gi, '$1\n\n');
+  markdown = markdown.replace(/<strong>(.*?)<\/strong>/gi, '**$1**');
+  markdown = markdown.replace(/<em>(.*?)<\/em>/gi, '*$1*');
+  markdown = markdown.replace(/<li>(.*?)<\/li>/gi, '- $1\n');
+  markdown = markdown.replace(/<\/?ul>/gi, '\n');
+  markdown = markdown.replace(/<\/?ol>/gi, '\n');
+  
+  // Clean up extra newlines
+  markdown = markdown.replace(/\n{3,}/g, '\n\n');
+  
+  return markdown.trim();
+}
 
 // Business Plan Templates
 const BIZPLAN_TEMPLATES = {
@@ -578,6 +678,9 @@ function syncKpiTableData() {
     kpiTable: currentReportData.kpiTable,
     aiInsights: currentReportData.aiInsights
   });
+  
+  // Mark as unsaved
+  markUnsaved();
 }
 
 // Template loading functions
@@ -627,6 +730,8 @@ $('template-menu').addEventListener('click', (e) => {
 $('btn-clear-inputs').addEventListener('click', clearAllInputs);
 
 $('btn-generate').addEventListener('click', async () => {
+  setGeneratingState(true);
+  
   const payload = {
     company: $('company').value.trim(),
     industry: $('industry').value.trim(),
@@ -639,14 +744,14 @@ $('btn-generate').addEventListener('click', async () => {
   };
   
   if (!payload.company || !payload.industry) {
-    alert('Please fill in required fields: Company and Industry.');
+    showToast('Please fill in required fields: Company and Industry', 'error');
+    setGeneratingState(false);
     return;
   }
   
   const reportView = $('report-view');
-  reportView.innerHTML = '<p style="color: #666; font-style: italic;">Generating premium business plan…</p>';
+  reportView.innerHTML = '';
   hideMetadata();
-  updateButtonStates(false);
   
   try {
     const res = await fetch(FETCH_PATH, {
@@ -677,6 +782,11 @@ $('btn-generate').addEventListener('click', async () => {
       stage: payload.stage
     };
     
+    // Set default filename if not already set
+    if (!currentFileName) {
+      currentFileName = generateDefaultFilename(payload.company);
+    }
+    
     // Attach KPI edit handlers
     attachKpiEditHandlers();
     
@@ -687,22 +797,32 @@ $('btn-generate').addEventListener('click', async () => {
     attachKpiChartHandlers();
     
     showMetadata(payload.company, payload.industry, payload.stage);
-    updateButtonStates(true);
     
     // Save to version history
     saveToVersionHistory();
     
+    // Mark as unsaved changes
+    markUnsaved();
+    
+    showToast('Business plan generated successfully!', 'success');
+    
   } catch (e) {
     reportView.innerHTML = `<p style="color: #ff6b6b;">Error generating plan: ${e.message}</p>`;
-    updateButtonStates(false);
+    showToast(`Error: ${e.message}`, 'error');
+  } finally {
+    setGeneratingState(false);
   }
 });
+
+// ==== TOOLBAR DROPDOWN HANDLERS ====
 
 $('btn-file').addEventListener('click', (e) => {
   e.stopPropagation();
   const menu = $('file-menu');
   const exportMenu = $('export-menu');
+  const helpMenu = $('help-menu');
   exportMenu.classList.remove('active');
+  helpMenu.classList.remove('active');
   menu.classList.toggle('active');
 });
 
@@ -710,42 +830,372 @@ $('btn-export').addEventListener('click', (e) => {
   e.stopPropagation();
   const menu = $('export-menu');
   const fileMenu = $('file-menu');
+  const helpMenu = $('help-menu');
   fileMenu.classList.remove('active');
+  helpMenu.classList.remove('active');
+  menu.classList.toggle('active');
+});
+
+$('btn-help').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const menu = $('help-menu');
+  const fileMenu = $('file-menu');
+  const exportMenu = $('export-menu');
+  fileMenu.classList.remove('active');
+  exportMenu.classList.remove('active');
   menu.classList.toggle('active');
 });
 
 document.addEventListener('click', () => {
   $('file-menu').classList.remove('active');
   $('export-menu').classList.remove('active');
+  $('help-menu').classList.remove('active');
   $('template-menu').classList.remove('active');
 });
 
-$('file-menu').addEventListener('click', (e) => {
-  if (e.target.dataset.action === 'save') {
-    handleSaveReport();
-  } else if (e.target.dataset.action === 'load') {
-    handleLoadReport();
+// ==== FILE MENU HANDLERS ====
+
+$('btn-new-plan').addEventListener('click', () => {
+  if (hasUnsavedChanges) {
+    if (!confirm('You have unsaved changes. Are you sure you want to start a new plan?')) {
+      return;
+    }
   }
+  
+  // Clear inputs
+  $('company').value = '';
+  $('industry').value = '';
+  $('target').value = '';
+  $('product').value = '';
+  $('revenue').value = '';
+  $('stage').value = '';
+  $('goals').value = '';
+  $('tone').value = 'Professional';
+  
+  // Clear results
+  $('report-view').innerHTML = '';
+  currentReportData = null;
+  currentFileName = null;
+  currentReportId = null;
+  hasUnsavedChanges = false;
+  hideMetadata();
+  
+  showToast('Started new business plan', 'success');
   $('file-menu').classList.remove('active');
 });
 
-$('export-menu').addEventListener('click', (e) => {
-  if (e.target.dataset.action === 'copy') {
-    handleCopyAll();
-  } else if (e.target.dataset.action === 'pdf') {
-    handleExportPDF();
+$('btn-open').addEventListener('click', () => {
+  if (hasUnsavedChanges) {
+    if (!confirm('You have unsaved changes. Are you sure you want to open a different report?')) {
+      return;
+    }
   }
+  
+  openModal('load-modal');
+  fetchReportsList('');
+  $('file-menu').classList.remove('active');
+});
+
+$('btn-save').addEventListener('click', async () => {
+  if (!currentReportData) {
+    showToast('No report to save', 'error');
+    return;
+  }
+  
+  if (currentFileName && currentReportId) {
+    // Silent save to existing file
+    await handleSaveReport(currentFileName, currentReportId);
+  } else {
+    // Prompt for Save As
+    handleSaveAs();
+  }
+  
+  $('file-menu').classList.remove('active');
+});
+
+$('btn-save-as').addEventListener('click', () => {
+  handleSaveAs();
+  $('file-menu').classList.remove('active');
+});
+
+$('btn-rename').addEventListener('click', () => {
+  if (!currentFileName) {
+    showToast('No file to rename', 'error');
+    return;
+  }
+  
+  handleRename();
+  $('file-menu').classList.remove('active');
+});
+
+$('btn-version-history').addEventListener('click', () => {
+  handleVersionHistory();
+  $('file-menu').classList.remove('active');
+});
+
+$('btn-move-trash').addEventListener('click', async () => {
+  if (!currentReportId) {
+    showToast('No report to delete', 'error');
+    return;
+  }
+  
+  if (!confirm(`Move "${currentFileName || 'this report'}" to trash?`)) {
+    return;
+  }
+  
+  try {
+    const res = await fetch(`${REPORTS_PATH}/${currentReportId}`, {
+      method: 'DELETE',
+      headers: {
+        'X-Client-Id': getClientId()
+      }
+    });
+    
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    
+    // Clear current report
+    $('report-view').innerHTML = '';
+    currentReportData = null;
+    currentFileName = null;
+    currentReportId = null;
+    hasUnsavedChanges = false;
+    hideMetadata();
+    
+    showToast('Report moved to trash', 'success');
+    
+  } catch (e) {
+    showToast(`Error: ${e.message}`, 'error');
+  }
+  
+  $('file-menu').classList.remove('active');
+});
+
+// ==== EXPORT MENU HANDLERS ====
+
+$('btn-export-pdf').addEventListener('click', () => {
+  handleExportPDF();
   $('export-menu').classList.remove('active');
 });
 
+$('btn-export-markdown').addEventListener('click', () => {
+  handleExportMarkdown();
+  $('export-menu').classList.remove('active');
+});
+
+$('btn-copy-markdown').addEventListener('click', () => {
+  handleCopyMarkdown();
+  $('export-menu').classList.remove('active');
+});
+
+// ==== CLEAR BUTTON HANDLER ====
+
 $('btn-clear').addEventListener('click', () => {
-  if (confirm('Are you sure you want to clear the current report?')) {
-    $('report-view').innerHTML = '';
-    currentReportData = null;
-    hideMetadata();
-    updateButtonStates(false);
+  if (hasUnsavedChanges) {
+    if (!confirm('You have unsaved changes. Clear the current report?')) {
+      return;
+    }
+  } else {
+    if (!confirm('Clear the current report?')) {
+      return;
+    }
+  }
+  
+  $('report-view').innerHTML = '';
+  currentReportData = null;
+  hasUnsavedChanges = false;
+  hideMetadata();
+  
+  showToast('Report cleared', 'success');
+});
+
+// ==== HELP MENU HANDLERS ====
+
+$('btn-help-guide').addEventListener('click', () => {
+  showToast('User guide coming soon!', 'success');
+  $('help-menu').classList.remove('active');
+});
+
+$('btn-help-about').addEventListener('click', () => {
+  alert('BizPlan Builder v1.0\n\nDraft investor-ready business plans with AI-powered assistance.\n\nPowered by YourBizGuru');
+  $('help-menu').classList.remove('active');
+});
+
+// ==== SAVE AS / RENAME MODAL HANDLERS ====
+
+function handleSaveAs() {
+  if (!currentReportData) {
+    showToast('No report to save', 'error');
+    return;
+  }
+  
+  const modal = $('saveas-modal');
+  const title = modal.querySelector('#saveas-modal-title');
+  const input = $('saveas-filename');
+  
+  title.textContent = 'Save As';
+  input.value = currentFileName || generateDefaultFilename(currentReportData.company);
+  
+  openModal('saveas-modal');
+}
+
+function handleRename() {
+  if (!currentFileName) {
+    showToast('No file to rename', 'error');
+    return;
+  }
+  
+  const modal = $('saveas-modal');
+  const title = modal.querySelector('#saveas-modal-title');
+  const input = $('saveas-filename');
+  
+  title.textContent = 'Rename';
+  input.value = currentFileName;
+  
+  openModal('saveas-modal');
+}
+
+$('saveas-confirm').addEventListener('click', async () => {
+  const newFilename = $('saveas-filename').value.trim();
+  
+  if (!newFilename) {
+    showToast('Please enter a filename', 'error');
+    return;
+  }
+  
+  const isRename = $('saveas-modal-title').textContent === 'Rename';
+  
+  if (isRename) {
+    currentFileName = newFilename;
+    closeModal('saveas-modal');
+    showToast(`Renamed to "${newFilename}"`, 'success');
+  } else {
+    // Save As - create new file
+    currentFileName = newFilename;
+    await handleSaveReport(newFilename);
   }
 });
+
+$('saveas-cancel').addEventListener('click', () => {
+  closeModal('saveas-modal');
+});
+
+// ==== SAVE/EXPORT HANDLER FUNCTIONS ====
+
+async function handleSaveReport(filename, reportId) {
+  if (!currentReportData) {
+    showToast('No report to save', 'error');
+    return;
+  }
+  
+  const saveFilename = filename || currentFileName || generateDefaultFilename(currentReportData.company);
+  
+  try {
+    const res = await fetch(SAVE_PATH, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Client-Id': getClientId()
+      },
+      body: JSON.stringify({
+        contentHtml: currentReportData.html,
+        company: currentReportData.company,
+        industry: currentReportData.industry,
+        title: saveFilename
+      })
+    });
+    
+    if (!res.ok) {
+      const error = await res.json();
+      throw new Error(error.error || `HTTP ${res.status}`);
+    }
+    
+    const data = await res.json();
+    
+    // Update current file info
+    currentReportId = data.id;
+    currentFileName = saveFilename;
+    markSaved();
+    
+    closeModal('saveas-modal');
+    showToast(`Saved as "${saveFilename}"`, 'success');
+    
+  } catch (e) {
+    showToast(`Error saving: ${e.message}`, 'error');
+  }
+}
+
+function handleExportPDF() {
+  const reportView = $('report-view');
+  if (!reportView.innerHTML.trim()) {
+    showToast('No report to export', 'error');
+    return;
+  }
+  
+  try {
+    const filename = (currentFileName || generateDefaultFilename(currentReportData?.company || 'BizPlan')) + '.pdf';
+    const htmlContent = reportView.innerHTML;
+    
+    if (window.exportAllResultsToPDF) {
+      window.exportAllResultsToPDF([{
+        html: htmlContent,
+        fileName: filename
+      }]);
+      showToast('PDF downloaded', 'success');
+    } else {
+      throw new Error('PDF export module not loaded');
+    }
+    
+  } catch (e) {
+    showToast(`Error exporting PDF: ${e.message}`, 'error');
+  }
+}
+
+function handleExportMarkdown() {
+  if (!currentReportData || !currentReportData.markdown) {
+    showToast('No report to export', 'error');
+    return;
+  }
+  
+  try {
+    const markdown = currentReportData.markdown;
+    const filename = (currentFileName || generateDefaultFilename(currentReportData.company)) + '.md';
+    
+    // Create a blob and download
+    const blob = new Blob([markdown], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    
+    showToast('Markdown downloaded', 'success');
+    
+  } catch (e) {
+    showToast(`Error exporting markdown: ${e.message}`, 'error');
+  }
+}
+
+async function handleCopyMarkdown() {
+  if (!currentReportData || !currentReportData.markdown) {
+    showToast('No report to copy', 'error');
+    return;
+  }
+  
+  try {
+    await navigator.clipboard.writeText(currentReportData.markdown);
+    showToast('Markdown copied to clipboard', 'success');
+  } catch (e) {
+    showToast('Failed to copy to clipboard', 'error');
+  }
+}
+
+function handleVersionHistory() {
+  openModal('version-history-modal');
+  renderVersionHistory();
+}
 
 // ==== VERSION HISTORY FUNCTIONS ====
 const VERSION_HISTORY_KEY = 'bizplan-version-history';
@@ -864,70 +1314,12 @@ function renderVersionHistory() {
   versionList.innerHTML = versionsHtml;
 }
 
-$('btn-version-history').addEventListener('click', () => {
-  openModal('version-history-modal');
-  renderVersionHistory();
-});
-
 $('version-cancel').addEventListener('click', () => {
   closeModal('version-history-modal');
 });
 
 // Make restoreVersion globally available
 window.restoreVersion = restoreVersion;
-
-async function handleSaveReport() {
-  if (!currentReportData) {
-    alert('No report to save. Please generate a plan first.');
-    return;
-  }
-  
-  openModal('save-modal');
-  $('save-status').textContent = 'Saving report...';
-  
-  try {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    const hours = String(now.getHours()).padStart(2, '0');
-    const minutes = String(now.getMinutes()).padStart(2, '0');
-    
-    const title = `${currentReportData.company} — ${year}-${month}-${day}_${hours}-${minutes}`;
-    
-    const res = await fetch(SAVE_PATH, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-Client-Id': getClientId()
-      },
-      body: JSON.stringify({
-        contentHtml: currentReportData.html,
-        company: currentReportData.company,
-        industry: currentReportData.industry
-      })
-    });
-    
-    if (!res.ok) {
-      const error = await res.json();
-      throw new Error(error.error || `HTTP ${res.status}`);
-    }
-    
-    const data = await res.json();
-    $('save-status').innerHTML = `<span style="color: #4DB6E7;">✓ Report saved successfully!</span><br><small>Title: ${title}</small>`;
-    
-    setTimeout(() => closeModal('save-modal'), 2000);
-    
-  } catch (e) {
-    $('save-status').innerHTML = `<span style="color: #ff6b6b;">Error: ${e.message}</span>`;
-  }
-}
-
-async function handleLoadReport() {
-  openModal('load-modal');
-  currentOffset = 0;
-  await fetchReportsList();
-}
 
 async function fetchReportsList(search = '') {
   const reportsList = $('reports-list');
@@ -1069,49 +1461,7 @@ $('load-search').addEventListener('input', (e) => {
   fetchReportsList(e.target.value);
 });
 
-async function handleCopyAll() {
-  const html = $('report-view').innerHTML;
-  if (!html.trim()) {
-    alert('No report to copy.');
-    return;
-  }
-  
-  try {
-    await navigator.clipboard.writeText(html);
-    alert('Report HTML copied to clipboard!');
-  } catch (e) {
-    alert('Failed to copy to clipboard.');
-  }
-}
-
-async function handleExportPDF() {
-  const reportView = $('report-view');
-  if (!reportView.innerHTML.trim()) {
-    alert('No report to export.');
-    return;
-  }
-  
-  try {
-    const company = currentReportData?.company || 'Report';
-    const now = new Date();
-    const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-    const filename = `BizPlan_${company}_${dateStr}.pdf`;
-    
-    const htmlContent = reportView.innerHTML;
-    
-    if (window.exportAllResultsToPDF) {
-      window.exportAllResultsToPDF([{
-        html: htmlContent,
-        fileName: filename
-      }]);
-    } else {
-      throw new Error('PDF export module not loaded');
-    }
-    
-  } catch (e) {
-    alert(`Error exporting PDF: ${e.message}`);
-  }
-}
+// ==== MODAL MANAGEMENT ====
 
 function openModal(modalId) {
   const modal = $(modalId);
@@ -1155,5 +1505,3 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
-
-updateButtonStates(false);

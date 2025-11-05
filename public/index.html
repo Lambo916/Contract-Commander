@@ -98,27 +98,42 @@
       <div id="toolbar" class="toolbar">
         <div class="toolbar-group">
           <div class="dropdown">
-            <button class="btn btn-toolbar inactive" id="btn-file" data-testid="button-file" title="Save or load your reports">
+            <button class="btn btn-toolbar" id="btn-file" data-testid="button-file" title="File operations">
               File ▾
             </button>
             <div class="dropdown-menu" id="file-menu">
-              <button class="dropdown-item" id="btn-save" data-action="save" data-testid="button-save" title="Save this report to your account">Save Report</button>
-              <button class="dropdown-item" id="btn-load" data-action="load" data-testid="button-load" title="Open a saved report">Load Report</button>
+              <button class="dropdown-item" id="btn-new-plan" data-testid="button-new-plan" title="Start a new business plan">New Plan</button>
+              <button class="dropdown-item" id="btn-open" data-testid="button-open" title="Open a saved report">Open...</button>
+              <button class="dropdown-item" id="btn-save" data-testid="button-save" title="Save this report">Save</button>
+              <button class="dropdown-item" id="btn-save-as" data-testid="button-save-as" title="Save with a new name">Save As...</button>
+              <button class="dropdown-item" id="btn-rename" data-testid="button-rename" title="Rename current file">Rename...</button>
+              <button class="dropdown-item" id="btn-version-history" data-testid="button-version-history" title="View previous versions">Version History...</button>
+              <button class="dropdown-item" id="btn-move-trash" data-testid="button-move-trash" title="Move to trash">Move to Trash...</button>
             </div>
           </div>
 
           <div class="dropdown">
-            <button class="btn btn-toolbar inactive" id="btn-export" data-testid="button-export" title="Copy or download your report">
+            <button class="btn btn-toolbar" id="btn-export" data-testid="button-export" title="Export your report">
               Export ▾
             </button>
             <div class="dropdown-menu" id="export-menu">
-              <button class="dropdown-item" id="btn-copy" data-action="copy" data-testid="button-copy" title="Copy the full report to clipboard">Copy All</button>
-              <button class="dropdown-item" id="btn-pdf" data-action="pdf" data-testid="button-pdf" title="Download a PDF of this report">Export PDF</button>
+              <button class="dropdown-item" id="btn-export-pdf" data-testid="button-export-pdf" title="Download as PDF">Download PDF</button>
+              <button class="dropdown-item" id="btn-export-markdown" data-testid="button-export-markdown" title="Download as Markdown">Download Markdown</button>
+              <button class="dropdown-item" id="btn-copy-markdown" data-testid="button-copy-markdown" title="Copy Markdown to clipboard">Copy Markdown to Clipboard</button>
             </div>
           </div>
 
-          <button class="btn btn-toolbar inactive" id="btn-clear" data-testid="button-clear" title="Remove the current report from the page">Clear</button>
-          <button class="btn btn-toolbar inactive" id="btn-version-history" data-testid="button-version-history" title="View previous versions">Version History</button>
+          <button class="btn btn-toolbar" id="btn-clear" data-testid="button-clear" title="Clear the current report">Clear</button>
+          
+          <div class="dropdown">
+            <button class="btn btn-toolbar" id="btn-help" data-testid="button-help" title="Help and information">
+              Help ▾
+            </button>
+            <div class="dropdown-menu" id="help-menu">
+              <button class="dropdown-item" id="btn-help-guide" data-testid="button-help-guide" title="View user guide">User Guide</button>
+              <button class="dropdown-item" id="btn-help-about" data-testid="button-help-about" title="About BizPlan Builder">About</button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -219,6 +234,29 @@
       </div>
     </div>
   </div>
+
+  <!-- Save As / Rename Modal -->
+  <div id="saveas-modal" class="modal" role="dialog" aria-labelledby="saveas-modal-title" aria-hidden="true">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="saveas-modal-title">Save As</h2>
+        <button class="modal-close" data-testid="button-close-saveas-modal" aria-label="Close">&times;</button>
+      </div>
+      <div class="modal-body">
+        <label for="saveas-filename">File Name</label>
+        <input type="text" id="saveas-filename" class="modal-input" placeholder="Enter filename" data-testid="input-saveas-filename"/>
+        <p class="modal-hint">This name will be used for exports and file management</p>
+        <div id="saveas-status" class="modal-status"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost" id="saveas-cancel" data-testid="button-saveas-cancel">Cancel</button>
+        <button class="btn btn-primary" id="saveas-confirm" data-testid="button-saveas-confirm">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toast-container" class="toast-container" data-testid="toast-container"></div>
 
   <script src="/bizplan-app.js"></script>
 </body>
