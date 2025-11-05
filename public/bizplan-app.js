@@ -297,10 +297,36 @@ function renderAiSuggestionsSection() {
   `;
 }
 
+function renderKpiChartsSection(kpiData) {
+  if (!kpiData || kpiData.length === 0) {
+    return '';
+  }
+  
+  return `
+    <div class="kpi-charts-section" data-testid="kpi-charts-section">
+      <div class="kpi-charts-header">
+        <h3 style="color: #1a1a1a; font-size: 20px; margin: 0;">KPI Visualization</h3>
+        <div class="chart-type-selector">
+          <button class="chart-type-btn active" data-chart-type="bar" data-testid="button-chart-bar">
+            Bar Chart
+          </button>
+          <button class="chart-type-btn" data-chart-type="line" data-testid="button-chart-line">
+            Line Chart
+          </button>
+        </div>
+      </div>
+      <div class="kpi-charts-container">
+        <canvas id="kpi-chart" data-testid="canvas-kpi-chart"></canvas>
+      </div>
+    </div>
+  `;
+}
+
 function renderPremiumReport(data) {
   const snapshotHtml = renderExecutiveSnapshot(data.executiveSnapshot);
   const mainPlanHtml = markdownToHtml(data.mainPlan || data.markdown || '');
   const kpiTableHtml = renderKpiTable(data.kpiTable);
+  const chartsHtml = renderKpiChartsSection(data.kpiTable);
   const insightsHtml = renderAiInsights(data.aiInsights);
   const suggestionsHtml = renderAiSuggestionsSection();
   
@@ -310,6 +336,7 @@ function renderPremiumReport(data) {
       ${mainPlanHtml}
     </div>
     ${kpiTableHtml}
+    ${chartsHtml}
     ${insightsHtml}
     ${suggestionsHtml}
   `;
@@ -414,6 +441,116 @@ function attachAiSuggestionsHandler() {
     } finally {
       suggestionsBtn.disabled = false;
     }
+  });
+}
+
+let kpiChartInstance = null;
+
+function initializeKpiChart(kpiData, chartType = 'bar') {
+  const canvas = document.getElementById('kpi-chart');
+  if (!canvas || !kpiData || kpiData.length === 0) return;
+  
+  // Destroy existing chart if it exists
+  if (kpiChartInstance) {
+    kpiChartInstance.destroy();
+  }
+  
+  const ctx = canvas.getContext('2d');
+  
+  // Extract data for chart
+  const labels = kpiData.map(item => item.kpi || 'KPI');
+  const data = kpiData.map((item, index) => {
+    // Try to extract numeric value from target field
+    const target = item.target || '0';
+    const numMatch = target.match(/[\d,]+/);
+    return numMatch ? parseFloat(numMatch[0].replace(/,/g, '')) : (index + 1) * 10;
+  });
+  
+  // YBG branding colors
+  const chartColors = {
+    primary: '#4DB6E7',
+    secondary: '#FFEB3B',
+    grid: 'rgba(0, 0, 0, 0.1)',
+    text: '#1a1a1a'
+  };
+  
+  kpiChartInstance = new Chart(ctx, {
+    type: chartType,
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Target Values',
+        data: data,
+        backgroundColor: chartType === 'bar' ? chartColors.primary : 'rgba(77, 182, 231, 0.2)',
+        borderColor: chartColors.primary,
+        borderWidth: 2,
+        tension: 0.4,
+        fill: chartType === 'line'
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: {
+          display: false
+        },
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              const kpi = kpiData[context.dataIndex];
+              return [
+                `Target: ${kpi.target}`,
+                `Timeframe: ${kpi.timeframe}`,
+                `Objective: ${kpi.objective}`
+              ];
+            }
+          }
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: chartColors.grid
+          },
+          ticks: {
+            color: chartColors.text
+          }
+        },
+        x: {
+          grid: {
+            display: false
+          },
+          ticks: {
+            color: chartColors.text,
+            maxRotation: 45,
+            minRotation: 0
+          }
+        }
+      }
+    }
+  });
+}
+
+function attachKpiChartHandlers() {
+  if (!currentReportData || !currentReportData.kpiTable) return;
+  
+  // Initialize with bar chart
+  initializeKpiChart(currentReportData.kpiTable, 'bar');
+  
+  // Chart type switcher
+  document.querySelectorAll('.chart-type-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const chartType = btn.dataset.chartType;
+      
+      // Update active state
+      document.querySelectorAll('.chart-type-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      // Render new chart
+      initializeKpiChart(currentReportData.kpiTable, chartType);
+    });
   });
 }
 
@@ -545,6 +682,9 @@ $('btn-generate').addEventListener('click', async () => {
     
     // Attach AI suggestions handler
     attachAiSuggestionsHandler();
+    
+    // Attach KPI chart handlers
+    attachKpiChartHandlers();
     
     showMetadata(payload.company, payload.industry, payload.stage);
     updateButtonStates(true);
