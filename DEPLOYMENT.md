@@ -55,7 +55,8 @@ git push origin main
    OPENAI_API_KEY=sk-proj-...
    NODE_ENV=production
    
-   # Frontend variables (prefixed with VITE_ for Vite)
+   # OPTIONAL: Frontend variables (prefixed with VITE_ for Vite)
+   # The code automatically falls back to SUPABASE_* values if these are not set
    VITE_SUPABASE_URL=https://juijtvagjaaxjqjhmrxp.supabase.co
    VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
    ```
@@ -83,13 +84,13 @@ In Vercel Dashboard → Settings → Environment Variables, add:
 
 | Variable | Value | Description |
 |----------|-------|-------------|
-| `SUPABASE_URL` | https://juijtvagjaaxjqjhmrxp.supabase.co | Your Supabase project URL (backend) |
-| `SUPABASE_ANON_KEY` | eyJhbGci... | Supabase anonymous/public key (backend) |
-| `VITE_SUPABASE_URL` | https://juijtvagjaaxjqjhmrxp.supabase.co | Your Supabase project URL (frontend) |
-| `VITE_SUPABASE_ANON_KEY` | eyJhbGci... | Supabase anonymous/public key (frontend) |
+| `SUPABASE_URL` | https://juijtvagjaaxjqjhmrxp.supabase.co | Your Supabase project URL (server & browser) |
+| `SUPABASE_ANON_KEY` | eyJabGci... | Supabase anonymous/public key (server & browser) |
 | `DATABASE_URL` | postgresql://... | Supabase PostgreSQL connection string (Transaction pooler, port 5432) |
 | `OPENAI_API_KEY` | sk-proj-... | OpenAI API key for GPT-5 |
 | `NODE_ENV` | production | Environment mode |
+| `VITE_SUPABASE_URL` | (optional) | Override for frontend - falls back to SUPABASE_URL |
+| `VITE_SUPABASE_ANON_KEY` | (optional) | Override for frontend - falls back to SUPABASE_ANON_KEY |
 
 **Important**: These variables are already configured in your Replit Secrets. Copy them from:
 - Replit Secrets panel → Copy each secret value

@@ -1,0 +1,132 @@
+# === YBG BizPlan Builder — Safe Stack Detection + Env Sync + Supabase Health ===
+# We will NOT change providers. Keep Supabase. No Neon/pg at runtime.
+
+echo "1) Detect stack…"
+STACK="express"
+if jq -r '.dependencies.next // empty' package.json | grep -q .; then STACK="next"
+elif [ -f vite.config.ts ] || [ -f vite.config.js ] || jq -r '.devDependencies.vite // empty' package.json | grep -q .; then STACK="vite"
+fi
+echo "Detected: $STACK"
+
+echo "2) Mirror Supabase envs to correct PUBLIC names for the detected stack…"
+# Read existing values (already present in Secrets)
+SB_URL=${SUPABASE_URL}
+SB_ANON=${SUPABASE_ANON_KEY}
+
+if [ -z "$SB_URL" ] || [ -z "$SB_ANON" ]; then
+  echo "ERROR: SUPABASE_URL or SUPABASE_ANON_KEY not set in Secrets. Aborting."
+  exit 1
+fi
+
+if [ "$STACK" = "vite" ]; then
+  export VITE_SUPABASE_URL="$SB_URL"
+  export VITE_SUPABASE_ANON_KEY="$SB_ANON"
+  echo "VITE_SUPABASE_URL / VITE_SUPABASE_ANON_KEY mirrored."
+elif [ "$STACK" = "next" ]; then
+  export NEXT_PUBLIC_SUPABASE_URL="$SB_URL"
+  export NEXT_PUBLIC_SUPABASE_ANON_KEY="$SB_ANON"
+  echo "NEXT_PUBLIC_SUPABASE_URL / NEXT_PUBLIC_SUPABASE_ANON_KEY mirrored."
+else
+  echo "Express/plain stack: no public mirrors required."
+fi
+
+echo "3) Ensure CORS/site URL hints exist (no value changes to current Secrets)…"
+# Keep your existing values; just ensure placeholders if empty
+: "${PUBLIC_SITE_URL:=https://bizplan.yourbizguru.com}"
+: "${CORS_ALLOWED_ORIGINS:=https://bizplan.yourbizguru.com,https://*.vercel.app}"
+
+echo "4) Add a universal Supabase client (works server + browser)…"
+mkdir -p lib
+cat > lib/supabase.ts <<'EOF'
+import { createClient, SupabaseClient } from "@supabase/supabase-js";
+
+function pickEnv(...keys: string[]): string | undefined {
+  for (const k of keys) {
+    const v = process.env[k as keyof NodeJS.ProcessEnv];
+    if (v) return v as string;
+  }
+  return undefined;
+}
+
+/** For browser or shared code that may run client-side */
+export function supabasePublic(): SupabaseClient {
+  const url =
+    pickEnv("VITE_SUPABASE_URL","NEXT_PUBLIC_SUPABASE_URL","SUPABASE_URL")!;
+  const anon =
+    pickEnv("VITE_SUPABASE_ANON_KEY","NEXT_PUBLIC_SUPABASE_ANON_KEY","SUPABASE_ANON_KEY")!;
+  return createClient(url, anon, { auth: { persistSession: true, autoRefreshToken: true } });
+}
+
+/** For server-only handlers (uses service key if available, otherwise anon) */
+export function supabaseServer(): SupabaseClient {
+  const url = pickEnv("SUPABASE_URL","NEXT_PUBLIC_SUPABASE_URL","VITE_SUPABASE_URL")!;
+  const key = pickEnv("SUPABASE_SERVICE_ROLE_KEY","SUPABASE_ANON_KEY")!;
+  return createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
+}
+EOF
+
+echo "5) Install supabase-js (safe if already installed)…"
+npm i @supabase/supabase-js --silent
+
+echo "6) Add a health endpoint to prove we’re on Supabase…"
+if [ "$STACK" = "next" ]; then
+  mkdir -p app/api/health-db
+  cat > app/api/health-db/route.ts <<'EOF'
+import { NextResponse } from "next/server";
+import { supabaseServer } from "@/lib/supabase";
+
+export async function GET() {
+  try {
+    const sb = supabaseServer();
+    // Use a lightweight table you have, or replace with an existing one (e.g., 'profiles')
+    const { data, error } = await sb.from("ybg_reports").select("id").limit(1);
+    if (error) throw error;
+    return NextResponse.json({ ok: true, source: "supabase", count: data?.length ?? 0 });
+  } catch (e:any) {
+    return NextResponse.json({ ok: false, source: "supabase", error: e.message }, { status: 500 });
+  }
+}
+EOF
+elif [ "$STACK" = "vite" ] || [ "$STACK" = "express" ]; then
+  # Express route
+  mkdir -p routes
+  cat > routes/health-db.ts <<'EOF'
+import { Router } from "express";
+import { supabaseServer } from "../lib/supabase";
+const router = Router();
+router.get("/", async (_req, res) => {
+  try {
+    const sb = supabaseServer();
+    const { data, error } = await sb.from("ybg_reports").select("id").limit(1);
+    if (error) throw error;
+    res.json({ ok: true, source: "supabase", count: data?.length ?? 0 });
+  } catch (e:any) {
+    res.status(500).json({ ok: false, source: "supabase", error: e.message });
+  }
+});
+export default router;
+EOF
+
+  # Wire into Express only if server file exists
+  if grep -Eql "(express\()|(from 'express')" -n server.ts server.js app.ts app.js 2>/dev/null; then
+    # Best-effort append instruction (manual review in PR)
+    echo "// Add in your server setup:\n// import healthDb from './routes/health-db';\n// app.use('/health/db', healthDb);" >> .health_hint.txt
+  fi
+fi
+
+echo "7) Remove Neon/pg usage references from the build (no deletions yet)…"
+# We do not uninstall here—just warn if present. You can remove later.
+if jq -r '.dependencies.pg // empty,.dependencies["@neondatabase/serverless"] // empty' package.json | grep -q .; then
+  echo "WARNING: pg/neon packages detected. Code should NOT call DATABASE_URL/pg at runtime."
+fi
+
+echo "8) Build & quick test"
+npm run build >/dev/null 2>&1 || npm run vercel-build >/dev/null 2>&1 || true
+echo "Done. Test endpoint:"
+if [ "$STACK" = "next" ]; then
+  echo "   GET /api/health-db"
+else
+  echo "   GET /health/db   (if Express route is mounted)"
+fi
+
+echo "If response shows { ok: true, source: 'supabase' }, we’re good to deploy."

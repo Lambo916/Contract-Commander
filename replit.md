@@ -31,12 +31,14 @@ Preferred communication style: Simple, everyday language.
 - **Local Storage**: Browser localStorage for caching current working report
 - **Session Management**: PostgreSQL sessions with connect-pg-simple for user authentication (future feature)
 - **Health Monitoring**: /api/health/db endpoint provides Supabase connection status and diagnostics
+- **Environment Variables**: Smart pickEnv helper in lib/supabase.ts automatically detects and uses VITE_*, NEXT_PUBLIC_*, or standard SUPABASE_* variables for maximum compatibility across Vite, Next.js, and Express stacks
 
 ## Authentication and Authorization
-- **User Management**: Supabase authentication with JWT tokens for secure user management
-- **Session Handling**: Server-side session storage using PostgreSQL with proper security configurations
+- **User Management**: Supabase authentication with JWT tokens for secure user management (future feature)
+- **Session Handling**: Server-side session storage using PostgreSQL with proper security configurations (future feature)
 - **API Security**: Environment variable protection for sensitive keys (OpenAI API, database URLs)
-- **Supabase Integration**: lib/supabase.ts provides browser and server clients for authentication and database operations
+- **Supabase Integration**: lib/supabase.ts provides universal browser and server clients with flexible pickEnv helper that works across Vite (VITE_*), Next.js (NEXT_PUBLIC_*), and Express (SUPABASE_*) environments
+- **Deployment Ready**: No duplicate environment variables required - SUPABASE_URL/SUPABASE_ANON_KEY work for both server and browser contexts via smart fallback system
 
 ## AI Integration
 - **Provider**: OpenAI GPT-4o integration for content generation
