@@ -1028,6 +1028,105 @@
   height: 44px;
 }
 
+/* ==== TOOLTIPS ==== */
+.label-with-tooltip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tooltip-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: rgba(77, 182, 231, 0.2);
+  color: var(--ybg-blue);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: help;
+  flex-shrink: 0;
+}
+
+.tooltip-icon:hover,
+.tooltip-icon:focus {
+  background: rgba(77, 182, 231, 0.3);
+  outline: none;
+}
+
+.tooltip-bubble {
+  position: absolute;
+  background: var(--ybg-panel);
+  border: 1px solid var(--ybg-border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--ybg-text);
+  max-width: 250px;
+  z-index: 10000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  display: none;
+  pointer-events: none;
+}
+
+.tooltip-bubble.active {
+  display: block;
+}
+
+/* Desktop hover tooltips */
+@media (min-width: 769px) {
+  .tooltip-icon {
+    display: none;
+  }
+  
+  [data-tooltip] {
+    position: relative;
+  }
+  
+  [data-tooltip]:hover::after,
+  [data-tooltip]:focus::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 100%;
+    left: 0;
+    background: var(--ybg-panel);
+    border: 1px solid var(--ybg-border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: 13px;
+    color: var(--ybg-text);
+    max-width: 250px;
+    z-index: 10000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    margin-bottom: 8px;
+    white-space: normal;
+  }
+}
+
+/* Mobile tooltips */
+@media (max-width: 768px) {
+  .tooltip-bubble {
+    pointer-events: auto;
+  }
+}
+
+/* ==== LOADING SPINNER ==== */
+.spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ==== COMMAND BAR ==== */
 
 .command-bar {

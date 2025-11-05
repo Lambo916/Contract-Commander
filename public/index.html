@@ -39,7 +39,10 @@
       <div class="ybg-section-title">Input</div>
       <div class="ybg-grid">
         <div class="full">
-          <label>Company / Project Name *</label>
+          <label class="label-with-tooltip" data-tooltip="Enter your business or project name as it will appear in the plan.">
+            <span>Company / Project Name *</span>
+            <span class="tooltip-icon" tabindex="0" role="button" aria-label="Help" data-tip="Enter your business or project name as it will appear in the plan.">i</span>
+          </label>
           <input id="company" placeholder="Your Company or Project" data-testid="input-company"/>
         </div>
         <div>
@@ -55,7 +58,10 @@
           <textarea id="product" placeholder="Describe your offering..." data-testid="input-product"></textarea>
         </div>
         <div>
-          <label>Revenue Model</label>
+          <label class="label-with-tooltip" data-tooltip="How will your business make money? (e.g., subscription, one-time sales, commissions)">
+            <span>Revenue Model</span>
+            <span class="tooltip-icon" tabindex="0" role="button" aria-label="Help" data-tip="How will your business make money? (e.g., subscription, one-time sales, commissions)">i</span>
+          </label>
           <input id="revenue" placeholder="e.g., subscription, storefront, marketplace" data-testid="input-revenue"/>
         </div>
         <div>
@@ -63,7 +69,10 @@
           <input id="stage" placeholder="idea, MVP, launched, scaling" data-testid="input-stage"/>
         </div>
         <div class="full">
-          <label>Top Goals (next 6–12 months)</label>
+          <label class="label-with-tooltip" data-tooltip="List your key objectives for the next 6-12 months to focus your business plan.">
+            <span>Top Goals (next 6–12 months)</span>
+            <span class="tooltip-icon" tabindex="0" role="button" aria-label="Help" data-tip="List your key objectives for the next 6-12 months to focus your business plan.">i</span>
+          </label>
           <textarea id="goals" placeholder="Your top 3–5 outcomes..." data-testid="input-goals"></textarea>
         </div>
         <div>
@@ -85,7 +94,7 @@
       <div id="command-bar" class="command-bar">
         <div class="command-bar-group">
           <div class="dropdown">
-            <button class="btn btn-command" id="btn-file" data-testid="button-file" title="File operations">
+            <button class="btn btn-command" id="btn-file" data-testid="button-file" title="File operations" data-tooltip="Manage your business plans: create new, open existing, save, or delete.">
               File ▾
             </button>
             <div class="dropdown-menu" id="file-menu">
@@ -99,7 +108,7 @@
           </div>
 
           <div class="dropdown">
-            <button class="btn btn-command" id="btn-export" data-testid="button-export" title="Export your report">
+            <button class="btn btn-command" id="btn-export" data-testid="button-export" title="Export your report" data-tooltip="Download your business plan as PDF, DOCX, or Markdown.">
               Export ▾
             </button>
             <div class="dropdown-menu" id="export-menu">

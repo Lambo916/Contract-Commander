@@ -20,11 +20,13 @@ function setGeneratingState(generating) {
   const exportBtn = $('btn-export');
   const toolsBtn = $('btn-tools');
   const progressBar = $('generation-progress');
+  const resultsContainer = $('report-view');
   
   if (generating) {
-    // Update Generate button
+    // Update Generate button with ARIA
     generateBtn.disabled = true;
-    generateBtn.innerHTML = '<span style="display: inline-flex; align-items: center; gap: 8px;"><span class="spinner"></span> Generating...</span>';
+    generateBtn.setAttribute('aria-busy', 'true');
+    generateBtn.innerHTML = '<span style="display: inline-flex; align-items: center; gap: 8px;"><span class="spinner" role="status" aria-label="Loading"></span> <span aria-live="polite">Generating...</span></span>';
     
     // Disable menu buttons
     fileBtn.disabled = true;
@@ -34,10 +36,18 @@ function setGeneratingState(generating) {
     // Show progress bar inside Results panel
     if (progressBar) {
       progressBar.style.display = 'block';
+      progressBar.setAttribute('role', 'progressbar');
+      progressBar.setAttribute('aria-label', 'Generating business plan');
+    }
+    
+    // Set Results container as busy
+    if (resultsContainer) {
+      resultsContainer.setAttribute('aria-busy', 'true');
     }
   } else {
     // Restore Generate button
     generateBtn.disabled = false;
+    generateBtn.removeAttribute('aria-busy');
     generateBtn.textContent = 'Generate Plan';
     
     // Enable menu buttons
@@ -48,6 +58,13 @@ function setGeneratingState(generating) {
     // Hide progress bar
     if (progressBar) {
       progressBar.style.display = 'none';
+      progressBar.removeAttribute('role');
+      progressBar.removeAttribute('aria-label');
+    }
+    
+    // Clear Results container busy state
+    if (resultsContainer) {
+      resultsContainer.removeAttribute('aria-busy');
     }
   }
 }
@@ -1610,3 +1627,68 @@ function escapeHtml(text) {
   div.textContent = text;
   return div.innerHTML;
 }
+
+// ==== TOOLTIP SYSTEM ====
+
+let activeTooltip = null;
+
+function showTooltipBubble(icon, text) {
+  // Remove any existing tooltip
+  if (activeTooltip) {
+    activeTooltip.remove();
+    activeTooltip = null;
+  }
+  
+  // Create tooltip bubble
+  const bubble = document.createElement('div');
+  bubble.className = 'tooltip-bubble active';
+  bubble.textContent = text;
+  bubble.setAttribute('role', 'tooltip');
+  document.body.appendChild(bubble);
+  
+  // Position the bubble near the icon
+  const rect = icon.getBoundingClientRect();
+  bubble.style.top = `${rect.bottom + 8}px`;
+  bubble.style.left = `${rect.left}px`;
+  
+  activeTooltip = bubble;
+}
+
+function hideTooltipBubble() {
+  if (activeTooltip) {
+    activeTooltip.remove();
+    activeTooltip = null;
+  }
+}
+
+// Handle tooltip icon clicks/taps (mobile)
+document.querySelectorAll('.tooltip-icon').forEach(icon => {
+  icon.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const tip = icon.getAttribute('data-tip');
+    
+    if (activeTooltip && activeTooltip.textContent === tip) {
+      hideTooltipBubble();
+    } else {
+      showTooltipBubble(icon, tip);
+    }
+  });
+  
+  icon.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      const tip = icon.getAttribute('data-tip');
+      
+      if (activeTooltip && activeTooltip.textContent === tip) {
+        hideTooltipBubble();
+      } else {
+        showTooltipBubble(icon, tip);
+      }
+    }
+  });
+});
+
+// Close tooltip when clicking outside
+document.addEventListener('click', () => {
+  hideTooltipBubble();
+});
