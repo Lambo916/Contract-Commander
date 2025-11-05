@@ -29,17 +29,16 @@
   <div class="ybg-wrap">
     <div class="ybg-hero">
       <img class="ybg-logo" src="/assets/bizplan-builder-logo.png" alt="BizPlan Builder"/>
-      <div class="hero-text">
+      <div>
         <div class="ybg-title">BizPlan Builder</div>
         <div class="ybg-sub">Draft investor-ready business plans — powered by YourBizGuru</div>
       </div>
-      <div id="last-saved" class="last-saved" data-testid="text-last-saved"></div>
     </div>
 
     <div class="ybg-card">
       <div class="ybg-section-title">Input</div>
-      <div class="form-grid-2col">
-        <div class="form-col-span-2">
+      <div class="ybg-grid">
+        <div class="full">
           <label>Company / Project Name *</label>
           <input id="company" placeholder="Your Company or Project" data-testid="input-company"/>
         </div>
@@ -49,25 +48,23 @@
         </div>
         <div>
           <label>Target Customer</label>
-          <input id="target" placeholder="e.g., SMBs, consumers" data-testid="input-target"/>
+          <input id="target" placeholder="e.g., SMBs, consumers, enterprises" data-testid="input-target"/>
         </div>
-        <div class="form-col-span-2">
+        <div class="full">
           <label>Product / Service</label>
-          <textarea id="product" placeholder="Describe your offering" data-testid="input-product"></textarea>
-          <p class="helper-text">Brief description of what you offer</p>
+          <textarea id="product" placeholder="Describe your offering..." data-testid="input-product"></textarea>
         </div>
         <div>
           <label>Revenue Model</label>
-          <input id="revenue" placeholder="e.g., subscription, marketplace" data-testid="input-revenue"/>
+          <input id="revenue" placeholder="e.g., subscription, storefront, marketplace" data-testid="input-revenue"/>
         </div>
         <div>
-          <label>Stage</label>
-          <input id="stage" placeholder="idea, MVP, launched" data-testid="input-stage"/>
+          <label>Current Stage</label>
+          <input id="stage" placeholder="idea, MVP, launched, scaling" data-testid="input-stage"/>
         </div>
-        <div class="form-col-span-2">
-          <label>Top Goals (6–12 mo)</label>
-          <textarea id="goals" placeholder="Your top 3–5 outcomes" data-testid="input-goals"></textarea>
-          <p class="helper-text">Key milestones for the next year</p>
+        <div class="full">
+          <label>Top Goals (next 6–12 months)</label>
+          <textarea id="goals" placeholder="Your top 3–5 outcomes..." data-testid="input-goals"></textarea>
         </div>
         <div>
           <label>Tone</label>
@@ -80,45 +77,59 @@
         </div>
       </div>
 
-      <!-- Sticky Toolbar (always visible) -->
-      <div id="toolbar" class="toolbar sticky-toolbar">
+      <div class="ybg-actions">
+        <div class="dropdown">
+          <button class="btn btn-secondary" id="btn-templates" data-testid="button-templates" title="Load example business plan template">
+            Load Template ▾
+          </button>
+          <div class="dropdown-menu" id="template-menu">
+            <button class="dropdown-item" data-template="saas" data-testid="template-saas">SaaS Startup</button>
+            <button class="dropdown-item" data-template="realestate" data-testid="template-realestate">Real Estate Investment</button>
+            <button class="dropdown-item" data-template="consulting" data-testid="template-consulting">Management Consulting</button>
+            <button class="dropdown-item" data-template="nonprofit" data-testid="template-nonprofit">Nonprofit Organization</button>
+            <button class="dropdown-item" data-template="ecommerce" data-testid="template-ecommerce">E-Commerce Store</button>
+            <button class="dropdown-item" data-template="restaurant" data-testid="template-restaurant">Restaurant / Food Service</button>
+          </div>
+        </div>
+        <button class="btn btn-secondary" id="btn-clear-inputs" data-testid="button-clear-inputs" title="Clear all input fields">Clear All</button>
+        <button class="btn btn-primary" id="btn-generate" data-testid="button-generate" title="Generate business plan">Generate Plan</button>
+      </div>
+
+      <div id="toolbar" class="toolbar">
         <div class="toolbar-group">
           <div class="dropdown">
             <button class="btn btn-toolbar" id="btn-file" data-testid="button-file" title="File operations">
               File ▾
             </button>
             <div class="dropdown-menu" id="file-menu">
-              <button class="dropdown-item" id="btn-new-plan" data-testid="button-new-plan" title="Start a new plan">New</button>
-              <button class="dropdown-item" id="btn-open" data-testid="button-open" title="Open a saved plan">Open...</button>
-              <button class="dropdown-item" id="btn-save" data-testid="button-save" title="Save this plan">Save</button>
+              <button class="dropdown-item" id="btn-new-plan" data-testid="button-new-plan" title="Start a new business plan">New Plan</button>
+              <button class="dropdown-item" id="btn-open" data-testid="button-open" title="Open a saved report">Open...</button>
+              <button class="dropdown-item" id="btn-save" data-testid="button-save" title="Save this report">Save</button>
               <button class="dropdown-item" id="btn-save-as" data-testid="button-save-as" title="Save with a new name">Save As...</button>
               <button class="dropdown-item" id="btn-rename" data-testid="button-rename" title="Rename current file">Rename...</button>
-              <button class="dropdown-item" id="btn-delete" data-testid="button-delete" title="Delete current file">Delete</button>
-              <button class="dropdown-item" id="btn-version-history" data-testid="button-version-history" title="View previous versions">Version History</button>
+              <button class="dropdown-item" id="btn-version-history" data-testid="button-version-history" title="View previous versions">Version History...</button>
+              <button class="dropdown-item" id="btn-move-trash" data-testid="button-move-trash" title="Move to trash">Move to Trash...</button>
             </div>
           </div>
 
           <div class="dropdown">
-            <button class="btn btn-toolbar" id="btn-export" data-testid="button-export" title="Export your plan">
+            <button class="btn btn-toolbar" id="btn-export" data-testid="button-export" title="Export your report">
               Export ▾
             </button>
             <div class="dropdown-menu" id="export-menu">
-              <button class="dropdown-item" id="btn-export-markdown" data-testid="button-export-markdown" title="Download as Markdown">Download .md</button>
-              <button class="dropdown-item" id="btn-export-pdf" data-testid="button-export-pdf" title="Download as PDF">Download .pdf</button>
-              <button class="dropdown-item" id="btn-copy-markdown" data-testid="button-copy-markdown" title="Copy Markdown to clipboard">Copy Markdown</button>
-              <button class="dropdown-item" id="btn-copy-summary" data-testid="button-copy-summary" title="Copy Summary">Copy Summary</button>
+              <button class="dropdown-item" id="btn-export-pdf" data-testid="button-export-pdf" title="Download as PDF">Download PDF</button>
+              <button class="dropdown-item" id="btn-export-markdown" data-testid="button-export-markdown" title="Download as Markdown">Download Markdown</button>
+              <button class="dropdown-item" id="btn-copy-markdown" data-testid="button-copy-markdown" title="Copy Markdown to clipboard">Copy Markdown to Clipboard</button>
             </div>
           </div>
 
-          <button class="btn btn-primary" id="btn-generate" data-testid="button-generate" title="Generate business plan">Generate Plan</button>
-          <button class="btn btn-toolbar" id="btn-reset" data-testid="button-reset" title="Reset form and results">Reset Form</button>
+          <button class="btn btn-toolbar" id="btn-clear" data-testid="button-clear" title="Clear the current report">Clear</button>
           
           <div class="dropdown">
             <button class="btn btn-toolbar" id="btn-help" data-testid="button-help" title="Help and information">
               Help ▾
             </button>
             <div class="dropdown-menu" id="help-menu">
-              <button class="dropdown-item" id="btn-templates" data-testid="button-templates-menu" title="Load template">Load Template</button>
               <button class="dropdown-item" id="btn-help-guide" data-testid="button-help-guide" title="View user guide">User Guide</button>
               <button class="dropdown-item" id="btn-help-about" data-testid="button-help-about" title="About BizPlan Builder">About</button>
             </div>
@@ -126,22 +137,12 @@
         </div>
       </div>
 
-      <!-- Template Dropdown (initially hidden) -->
-      <div id="template-dropdown" class="dropdown-menu" style="display:none; position:fixed;">
-        <button class="dropdown-item" data-template="saas" data-testid="template-saas">SaaS Startup</button>
-        <button class="dropdown-item" data-template="realestate" data-testid="template-realestate">Real Estate Investment</button>
-        <button class="dropdown-item" data-template="consulting" data-testid="template-consulting">Management Consulting</button>
-        <button class="dropdown-item" data-template="nonprofit" data-testid="template-nonprofit">Nonprofit Organization</button>
-        <button class="dropdown-item" data-template="ecommerce" data-testid="template-ecommerce">E-Commerce Store</button>
-        <button class="dropdown-item" data-template="restaurant" data-testid="template-restaurant">Restaurant / Food Service</button>
-      </div>
-
-      <!-- Pill Badge Meta Strip (hidden until report is generated) -->
-      <div id="meta-pills" class="meta-pills" style="display:none;" data-testid="meta-pills">
-        <button class="pill-badge" id="pill-company" data-focus="company" data-testid="pill-company"></button>
-        <button class="pill-badge" id="pill-industry" data-focus="industry" data-testid="pill-industry"></button>
-        <button class="pill-badge" id="pill-stage" data-focus="stage" data-testid="pill-stage"></button>
-        <button class="pill-badge" id="pill-generated" data-testid="pill-generated"></button>
+      <!-- Report Metadata Bar (hidden until report is generated) -->
+      <div id="report-metadata" class="report-meta" style="display:none;">
+        <div class="meta-item"><strong>Company:</strong> <span id="meta-company">—</span></div>
+        <div class="meta-item"><strong>Industry:</strong> <span id="meta-industry">—</span></div>
+        <div class="meta-item"><strong>Stage:</strong> <span id="meta-stage">—</span></div>
+        <div class="meta-item"><strong>Generated:</strong> <span id="meta-timestamp">—</span></div>
       </div>
 
       <!-- Report View Container -->
@@ -244,53 +245,18 @@
       <div class="modal-body">
         <label for="saveas-filename">File Name</label>
         <input type="text" id="saveas-filename" class="modal-input" placeholder="Enter filename" data-testid="input-saveas-filename"/>
-        
-        <label for="saveas-description" style="margin-top: 16px; display: block;">Description (optional)</label>
-        <textarea id="saveas-description" class="modal-input" placeholder="Add notes about this version" rows="3" data-testid="input-saveas-description"></textarea>
-        
+        <p class="modal-hint">This name will be used for exports and file management</p>
         <div id="saveas-status" class="modal-status"></div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-ghost" id="saveas-cancel" data-testid="button-saveas-cancel">Cancel</button>
-        <button class="btn btn-primary" id="saveas-confirm" data-testid="button-saveas-confirm">Confirm</button>
+        <button class="btn btn-primary" id="saveas-confirm" data-testid="button-saveas-confirm">Save</button>
       </div>
     </div>
   </div>
 
   <!-- Toast Container -->
   <div id="toast-container" class="toast-container" data-testid="toast-container"></div>
-
-  <!-- Mobile Bottom Fixed Bar (hidden on desktop) -->
-  <div id="mobile-bottom-bar" class="mobile-bottom-bar">
-    <button class="mobile-bar-btn" id="mobile-btn-file" data-testid="mobile-button-file" title="File">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path>
-        <polyline points="13 2 13 9 20 9"></polyline>
-      </svg>
-      <span>File ▾</span>
-    </button>
-    <button class="mobile-bar-btn" id="mobile-btn-export" data-testid="mobile-button-export" title="Export">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-        <polyline points="7 10 12 15 17 10"></polyline>
-        <line x1="12" y1="15" x2="12" y2="3"></line>
-      </svg>
-      <span>Export ▾</span>
-    </button>
-    <button class="mobile-bar-btn btn-primary" id="mobile-btn-generate" data-testid="mobile-button-generate" title="Generate">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
-      </svg>
-      <span>Generate</span>
-    </button>
-    <button class="mobile-bar-btn" id="mobile-btn-reset" data-testid="mobile-button-reset" title="Reset">
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="1 4 1 10 7 10"></polyline>
-        <path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path>
-      </svg>
-      <span>Reset</span>
-    </button>
-  </div>
 
   <script src="/bizplan-app.js"></script>
 </body>

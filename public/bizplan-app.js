@@ -10,7 +10,6 @@ let hasUnsavedChanges = false;
 let isGenerating = false;
 let currentOffset = 0;
 const REPORTS_LIMIT = 10;
-let lastSavedTime = null;
 
 // ==== STATE MANAGEMENT FUNCTIONS ====
 
@@ -45,37 +44,6 @@ function markUnsaved() {
 
 function markSaved() {
   hasUnsavedChanges = false;
-  updateLastSavedTimestamp();
-}
-
-function updateLastSavedTimestamp() {
-  lastSavedTime = new Date();
-  const el = $('last-saved');
-  if (el) {
-    el.textContent = `Last saved: ${formatTimestamp(lastSavedTime)}`;
-  }
-}
-
-function formatTimestamp(date) {
-  const now = new Date();
-  const diff = now - date;
-  const minutes = Math.floor(diff / 60000);
-  
-  if (minutes < 1) return 'just now';
-  if (minutes === 1) return '1 minute ago';
-  if (minutes < 60) return `${minutes} minutes ago`;
-  
-  const hours = Math.floor(minutes / 60);
-  if (hours === 1) return '1 hour ago';
-  if (hours < 24) return `${hours} hours ago`;
-  
-  // Format as date
-  return date.toLocaleString('en-US', { 
-    month: 'short', 
-    day: 'numeric', 
-    hour: 'numeric', 
-    minute: '2-digit' 
-  });
 }
 
 function generateDefaultFilename(companyName) {
@@ -750,8 +718,23 @@ function clearAllInputs() {
   }
 }
 
-// Template handlers moved to Help menu section - see line ~1104
-// Clear inputs button removed - replaced by Reset Form button in toolbar
+// Template dropdown handler
+$('btn-templates').addEventListener('click', (e) => {
+  e.stopPropagation();
+  const menu = $('template-menu');
+  menu.classList.toggle('active');
+});
+
+$('template-menu').addEventListener('click', (e) => {
+  const templateKey = e.target.dataset.template;
+  if (templateKey) {
+    loadTemplate(templateKey);
+  }
+  $('template-menu').classList.remove('active');
+});
+
+// Clear inputs button
+$('btn-clear-inputs').addEventListener('click', clearAllInputs);
 
 $('btn-generate').addEventListener('click', async () => {
   setGeneratingState(true);
@@ -874,10 +857,7 @@ document.addEventListener('click', () => {
   $('file-menu').classList.remove('active');
   $('export-menu').classList.remove('active');
   $('help-menu').classList.remove('active');
-  const templateDropdown = $('template-dropdown');
-  if (templateDropdown) {
-    templateDropdown.style.display = 'none';
-  }
+  $('template-menu').classList.remove('active');
 });
 
 // ==== FILE MENU HANDLERS ====
@@ -960,13 +940,13 @@ $('btn-version-history').addEventListener('click', () => {
   $('file-menu').classList.remove('active');
 });
 
-$('btn-delete').addEventListener('click', async () => {
+$('btn-move-trash').addEventListener('click', async () => {
   if (!currentReportId) {
     showToast('No report to delete', 'error');
     return;
   }
   
-  if (!confirm(`Delete "${currentFileName || 'this report'}"? This cannot be undone.`)) {
+  if (!confirm(`Move "${currentFileName || 'this report'}" to trash?`)) {
     return;
   }
   
@@ -988,7 +968,7 @@ $('btn-delete').addEventListener('click', async () => {
     hasUnsavedChanges = false;
     hideMetadata();
     
-    showToast('Report deleted', 'success');
+    showToast('Report moved to trash', 'success');
     
   } catch (e) {
     showToast(`Error: ${e.message}`, 'error');
@@ -1014,55 +994,6 @@ $('btn-copy-markdown').addEventListener('click', () => {
   $('export-menu').classList.remove('active');
 });
 
-$('btn-copy-summary').addEventListener('click', () => {
-  if (!currentReportData) {
-    showToast('No report to copy', 'error');
-    return;
-  }
-  
-  // Extract executive summary
-  const summaryMatch = currentReportData.markdown?.match(/## Executive Summary\n\n([\s\S]*?)(?=\n##|$)/i);
-  const summary = summaryMatch ? summaryMatch[1].trim() : 'No executive summary found.';
-  
-  navigator.clipboard.writeText(summary).then(() => {
-    showToast('Executive summary copied to clipboard', 'success');
-  }).catch(() => {
-    showToast('Failed to copy summary', 'error');
-  });
-  
-  $('export-menu').classList.remove('active');
-});
-
-// ==== RESET FORM HANDLER ====
-
-$('btn-reset').addEventListener('click', () => {
-  if (hasUnsavedChanges || currentReportData) {
-    if (!confirm('Reset form and clear all results? This will clear unsaved changes.')) {
-      return;
-    }
-  }
-  
-  // Clear inputs
-  $('company').value = '';
-  $('industry').value = '';
-  $('target').value = '';
-  $('product').value = '';
-  $('revenue').value = '';
-  $('stage').value = '';
-  $('goals').value = '';
-  $('tone').value = 'Professional';
-  
-  // Clear results
-  $('report-view').innerHTML = '';
-  currentReportData = null;
-  currentFileName = null;
-  currentReportId = null;
-  hasUnsavedChanges = false;
-  hideMetadata();
-  
-  showToast('Form reset', 'success');
-});
-
 // ==== CLEAR BUTTON HANDLER ====
 
 $('btn-clear').addEventListener('click', () => {
@@ -1086,30 +1017,6 @@ $('btn-clear').addEventListener('click', () => {
 
 // ==== HELP MENU HANDLERS ====
 
-$('btn-templates').addEventListener('click', (e) => {
-  e.stopPropagation();
-  const dropdown = $('template-dropdown');
-  const btn = e.target.closest('button');
-  const btnRect = btn.getBoundingClientRect();
-  
-  // Position dropdown near the button
-  dropdown.style.position = 'fixed';
-  dropdown.style.top = `${btnRect.bottom + 4}px`;
-  dropdown.style.left = `${btnRect.left}px`;
-  dropdown.style.display = 'block';
-  
-  $('help-menu').classList.remove('active');
-});
-
-// Template dropdown click handler
-$('template-dropdown').addEventListener('click', (e) => {
-  const templateKey = e.target.dataset.template;
-  if (templateKey) {
-    loadTemplate(templateKey);
-    $('template-dropdown').style.display = 'none';
-  }
-});
-
 $('btn-help-guide').addEventListener('click', () => {
   showToast('User guide coming soon!', 'success');
   $('help-menu').classList.remove('active');
@@ -1119,53 +1026,6 @@ $('btn-help-about').addEventListener('click', () => {
   alert('BizPlan Builder v1.0\n\nDraft investor-ready business plans with AI-powered assistance.\n\nPowered by YourBizGuru');
   $('help-menu').classList.remove('active');
 });
-
-// ==== PILL BADGE HANDLERS ====
-
-document.addEventListener('DOMContentLoaded', () => {
-  const pillBadges = document.querySelectorAll('.pill-badge[data-focus]');
-  pillBadges.forEach(pill => {
-    pill.addEventListener('click', () => {
-      const inputId = pill.dataset.focus;
-      const input = $(inputId);
-      if (input) {
-        input.focus();
-        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    });
-  });
-});
-
-// ==== MOBILE BOTTOM BAR HANDLERS ====
-
-const mobileFileBtn = $('mobile-btn-file');
-const mobileExportBtn = $('mobile-btn-export');
-const mobileGenerateBtn = $('mobile-btn-generate');
-const mobileResetBtn = $('mobile-btn-reset');
-
-if (mobileFileBtn) {
-  mobileFileBtn.addEventListener('click', () => {
-    $('btn-file').click();
-  });
-}
-
-if (mobileExportBtn) {
-  mobileExportBtn.addEventListener('click', () => {
-    $('btn-export').click();
-  });
-}
-
-if (mobileGenerateBtn) {
-  mobileGenerateBtn.addEventListener('click', () => {
-    $('btn-generate').click();
-  });
-}
-
-if (mobileResetBtn) {
-  mobileResetBtn.addEventListener('click', () => {
-    $('btn-reset').click();
-  });
-}
 
 // ==== SAVE AS / RENAME MODAL HANDLERS ====
 
