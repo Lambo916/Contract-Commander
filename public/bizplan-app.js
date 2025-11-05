@@ -540,18 +540,29 @@ function renderAiInsights(insights) {
   `;
 }
 
-function renderAiSuggestionsSection() {
+function renderAiSuggestionsSection(aiSuggestions) {
+  let suggestionsContent = '';
+  let containerClass = 'ai-suggestions-card collapsed';
+  let buttonText = 'Get Suggestions';
+  
+  if (aiSuggestions && aiSuggestions.length > 0) {
+    const suggestionsHtml = aiSuggestions.map(s => `<li>${s}</li>`).join('');
+    suggestionsContent = `<ul>${suggestionsHtml}</ul>`;
+    containerClass = 'ai-suggestions-card'; // Remove collapsed class
+    buttonText = 'Refresh Suggestions';
+  }
+  
   return `
     <div class="ai-suggestions-section" data-testid="ai-suggestions-section">
       <div class="ai-suggestions-header">
         <h3 style="color: #1a1a1a; font-size: 20px; margin: 0;">Get AI-Powered Improvement Suggestions</h3>
         <button class="btn-suggestion" id="btn-get-suggestions" data-testid="button-get-suggestions">
-          Get Suggestions
+          ${buttonText}
         </button>
       </div>
-      <div id="ai-suggestions-container" class="ai-suggestions-card collapsed" data-testid="ai-suggestions-container">
+      <div id="ai-suggestions-container" class="${containerClass}" data-testid="ai-suggestions-container">
         <h4>AI Improvement Suggestions</h4>
-        <div id="suggestions-content"></div>
+        <div id="suggestions-content">${suggestionsContent}</div>
       </div>
     </div>
   `;
@@ -588,7 +599,7 @@ function renderPremiumReport(data) {
   const kpiTableHtml = renderKpiTable(data.kpiTable);
   const chartsHtml = renderKpiChartsSection(data.kpiTable);
   const insightsHtml = renderAiInsights(data.aiInsights);
-  const suggestionsHtml = renderAiSuggestionsSection();
+  const suggestionsHtml = renderAiSuggestionsSection(data.aiSuggestions);
   
   return `
     ${snapshotHtml}
@@ -733,6 +744,21 @@ function attachAiSuggestionsHandler() {
       if (data.suggestions && data.suggestions.length > 0) {
         const suggestionsHtml = data.suggestions.map(s => `<li>${s}</li>`).join('');
         content.innerHTML = `<ul>${suggestionsHtml}</ul>`;
+        
+        // Store suggestions in currentReportData
+        currentReportData.aiSuggestions = data.suggestions;
+        
+        // Update HTML snapshot to include suggestions
+        currentReportData.html = renderPremiumReport({
+          executiveSnapshot: currentReportData.executiveSnapshot,
+          mainPlan: currentReportData.markdown,
+          kpiTable: currentReportData.kpiTable,
+          aiInsights: currentReportData.aiInsights,
+          aiSuggestions: currentReportData.aiSuggestions
+        });
+        
+        // Auto-save
+        saveCurrentReport();
       } else {
         content.innerHTML = '<p style="color: #999;">No suggestions generated. Your plan looks solid!</p>';
       }
@@ -880,7 +906,8 @@ function syncKpiTableData() {
     executiveSnapshot: currentReportData.executiveSnapshot,
     mainPlan: currentReportData.markdown,
     kpiTable: currentReportData.kpiTable,
-    aiInsights: currentReportData.aiInsights
+    aiInsights: currentReportData.aiInsights,
+    aiSuggestions: currentReportData.aiSuggestions
   });
   
   // Mark as unsaved
@@ -981,6 +1008,7 @@ $('btn-generate').addEventListener('click', async () => {
       markdown: data.mainPlan || data.markdown || '',
       kpiTable: data.kpiTable || [],
       aiInsights: data.aiInsights || [],
+      aiSuggestions: data.aiSuggestions || [],
       html: fullHtml,
       company: payload.company,
       industry: payload.industry,
