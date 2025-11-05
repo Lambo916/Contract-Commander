@@ -1014,26 +1014,17 @@
   }
 }
 
-/* ==== COMMAND BAR ==== */
-/* Generate Button Container */
-.generate-button-container {
-  display: flex;
-  justify-content: center;
-  margin: 20px 0 12px 0;
-}
-
-.btn-generate-main {
-  padding: 14px 32px;
-  font-size: 16px;
+/* ==== GENERATE BUTTON IN GRID ==== */
+.btn-generate-inline {
+  width: 100%;
+  padding: 12px 12px;
+  font-size: 15px;
   font-weight: 700;
-  min-height: 48px;
-  box-shadow: 0 4px 12px rgba(77, 182, 231, 0.3);
+  min-height: 44px;
+  border-radius: 12px;
 }
 
-.btn-generate-main:hover {
-  box-shadow: 0 6px 16px rgba(77, 182, 231, 0.4);
-  transform: translateY(-1px);
-}
+/* ==== COMMAND BAR ==== */
 
 .command-bar {
   display: flex;
@@ -1094,15 +1085,6 @@
 }
 
 @media (max-width: 768px) {
-  .generate-button-container {
-    margin: 16px 0 12px 0;
-  }
-  
-  .btn-generate-main {
-    width: 100%;
-    max-width: 400px;
-  }
-  
   .command-bar .dropdown {
     flex: 1;
   }
@@ -1238,7 +1220,6 @@
   
   .ybg-hero,
   .ybg-card,
-  .generate-button-container,
   .command-bar,
   .toolbar,
   .report-meta-inline,
