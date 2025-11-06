@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "mkdir -p dist api/_server && cp -r public/* dist/ && npx esbuild server/index.ts --outfile=api/_server/index.js --platform=node --format=esm --packages=external",
+  "buildCommand": "bash build-vercel.sh",
   "outputDirectory": "dist",
   "functions": {
     "api/**/*.js": {
