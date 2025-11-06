@@ -1,5 +1,5 @@
 {
-  "buildCommand": "mkdir -p dist api/_server && cp -r public/* dist/ && npx esbuild server/index.ts --platform=node --bundle --format=esm --outfile=api/_server/index.js",
+  "buildCommand": "mkdir -p dist api/_server && cp -r public/* dist/ && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outfile=api/_server/index.js",
   "outputDirectory": "dist",
   "rewrites": [
     {
