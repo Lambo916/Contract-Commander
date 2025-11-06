@@ -1,5 +1,5 @@
 {
-  "buildCommand": "mkdir -p dist && mkdir -p api/_server && cp -r public/* dist/ && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outfile=api/_server/index.js --allow-overwrite",
+  "buildCommand": "mkdir -p dist && mkdir -p api/_server && cp -r public/* dist/ && npx esbuild server/index.ts --platform=node --bundle --format=esm --outfile=api/_server/index.js --allow-overwrite --external:vite --external:@vitejs/plugin-react --external:@replit/vite-plugin-cartographer --external:@replit/vite-plugin-runtime-error-modal",
   "outputDirectory": "dist",
   "rewrites": [
     {

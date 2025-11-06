@@ -160,7 +160,9 @@ async function initializeApp() {
   // importantly only setup vite in development and after
   // setting up all the other routes so the catch-all route
   // doesn't interfere with the other routes
-  if (app.get("env") === "development") {
+  // NEVER load Vite on Vercel (serverless environment)
+  const isVercel = process.env.VERCEL === '1';
+  if (!isVercel && app.get("env") === "development") {
     const { setupVite } = await import("./vite");
     await setupVite(app, server);
   }
