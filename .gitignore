@@ -92,3 +92,4 @@ vite.config.ts.*
 # Build artifacts (Vercel build output)
 server/index.js
 server/index.js.map
+api/_server/
