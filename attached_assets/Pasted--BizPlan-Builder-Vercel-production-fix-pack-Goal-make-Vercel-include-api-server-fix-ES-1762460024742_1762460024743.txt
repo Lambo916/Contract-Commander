@@ -1,0 +1,136 @@
+# ⬇️ BizPlan Builder – Vercel production fix pack
+# Goal: make Vercel include api/_server/**, fix ESM import resolution, standardize CORS, and verify envs.
+
+────────────────────────────────────────────────────────────────────────────
+1) vercel.json — ensure Vercel bundles our internal server folder
+────────────────────────────────────────────────────────────────────────────
+# Create or replace vercel.json at repo root with:
+{
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs20.x",
+      "includeFiles": "api/_server/**"
+    }
+  }
+}
+
+# Notes:
+# - includeFiles tells Vercel to package everything under api/_server/** even if it appears “unused”.
+# - If you use TypeScript, change pattern to "api/**/*.mjs" or "*.ts" as applicable and compile in step 4.
+
+────────────────────────────────────────────────────────────────────────────
+2) ESM-safe imports in api/bizplan.js (or .ts)
+────────────────────────────────────────────────────────────────────────────
+# Vercel’s Node ESM resolver needs explicit extensions. In api/bizplan.js change:
+#   import routes from './_server/routes';
+# to:
+import routes from './_server/routes.js';
+
+# Do the same for ANY other local imports: add ".js" extension (or ".mjs" if you use it).
+# If you’re on CommonJS, switch to:
+#   const routes = require('./_server/routes');
+
+# Ensure the actual file exists: api/_server/routes.js
+# (If your source is TS, compile to JS and import the compiled file path that exists at runtime.)
+
+────────────────────────────────────────────────────────────────────────────
+3) Harden CORS in the API handler
+────────────────────────────────────────────────────────────────────────────
+# In api/bizplan.js (your serverless handler), add before returning any body:
+
+const ALLOWED = new Set([
+  'https://yourbizguru.com',
+  'https://www.yourbizguru.com',
+  'https://bizplan.yourbizguru.com',
+  // allow deploy previews while you’re testing/rolling:
+  'https://*.vercel.app'
+]);
+
+function corsHeaders(origin) {
+  // allow *.vercel.app quickly:
+  const ok =
+    origin === 'https://yourbizguru.com' ||
+    origin === 'https://www.yourbizguru.com' ||
+    origin === 'https://bizplan.yourbizguru.com' ||
+    (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin));
+  const allow = ok ? origin : 'https://bizplan.yourbizguru.com';
+  return {
+    'Access-Control-Allow-Origin': allow,
+    'Vary': 'Origin',
+    'Access-Control-Allow-Methods': 'GET,POST,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type,Authorization'
+  };
+}
+
+export default async function handler(req, res) {
+  const origin = req.headers.origin || '';
+  const headers = corsHeaders(origin);
+  if (req.method === 'OPTIONS') {
+    res.set(headers).status(204).end();
+    return;
+  }
+  res.set(headers);
+
+  // …existing logic…
+}
+
+# If your framework differs, apply the same headers in its middleware.
+
+────────────────────────────────────────────────────────────────────────────
+4) TypeScript only (skip if JS)
+────────────────────────────────────────────────────────────────────────────
+# Ensure a build that emits JS into /api/_server/ ready for deployment:
+# package.json
+{
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  }
+}
+# Make sure the compiled output preserves the api/_server/** layout and filenames with .js extensions.
+# Update imports to point at the _compiled_ paths present at runtime.
+
+────────────────────────────────────────────────────────────────────────────
+5) Environment variables (double-check in Vercel → Project → Settings → Environment Variables)
+────────────────────────────────────────────────────────────────────────────
+# Add these in the PRODUCTION scope (match names already working on Replit):
+OPENAI_API_KEY=********
+SESSION_SECRET=********
+DATABASE_URL=********                # whichever you actually use in production
+PGHOST=********
+PGPORT=5432
+PGUSER=********
+PGPASSWORD=********
+PGDATABASE=********
+SUPABASE_URL=********
+SUPABASE_ANON_KEY=********
+PUBLIC_SITE_URL=https://bizplan.yourbizguru.com
+CORS_ALLOWED_ORIGINS=https://bizplan.yourbizguru.com,https://yourbizguru.com,https://www.yourbizguru.com,https://*.vercel.app
+
+# Important:
+# - Set them at Vercel (Production). Re-deploy after setting.
+# - If you use Neon for prod but Supabase client for front-end, DATABASE_URL must point to the live DB you intend to use.
+
+────────────────────────────────────────────────────────────────────────────
+6) Route existence checks
+────────────────────────────────────────────────────────────────────────────
+# You saw 404 for /api/bizplan/reports — verify these files exist and export default handlers:
+#   api/bizplan.js            -> main POST endpoint
+#   api/bizplan/reports.js    -> GET endpoint (if UI tries to load reports)
+
+# Each should export a default function (req,res) under Next/Vercel Node runtime.
+
+────────────────────────────────────────────────────────────────────────────
+7) Deploy
+────────────────────────────────────────────────────────────────────────────
+# Commit and push changes:
+git add vercel.json api/bizplan.js api/_server/* package.json
+git commit -m "Vercel bundle + ESM imports + CORS + envs"
+git push origin main
+
+# Then trigger a fresh Production deploy in Vercel (or push to main if auto-deploy is on).
+# After deploy, test:
+curl -i -X OPTIONS https://bizplan.yourbizguru.com/api/bizplan
+curl -i -X POST https://bizplan.yourbizguru.com/api/bizplan -H "Content-Type: application/json" -d '{"ping":true}'
+
+# Expect 204 for OPTIONS and 200/JSON for POST (based on your handler).
