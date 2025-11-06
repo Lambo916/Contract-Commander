@@ -1,19 +1,7 @@
 {
-  "version": 2,
-  "buildCommand": "mkdir -p api/_server && npx esbuild server/index.ts --outfile=api/_server/index.js --platform=node --format=esm --packages=external",
+  "buildCommand": "bash build-vercel.sh",
   "outputDirectory": "dist",
-  "functions": {
-    "api/**/*.js": {
-      "runtime": "nodejs20.x",
-      "includeFiles": "api/_server/**"
-    },
-    "api/**/*.ts": {
-      "runtime": "nodejs20.x",
-      "includeFiles": "api/_server/**"
-    }
-  },
-  "routes": [
-    { "src": "^/api/(.*)$", "dest": "/api/index" },
-    { "src": ".*", "dest": "/client/index.html" }
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api" }
   ]
 }
