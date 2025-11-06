@@ -1,0 +1,74 @@
+TASK: Fix Vercel config & deploy BizPlan Builder (modern runtime)
+
+1) Ensure these files at repo root (replace existing).
+
+--- vercel.json ---
+{
+  "version": 2,
+
+  "buildCommand": "mkdir -p api/_server && npx esbuild server/index.ts --outfile=api/_server/index.js --platform=node --format=esm --packages=external",
+
+  "outputDirectory": "dist",
+
+  "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs20.x",
+      "includeFiles": "api/_server/**"
+    },
+    "api/**/*.ts": {
+      "runtime": "nodejs20.x",
+      "includeFiles": "api/_server/**"
+    }
+  },
+
+  "routes": [
+    { "src": "^/api/(.*)$", "dest": "/api/index" },
+    { "src": ".*", "dest": "/client/index.html" }
+  ]
+}
+
+# NOTE: If your main handler is api/bizplan.ts, change the routes line:
+# { "src": "^/api/(.*)$", "dest": "/api/bizplan" }
+
+--- api/health.ts ---
+export default async function handler() {
+  return new Response('ok', { status: 200 });
+}
+
+2) package.json hygiene:
+- Remove any legacy “now-build” script.
+- Keep a normal build (if present) and ensure no “now-php” or legacy builders are referenced.
+- (Optional) Add: "engines": { "node": ">=20" }
+
+Example scripts section:
+"scripts": {
+  "dev": "vite",
+  "build": "vite build",
+  "start": "vite preview"
+}
+
+3) Delete any legacy config files:
+- Remove now.json (if present)
+- Ensure only ONE vercel.json exists at the repo root
+
+4) Commit & push:
+git add vercel.json api/health.ts package.json
+git commit -m "chore(vercel): modern config, nodejs20 runtime, add health route"
+git push origin main
+
+5) Vercel dashboard:
+- Settings → Functions: Node.js version = 20
+- Settings → Environment Variables (Production):
+  OPENAI_API_KEY = ****
+  DATABASE_URL = ****
+  SUPABASE_URL = ****
+  SUPABASE_ANON_KEY = ****
+  CORS_ALLOWED_ORIGINS = https://bizplan.yourbizguru.com,https://*.vercel.app
+  (Remove replit.dev for production)
+
+- Deployments → “Redeploy” → **Disable Build Cache** (toggle off cache) → Redeploy
+
+6) Smoke test after deploy:
+- Visit https://bizplan.yourbizguru.com/api/health  → should return “ok”
+- Try Generate Plan. If you get 401, it’s auth/config (missing OPENAI_API_KEY or your API expects a header).
+- If you get 500 with ERR_MODULE_NOT_FOUND, confirm that files referenced by api/_server/index.js (e.g., ./routes.js) exist in api/_server/** and imports use .js extensions in ESM.
