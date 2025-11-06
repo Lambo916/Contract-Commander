@@ -1,66 +1,56 @@
-# GrantGenie Master Template v1.1.2
+# BizPlan Builder
 
-This template includes GrantGenie branding, complete theming system (Light/Dark), tokenized CSS architecture with gradient polish, increased yellow accents, and persistent theme preferences. This serves as the **master template v1.1.2** for GrantGenie and related toolkits.
+> **Create professional, investor-ready business plans powered by AI**
 
-## Features
+BizPlan Builder is an AI-powered business planning platform that helps entrepreneurs and business owners generate comprehensive, actionable business plans in minutes. Featuring intelligent content generation, interactive financial projections, KPI tracking, and professional PDF exports with YourBizGuru branding.
 
-- **Dual Theme System**: Professional Light and Dark themes with persistent user preference
-- **Tokenized CSS Architecture**: Reusable CSS variables for colors, gradients, shadows, and typography
-- **Enhanced Yellow Accents**: Tasteful use of yellow (#FFEB3B) throughout both themes
-- **Complete Icon Set**: Favicon, Apple Touch Icon, Android Chrome icons, and PWA manifest
-- **Theme Persistence**: Respects system preferences with localStorage override capability
-- **Accessibility First**: AA contrast compliance and reduced-motion support
-- **AI-Powered Backend**: OpenAI GPT-4o-mini integration with fallback support
-- **Mobile Responsive**: Optimized for all device sizes with theme-aware mobile chrome
-- **PWA Ready**: Complete manifest and icon set for Progressive Web App deployment
+🌐 **Live Production**: [bizplan.yourbizguru.com](https://bizplan.yourbizguru.com)
 
-## Tech Stack
+---
 
-- **Frontend**: Vanilla JavaScript, HTML5, CSS3 with custom properties
-- **Backend**: Express.js with TypeScript
-- **AI Integration**: OpenAI API (GPT-4o-mini with GPT-3.5-turbo fallback)
-- **Database**: PostgreSQL with Drizzle ORM (optional)
-- **Development**: Vite, React (for client components), Tailwind CSS
+## ✨ Features
 
-## Branding Guidelines
+### Core Functionality
+- **🤖 AI-Powered Generation**: GPT-4o creates detailed, context-aware business plan sections
+- **📊 Interactive Charts**: Real-time KPI dashboard and 12-month financial projections with Chart.js
+- **📄 Professional PDF Export**: Generate investor-ready PDFs with automatic table of contents, proper pagination, and WYSIWYG parity
+- **💾 Report Management**: Save, load, and manage multiple business plans with Supabase PostgreSQL
+- **📚 Template Library**: Pre-built templates for common business types (coming soon)
 
-### Colors (Both Themes)
-- **Primary**: #4FC3F7 (Light Blue)
-- **Accent**: #FFEB3B (Yellow)
-- **Success**: #4CAF50 (Green)
-- **Error**: #F44336 (Red)
+### Customization Options
+- **Detail Levels**: Choose between Standard, Expanded, or Comprehensive narrative depth
+  - Standard: 1500-2200 words
+  - Expanded: 2200-3200 words
+  - Comprehensive: 3200-4500 words
+- **Tone Selection**: Professional, Investor-ready, Concise, or Visionary
+- **Theme Toggle**: Professional light and dark themes with persistent preferences
 
-### Light Theme (v1.1.3 "Less White")
-- **Background**: Enhanced blue→white gradient with dual accent washes (yellow + blue)
-- **Cards**: Multi-layer with blue tint fade, gradient rims, and panel sheen
-- **Panel Headers**: Gradient background with enhanced styling
-- **Text**: Dark slate (#1e293b) - AA compliant on all tinted backgrounds
-- **Yellow Accents**: Enhanced button glows, stronger link cues, visible brand touches
-- **Visual Depth**: Visible blue tints, gradient borders, reduced flat white appearance
+### Business Plan Sections
+1. **Executive Summary**: Overview and mission statement
+2. **Market Analysis**: Target market, competition, and positioning
+3. **Products & Services**: Detailed offering descriptions
+4. **Marketing & Sales**: Go-to-market strategy
+5. **Operations Plan**: Day-to-day execution strategy
+6. **Financial Plan**: Revenue model and projections
+7. **KPI Dashboard**: Key performance indicators
+8. **AI Insights**: Strategic recommendations based on business stage
+9. **Financial Projections**: 12-month revenue and expense forecasts
 
-### Dark Theme
-- **Background**: Dark gradient (#0A0A0A → #1A1A1A → #0f0f0f)
-- **Cards**: Elevated dark surfaces with blue borders
-- **Text**: Pure white (#FFFFFF)
-- **Yellow Accents**: Enhanced glows, dual-layer button effects, accent borders
+---
 
-### Typography
-- **Headings**: Montserrat (with theme-aware shadows)
-- **Body**: Open Sans
-- **Sizes**: Consistent scale from 12px to 28px
+## 🚀 Quick Start
 
-### Interactive Elements
-- Theme toggle with sun/moon icons
-- Buttons with gradient backgrounds and theme-specific glows
-- Dual-layer hover effects (blue core + yellow halo)
-- Focus states with combined blue/yellow rings for accessibility
+### Prerequisites
+- Node.js 18+ or compatible runtime
+- OpenAI API key ([get one here](https://platform.openai.com/api-keys))
+- Supabase account ([create free account](https://supabase.com))
 
-## Setup Instructions
+### Local Development
 
-1. **Clone the template**
+1. **Clone the repository**
    ```bash
-   git clone [repository-url]
-   cd grantgenie
+   git clone https://github.com/Lambo916/BizPlan-Builder.git
+   cd BizPlan-Builder
    ```
 
 2. **Install dependencies**
@@ -68,172 +58,261 @@ This template includes GrantGenie branding, complete theming system (Light/Dark)
    npm install
    ```
 
-3. **Configure environment variables**
-   - Add your `OPENAI_API_KEY` to the secrets panel
-   - Optionally add `SESSION_SECRET` for session management
+3. **Set up environment variables**
+   
+   Copy `.env.example` to `.env` and fill in your credentials:
+   ```bash
+   cp .env.example .env
+   ```
+
+   Required variables:
+   ```env
+   OPENAI_API_KEY=sk-proj-your-key-here
+   SUPABASE_URL=https://your-project.supabase.co
+   SUPABASE_ANON_KEY=your-supabase-anon-key
+   DATABASE_URL=postgresql://postgres.your-project:password@host:5432/postgres
+   ```
 
 4. **Run development server**
    ```bash
    npm run dev
    ```
-   The application will be available at `http://localhost:5000`
-
-## Deployment
-
-### Vercel Deployment
-1. Connect your GitHub repository to Vercel
-2. Configure environment variables in Vercel dashboard
-3. Deploy with automatic builds on push
-
-### GoHighLevel Integration
-Embed the dashboard using an iframe:
-```html
-<iframe 
-  src="https://your-app.vercel.app" 
-  width="100%" 
-  height="800"
-  frameborder="0">
-</iframe>
-```
-
-## Themes
-
-### Theme System Architecture
-The template uses a tokenized CSS variable system located in `public/style.css`:
-
-- **Root variables**: Define brand colors as RGB values for flexible alpha usage
-- **Theme classes**: `.theme-light` (default) and `.theme-dark` applied to `<html>`
-- **Token categories**:
-  - Colors: `--bg`, `--card`, `--text`, `--muted`, `--border`
-  - Brand: `--primary`, `--accent`, `--success`, `--error`
-  - Gradients: `--bg-gradient`, `--btn-gradient`, `--accent-glow`
-  - Shadows: `--shadow`, `--shadow-strong`, `--glow-primary`, `--glow-accent`
-
-### Theme Behavior
-1. **First Load**: Honors system preference via `prefers-color-scheme`
-2. **Manual Toggle**: Overrides system preference, persists to localStorage (`ybg-theme`)
-3. **Persistence**: User choice survives page refreshes
-4. **System Changes**: Only applied if no manual preference is set
-
-### Light Theme "Less White" Pass (v1.1.3)
-Enhanced from v1.1.2 with stronger visual depth and reduced flat appearance:
-
-**New Tokens:**
-- `--bg-accent-wash-2`: Additional blue accent wash for dual-layer effect
-- `--panel-tint`: Visible blue fade from top (6% opacity)
-- `--panel-sheen`: White overlay for dimensional depth (65% opacity)  
-- `--rim-gradient`: Blue fade borders via border-image (18% to 0%)
-- `--panel-shadow`: Enhanced shadow for elevated feel
-- `--divider-fade`: Subtle gradient dividers
-
-**Enhanced Features:**
-- Dual accent wash: Yellow (top-right) + Blue (bottom-left)
-- Three-layer panel backgrounds: Sheen + Tint + Card gradient
-- Gradient rim borders using border-image for crisp edges
-- Enhanced button/link yellow cues with higher opacity
-- Visible blue tints throughout while maintaining AA contrast
-- `--card-border`: Subtle slate border (8% opacity)
-- `--panel-header-glow`: Minimal blue glow (12% opacity)
-
-### Customizing Theme Tokens
-Toolkits can override specific tokens without modifying components:
-```css
-/* Example: Adjust accent wash intensity */
-html.theme-light {
-    --bg-accent-wash: radial-gradient(1200px 800px at 85% -120px, 
-        rgba(255, 235, 59, 0.15), /* Stronger yellow */
-        rgba(255, 255, 255, 0) 55%);
-}
-
-/* Example: Reduce card gradient contrast */
-html.theme-light {
-    --card-gradient: linear-gradient(180deg, #ffffff 0%, #fafbfc 100%);
-}
-```
-
-### Accessibility Features
-- AA contrast compliance on all text/background combinations
-- `prefers-reduced-motion`: Disables heavy animations and glows
-- Focus rings: Blue core with subtle yellow halo
-- Theme toggle: Keyboard accessible with clear focus states
-
-## Customization for Specific Toolkits
-
-To customize for each toolkit:
-
-1. Update the title and description in `public/index.html`
-2. Modify the OpenAI prompt system message in `server/routes.ts`
-3. Adjust the placeholder text in the textarea
-4. Update the `site.webmanifest` with toolkit-specific details
-5. (Optional) Override theme tokens for toolkit-specific branding
-
-## File Structure
-
-```
-/
-├── public/
-│   ├── index.html          # Main HTML with GrantGenie branding
-│   ├── style.css           # Dark gradient theme with neon effects
-│   ├── script.js           # Frontend JavaScript
-│   ├── favicon.ico         # Browser favicon
-│   ├── favicon-32x32.png   # 32px favicon
-│   ├── apple-touch-icon.png # iOS icon
-│   ├── android-chrome-*.png # Android icons
-│   └── site.webmanifest    # PWA manifest
-├── server/
-│   ├── index.ts            # Express server entry
-│   ├── routes.ts           # API routes with OpenAI integration
-│   └── storage.ts          # Storage interface
-├── client/
-│   └── src/                # React components (if needed)
-└── package.json            # Dependencies
-```
-
-## API Endpoints
-
-- `GET /` - Serves the main dashboard
-- `POST /api/generate` - Generates AI responses
-  - Request: `{ "prompt": "Your business question" }`
-  - Response: `{ "result": "AI response", "timestamp": "ISO date", "model": "gpt-4o-mini" }`
-
-## Security Features
-
-- API key validation and secure storage
-- Input validation and sanitization
-- Rate limiting ready
-- CORS configuration for iframe embedding
-- No API key logging in production
-
-## Browser Support
-
-- Chrome/Edge 90+
-- Firefox 88+
-- Safari 14+
-- Mobile browsers (iOS Safari, Chrome Mobile)
-
-## License
-
-© 2025 GrantGenie - All Rights Reserved
+   
+   Open [http://localhost:5000](http://localhost:5000) in your browser
 
 ---
 
-**Version**: 1.1.2  
-**Release Date**: September 2025  
-**Template Tag**: `ybg-template-v1.1.2`  
+## 🌐 Deployment
 
-### Changelog v1.1.2 (Light Theme Gradient Polish)
-- Enhanced light theme with subtle gradient backgrounds
-- Added faint yellow brand accent wash to page background
-- Implemented card gradients (white→soft-gray) for depth
-- Added minimal panel header glow for visual hierarchy
-- Included button inner highlight for dimensional effect
-- Maintained AA contrast compliance (14.63:1 verified)
-- Dark theme remains unchanged from v1.1.0
+### Deploy to Vercel
 
-### Changelog v1.1.0
-- Added comprehensive Light/Dark theme system
-- Implemented tokenized CSS architecture for reusability
-- Increased yellow accent presence across both themes
-- Added persistent theme toggle with localStorage
-- Enhanced accessibility with AA contrast and reduced-motion support
-- Improved button hover states with dual-layer glows
+1. **Push to GitHub**
+   ```bash
+   git add .
+   git commit -m "Deploy BizPlan Builder"
+   git push origin main
+   ```
+
+2. **Import to Vercel**
+   - Go to [vercel.com/new](https://vercel.com/new)
+   - Import your GitHub repository
+   - Framework: **Other** (auto-detected)
+
+3. **Configure Environment Variables**
+   
+   Add these in Vercel Project Settings → Environment Variables:
+   ```
+   OPENAI_API_KEY=sk-proj-***
+   DATABASE_URL=postgresql://***
+   SUPABASE_URL=https://***
+   SUPABASE_ANON_KEY=eyJhbGci***
+   ```
+
+4. **Set Custom Domain**
+   - Go to Project Settings → Domains
+   - Add: `bizplan.yourbizguru.com`
+   - Update DNS with CNAME record pointing to `cname.vercel-dns.com`
+
+5. **Deploy!**
+   - Click "Deploy"
+   - Wait 2-3 minutes for build
+   - Your app is live! 🎉
+
+For detailed deployment instructions, see [VERCEL_SETUP.md](./VERCEL_SETUP.md)
+
+---
+
+## 🏗️ Tech Stack
+
+### Frontend
+- **Vanilla JavaScript**: Zero framework dependencies for maximum compatibility
+- **Chart.js**: Interactive KPI and financial projection charts
+- **jsPDF**: Professional PDF generation with custom formatting
+- **CSS3**: Custom property-based theming system
+
+### Backend
+- **Express.js**: RESTful API server
+- **TypeScript**: Type-safe server code
+- **OpenAI API**: GPT-4o for content generation (SDK-free fetch for Vercel compatibility)
+
+### Database & Storage
+- **Supabase PostgreSQL**: Production-grade database with automatic backups
+- **Drizzle ORM**: Type-safe database operations
+- **Smart Environment System**: Flexible variable detection (VITE_*, NEXT_PUBLIC_*, SUPABASE_*)
+
+### Deployment
+- **Vercel**: Serverless function hosting with global CDN
+- **GitHub**: Version control and CI/CD pipeline
+
+---
+
+## 📁 Project Structure
+
+```
+BizPlan-Builder/
+├── public/                      # Frontend assets
+│   ├── index.html              # Main HTML entry point
+│   ├── ybg.css                 # Theme system and base styles
+│   ├── bizplan-styles.css      # BizPlan-specific styles
+│   ├── bizplan-app.js          # Main application logic
+│   ├── pdf-export.js           # PDF generation module
+│   └── assets/                 # Images and logos
+├── server/                      # Backend API
+│   ├── index.ts                # Express server entry
+│   ├── routes.ts               # API endpoints
+│   ├── db.ts                   # Database connection
+│   └── vite.ts                 # Vite dev server integration
+├── shared/                      # Shared types and schemas
+│   └── schema.ts               # Drizzle database schema
+├── lib/                         # Utilities
+│   └── supabase.ts             # Supabase client initialization
+├── .env.example                # Environment variables template
+├── vercel.json                 # Vercel deployment config
+├── VERCEL_SETUP.md             # Detailed deployment guide
+└── package.json                # Dependencies and scripts
+```
+
+---
+
+## 🔌 API Endpoints
+
+### Business Plan Generation
+- **POST** `/api/bizplan/generate`
+  - Generates AI-powered business plan content
+  - Request: Business details, tone, detail level
+  - Response: Structured JSON with all sections
+
+### Report Management
+- **POST** `/api/reports/save` - Save a business plan
+- **GET** `/api/reports/list` - List all saved reports
+- **GET** `/api/reports/:id` - Get specific report by ID
+- **DELETE** `/api/reports/:id` - Delete a report
+
+### Health Checks
+- **GET** `/api/health/db` - Database connection status
+- **GET** `/api/db/ping` - Supabase connectivity check
+
+---
+
+## 🎨 Branding & Design
+
+### Color Palette
+- **Primary Blue**: `#4DB6E7` - Trust, professionalism
+- **Accent Yellow**: `#FFEB3B` - Energy, optimism
+- **Background (Dark)**: `#0f141a` → `#121820` gradient
+- **Background (Light)**: `#e0eff6` → `#ffffff` gradient
+
+### Typography
+- **Headings**: System UI font stack
+- **Body**: Sans-serif optimized for readability
+- **PDF**: Clean, professional formatting
+
+### Theme System
+- Persistent light/dark mode with localStorage
+- Respects system preferences
+- Smooth transitions between themes
+- Accessible color contrast (WCAG AA compliant)
+
+---
+
+## 🔐 Environment Variables
+
+### Required
+| Variable | Description | Example |
+|----------|-------------|---------|
+| `OPENAI_API_KEY` | OpenAI API key for GPT-4o | `sk-proj-***` |
+| `SUPABASE_URL` | Supabase project URL | `https://xxx.supabase.co` |
+| `SUPABASE_ANON_KEY` | Supabase anonymous key (public) | `eyJhbGci***` |
+| `DATABASE_URL` | PostgreSQL connection string | `postgresql://***` |
+
+### Optional
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `PUBLIC_SITE_URL` | Production URL | `https://bizplan.yourbizguru.com` |
+| `CORS_ALLOWED_ORIGINS` | Allowed CORS origins | `*` (dev), production domain |
+| `TOOL_NAME` | Application name | `BizPlanBuilder` |
+| `SESSION_SECRET` | Session encryption key | Auto-generated |
+| `REPORT_CAP` | Max reports per user | `30` |
+| `RATE_LIMIT_WINDOW` | Rate limit window (seconds) | `86400` |
+
+---
+
+## 🧪 Testing
+
+### Health Checks
+```bash
+# Database connectivity
+curl https://bizplan.yourbizguru.com/api/health/db
+
+# Supabase ping
+curl https://bizplan.yourbizguru.com/api/db/ping
+```
+
+### Generate a Business Plan
+1. Fill in company details
+2. Select tone and detail level
+3. Click "Generate Plan"
+4. Review sections and charts
+5. Export to PDF or save to database
+
+---
+
+## 📝 Database Schema
+
+### `bizplan_reports`
+```typescript
+{
+  id: integer (primary key, auto-increment)
+  userId: text (nullable - future auth integration)
+  title: text (required)
+  company: text (required)
+  industry: text (required)
+  htmlContent: text (full HTML report)
+  metadata: jsonb {
+    executiveSnapshot: {...}
+    mainContent: {...}
+    kpiTable: {...}
+    aiInsights: {...}
+    financialProjections: {...}
+    stage: string
+  }
+  createdAt: timestamp (default: now())
+  updatedAt: timestamp (auto-update)
+}
+```
+
+---
+
+## 🤝 Contributing
+
+This is a proprietary project for YourBizGuru. For bug reports or feature requests, contact the development team.
+
+---
+
+## 📄 License
+
+© 2025 YourBizGuru - All Rights Reserved
+
+Unauthorized copying, modification, or distribution of this software is strictly prohibited.
+
+---
+
+## 🆘 Support
+
+- **Documentation**: [VERCEL_SETUP.md](./VERCEL_SETUP.md)
+- **Email**: support@yourbizguru.com
+- **Website**: [yourbizguru.com](https://yourbizguru.com)
+
+---
+
+## 📊 Project Status
+
+- ✅ **Version**: 1.0.0
+- ✅ **Status**: Production Ready
+- ✅ **Live URL**: [bizplan.yourbizguru.com](https://bizplan.yourbizguru.com)
+- ✅ **Last Updated**: November 2025
+- ✅ **Deployment**: Vercel (Serverless)
+
+---
+
+**Built with ❤️ by YourBizGuru**
