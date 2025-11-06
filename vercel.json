@@ -1,5 +1,6 @@
 {
-  "buildCommand": "npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outfile=server/index.js --allow-overwrite",
+  "buildCommand": "mkdir -p dist && cp -r public/* dist/ && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outfile=server/index.js --allow-overwrite",
+  "outputDirectory": "dist",
   "rewrites": [
     {
       "source": "/api/:path*",
