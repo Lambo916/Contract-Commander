@@ -88,3 +88,7 @@ Thumbs.db
 server/public
 vite.config.ts.*
 *.tar.gz
+
+# Build artifacts (Vercel build output)
+server/index.js
+server/index.js.map
