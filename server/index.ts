@@ -107,7 +107,8 @@ app.use((req, res, next) => {
   next();
 });
 
-(async () => {
+// Initialize routes and middleware
+async function initializeApp() {
   const server = await registerRoutes(app);
 
   // Production-safe error handling middleware
@@ -155,27 +156,47 @@ app.use((req, res, next) => {
     serveStatic(app);
   }
 
-  // ALWAYS serve the app on the port specified in the environment variable PORT
-  // Other ports are firewalled. Default to 5000 if not specified.
-  // this serves both the API and the client.
-  // It is the only port that is not firewalled.
-  const port = parseInt(process.env.PORT || '5000', 10);
-  server.listen({
-    port,
-    host: "0.0.0.0",
-    reusePort: true,
-  }, () => {
-    log(`serving on port ${port}`);
-    log(`Environment: ${process.env.NODE_ENV || 'development'}`);
-    log(`CORS: ${isProduction ? 'Production (locked)' : 'Development (permissive)'}`);
+  return server;
+}
+
+// Check if running directly (not imported by Vercel)
+const isDirectRun = import.meta.url === `file://${process.argv[1]}`;
+
+if (isDirectRun) {
+  // Local development: start the server
+  (async () => {
+    const server = await initializeApp();
     
-    // Log API key detection (masked)
-    const apiKey = process.env.OPENAI_API_KEY;
-    if (apiKey) {
-      const masked = `${apiKey.substring(0, 4)}****${apiKey.substring(apiKey.length - 4)}`;
-      log(`OPENAI key detected: ${masked}`);
-    } else {
-      log("⚠️  OPENAI_API_KEY not found in environment variables");
-    }
-  });
-})();
+    // ALWAYS serve the app on the port specified in the environment variable PORT
+    // Other ports are firewalled. Default to 5000 if not specified.
+    // this serves both the API and the client.
+    // It is the only port that is not firewalled.
+    const port = parseInt(process.env.PORT || '5000', 10);
+    server.listen({
+      port,
+      host: "0.0.0.0",
+      reusePort: true,
+    }, () => {
+      log(`serving on port ${port}`);
+      log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+      log(`CORS: ${isProduction ? 'Production (locked)' : 'Development (permissive)'}`);
+      
+      // Log API key detection (masked)
+      const apiKey = process.env.OPENAI_API_KEY;
+      if (apiKey) {
+        const masked = `${apiKey.substring(0, 4)}****${apiKey.substring(apiKey.length - 4)}`;
+        log(`OPENAI key detected: ${masked}`);
+      } else {
+        log("⚠️  OPENAI_API_KEY not found in environment variables");
+      }
+    });
+  })();
+} else {
+  // Vercel serverless: initialize app without starting server
+  (async () => {
+    await initializeApp();
+  })();
+}
+
+// Export the Express app for Vercel
+export default app;
