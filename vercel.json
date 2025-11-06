@@ -1,16 +1,21 @@
 {
-  "buildCommand": "mkdir -p dist api/_server && cp -r public/* dist/ && npx esbuild server/index.ts --outfile=api/_server/index.js --platform=node --format=esm --packages=external",
-  "outputDirectory": "dist",
+  "version": 2,
+
+  "buildCommand": "mkdir -p api/_server && npx esbuild server/index.ts --outfile=api/_server/index.js --platform=node --format=esm --packages=external",
+
   "functions": {
+    "api/**/*.js": {
+      "runtime": "nodejs20.x",
+      "includeFiles": "api/_server/**"
+    },
     "api/**/*.ts": {
       "runtime": "nodejs20.x",
       "includeFiles": "api/_server/**"
     }
   },
-  "rewrites": [
-    {
-      "source": "/api/:path*",
-      "destination": "/api/index"
-    }
+
+  "routes": [
+    { "src": "^/api/(.*)$", "dest": "/api/index" },
+    { "src": ".*", "dest": "/client/index.html" }
   ]
 }
