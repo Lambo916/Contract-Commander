@@ -1,19 +1,13 @@
 // Vercel Serverless Function Entry Point
-// Wraps Express app in Vercel-compatible handler
+// Properly awaits Express app initialization before handling requests
 
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 
-// Dynamic import to handle async initialization
-let appPromise: Promise<any> | null = null;
-
-async function getApp() {
-  if (!appPromise) {
-    appPromise = import('./_server/index.js').then(module => module.default);
-  }
-  return appPromise;
-}
-
 export default async function handler(req: VercelRequest, res: VercelResponse) {
-  const app = await getApp();
+  // Import and await app initialization (ensures routes are registered)
+  const { getInitializedApp } = await import('./_server/index.js');
+  const app = await getInitializedApp();
+  
+  // Pass request to Express app
   return app(req, res);
 }

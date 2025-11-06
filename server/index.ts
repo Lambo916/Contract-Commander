@@ -172,6 +172,18 @@ async function initializeApp() {
   return server;
 }
 
+// Initialize app promise for Vercel serverless
+// This ensures routes are registered before handling requests
+let appInitPromise: Promise<any> | null = null;
+
+export async function getInitializedApp() {
+  if (!appInitPromise) {
+    appInitPromise = initializeApp();
+  }
+  await appInitPromise;
+  return app;
+}
+
 // Check if running directly (not imported by Vercel)
 const isDirectRun = import.meta.url === `file://${process.argv[1]}`;
 
@@ -204,12 +216,7 @@ if (isDirectRun) {
       }
     });
   })();
-} else {
-  // Vercel serverless: initialize app without starting server
-  (async () => {
-    await initializeApp();
-  })();
 }
 
-// Export the Express app for Vercel
+// Export the Express app for Vercel (legacy compatibility)
 export default app;
