@@ -48,7 +48,7 @@ app.use(cors({
     }
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Owner-Id'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Owner-Id', 'X-Client-Id'],
   credentials: true,
 }));
 
