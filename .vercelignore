@@ -1,7 +1,5 @@
-# Source code files
-server/
+# Only ignore client/ folder (not used for BizPlan app)
 client/
-/shared/
 
 # Documentation
 *.md
