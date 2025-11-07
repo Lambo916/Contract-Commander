@@ -1,0 +1,220 @@
+PHASE: 3 — Core Framework Extraction (Contract Commander)
+
+GOAL
+- Extract all shared logic into a clean /core layer so future toolkits can reuse it.
+- Keep current behavior 100% the same (no feature changes). This is a pure refactor.
+
+CONSTRAINTS
+- Do NOT change env var names or values.
+- Do NOT change API route paths or response shapes.
+- Keep vercel.json and build/deploy settings as-is (runtime nodejs20.x).
+- Idempotent: running this task again should not duplicate files.
+
+OUTPUTS (ACCEPTANCE CRITERIA)
+- New folders: /core/{clients,pdf,utils,config} and /models
+- Project compiles, runs, and deploys with zero API changes.
+- All imports reference /core/* where appropriate.
+- Commit created: "feat(core): extract shared framework for Contract Commander (v1.1.0)"
+
+--------------------------------------------------------------------------------
+TASKS
+
+1) CREATE FOLDER STRUCTURE
+- Ensure these directories exist:
+  /core
+  /core/clients
+  /core/pdf
+  /core/utils
+  /core/config
+  /models
+
+2) CONSOLIDATE CLIENTS
+- Locate any existing Supabase client files (common patterns):
+  **/supabase.ts, **/supabaseClient.ts, **/lib/supabase*.ts, server/supabase*.ts
+- If found, move the canonical implementation to: /core/clients/supabase.ts
+  (Keep only one implementation; others should re-export or be removed.)
+- Locate any OpenAI client files (**/openai*.ts, **/ai/*.ts, **/lib/ai.ts).
+  Move canonical implementation to: /core/clients/openai.ts
+
+- If any of the above files do not exist, create minimal implementations:
+
+  FILE: /core/clients/supabase.ts
+  CONTENT:
+  ----------------------------------------------------
+  import { createClient } from '@supabase/supabase-js';
+
+  const url = process.env.SUPABASE_URL!;
+  const anon = process.env.SUPABASE_ANON_KEY!;
+
+  // Singleton
+  let _client: ReturnType<typeof createClient> | null = null;
+
+  export function supabase() {
+    if (!_client) _client = createClient(url, anon, { auth: { persistSession: false } });
+    return _client;
+  }
+  ----------------------------------------------------
+
+  FILE: /core/clients/openai.ts
+  CONTENT:
+  ----------------------------------------------------
+  import OpenAI from 'openai';
+
+  let _client: OpenAI | null = null;
+
+  export function openai() {
+    if (!_client) _client = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
+    return _client;
+  }
+  ----------------------------------------------------
+
+3) PDF & UTILS
+- Locate any existing PDF export utility (jsPDF, pdf-lib, html->pdf code).
+  Move the canonical function to: /core/pdf/export.ts
+  If none found, create a thin wrapper the current code can call:
+
+  FILE: /core/pdf/export.ts
+  CONTENT:
+  ----------------------------------------------------
+  export type PdfSection = { title?: string; body: string };
+  export type PdfOptions = { filename?: string };
+
+  // Placeholder: keep existing generator usage. This wrapper centralizes the API.
+  export async function exportPdf(sections: PdfSection[], options: PdfOptions = {}) {
+    // Import your existing generator here, or keep the implementation migrated from current utils.
+    // This file is a passthrough so route code doesn't care about the library.
+    // TODO(agent): paste the existing implementation here if found.
+    return { buffer: Buffer.from(''), filename: options.filename ?? 'document.pdf' };
+  }
+  ----------------------------------------------------
+
+- Create a shared error helper:
+
+  FILE: /core/utils/errors.ts
+  CONTENT:
+  ----------------------------------------------------
+  export class HttpError extends Error {
+    status: number;
+    details?: unknown;
+    constructor(status: number, message: string, details?: unknown) {
+      super(message);
+      this.status = status;
+      this.details = details;
+    }
+  }
+
+  export function toHttpResponse<T>(fn: () => Promise<T>) {
+    return async () => {
+      try {
+        const data = await fn();
+        return new Response(JSON.stringify({ ok: true, data }), {
+          status: 200,
+          headers: { 'content-type': 'application/json' },
+        });
+      } catch (err: any) {
+        const status = err?.status ?? 500;
+        return new Response(JSON.stringify({ ok: false, error: err?.message ?? 'Server error' }), {
+          status,
+          headers: { 'content-type': 'application/json' },
+        });
+      }
+    };
+  }
+  ----------------------------------------------------
+
+4) CONFIG
+- Create a small config surface so UI and routes can import shared constants:
+
+  FILE: /core/config/index.ts
+  CONTENT:
+  ----------------------------------------------------
+  export const TOOL_NAME = process.env.TOOL_NAME ?? 'Contract Commander';
+  export const PUBLIC_SITE_URL = process.env.PUBLIC_SITE_URL ?? '';
+  export const REPORT_CAP = Number(process.env.REPORT_CAP ?? 10);
+  export const RATE_LIMIT_WINDOW = Number(process.env.RATE_LIMIT_WINDOW ?? 60);
+  ----------------------------------------------------
+
+5) MODELS
+- Centralize types used by routes and UI:
+
+  FILE: /models/contracts.ts
+  CONTENT:
+  ----------------------------------------------------
+  export type Party = {
+    name: string;
+    role?: 'Company' | 'Client' | 'Contractor' | 'Employee' | string;
+    address?: string;
+    email?: string;
+  };
+
+  export type Clause = { title: string; text: string };
+
+  export type ContractInput = {
+    companyName: string;
+    industry?: string;
+    productOrService?: string;
+    paymentModel?: string;
+    currentStage?: string;
+    objectives?: string[];
+    tone?: 'Professional' | 'Investor-ready' | 'Plain-language' | string;
+    detailLevel?: 'Brief' | 'Standard' | 'Comprehensive' | string;
+    contractType?: 'NDA' | 'Service Agreement' | 'Employment Agreement' | 'MOU' | string;
+    parties?: Party[];
+  };
+
+  export type GeneratedContract = {
+    title: string;
+    summary: string;
+    clauses: Clause[];
+    notes?: string[];
+    raw?: string;
+  };
+  ----------------------------------------------------
+
+6) UPDATE IMPORTS PROJECT-WIDE
+- Replace any of the following import patterns with the new core paths (be careful to not touch node_modules):
+  FROM -> TO
+  - '**/supabaseClient' or '**/supabase'      -> '/core/clients/supabase'
+  - '**/openai' or '**/lib/ai'                -> '/core/clients/openai'
+  - '**/pdf*' or '**/utils/pdf*'              -> '/core/pdf/export'
+  - '**/errors' (if local helper)              -> '/core/utils/errors'
+  - shared constants scattered in files         -> '/core/config'
+
+- Implement using safe find/replace with path awareness. Do not modify already-correct imports.
+
+7) VERIFY API ROUTES STILL WORK
+- Identify serverless routes (e.g., /api/contract, /api/generate, /api/bizplan, /api/bizplan/reports).
+- Ensure their imports now come from /core.
+- If routes were importing types directly from random files, switch to /models/contracts.
+- Wrap handlers with toHttpResponse() where trivial and non-breaking.
+
+8) BUILD & SMOKE TEST
+- Install if needed: `npm i` (or respect existing lockfile).
+- Run build: `npm run build` (or the project’s configured build script).
+- Run dev: `npm run dev` and confirm the UI renders and can call the same POST endpoint used before this refactor.
+- If a test payload exists for generation, trigger one request and ensure a 200 with expected shape.
+
+9) LINT & COMMIT
+- Run formatter/linter if present.
+- Commit all changes:
+  COMMIT MESSAGE:
+  "feat(core): extract shared framework for Contract Commander (v1.1.0)
+   - add /core (clients, pdf, utils, config) and /models
+   - consolidate Supabase/OpenAI/PDF utilities
+   - update imports to /core/*
+   - no functional changes"
+- Push to GitHub.
+
+10) ROLLBACK PLAN
+- Create a git tag before starting: v1.0.9_pre-core
+- If anything fails, reset:
+  `git reset --hard v1.0.9_pre-core` and re-deploy.
+
+NOTES FOR AGENT
+- If multiple duplicate client/utils files exist, keep the newest, most-used implementation; replace others with re-exports that point to /core to avoid breakage (then remove re-exports in a later cleanup PR).
+- Preserve vercel.json unchanged (runtime nodejs20.x, rewrites, includeFiles).
+- Do not alter environment variable names.
+
+DONE WHEN
+- The app behaves exactly the same locally and on Vercel.
+- All shared logic is imported from /core/* and types from /models/contracts.ts.

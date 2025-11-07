@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import express from "express";
 import path from "path";
-import OpenAI from "openai";
+import { openai } from "../core/clients/openai";
 import sanitizeHtml from "sanitize-html";
 import { resolveProfile, type FilingProfile } from "@shared/filing-profiles";
 import { db } from "./db";
@@ -261,19 +261,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Initialize OpenAI client
-  const rawApiKey = process.env.OPENAI_API_KEY;
-  if (!rawApiKey) {
-    throw new Error("OPENAI_API_KEY is required");
-  }
-  
-  // Clean the API key - remove all whitespace and newlines
-  const apiKey = rawApiKey.replace(/\s+/g, '').trim();
-  
-  
-  const openai = new OpenAI({
-    apiKey: apiKey,
-  });
+  // OpenAI client (from core/clients/openai - centralized)
+  // The core module handles API key validation and cleanup
+  const client = openai();
 
   // GrantGenie grant proposal system prompt template
   const getGrantProposalSystemPrompt = () => {
@@ -506,7 +496,7 @@ IMPORTANT:
 - Budget narrative should justify how funds directly support activities
 - Return ONLY valid JSON, no explanations`;
 
-      const completion = await openai.chat.completions.create({
+      const completion = await client.chat.completions.create({
         model: "gpt-4o",
         messages: [
           {
@@ -674,7 +664,7 @@ INSTRUCTIONS:
       const apiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY?.trim()}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -805,7 +795,7 @@ Make suggestions concrete and tailored to this specific contract. Avoid generic 
       const apiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${apiKey}`,
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY?.trim()}`,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({

@@ -1,17 +1,8 @@
 import { Request, Response, NextFunction } from 'express';
-import { createClient } from '@supabase/supabase-js';
+import { supabaseAuth } from '../core/clients/supabase';
 
-// Initialize Supabase client
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase configuration. Please set SUPABASE_URL and SUPABASE_ANON_KEY');
-}
-
-export const supabase = supabaseUrl && supabaseAnonKey 
-  ? createClient(supabaseUrl, supabaseAnonKey)
-  : null;
+// Initialize Supabase client using centralized core module
+export const supabase = supabaseAuth();
 
 // Middleware to extract and verify JWT from Authorization header
 export async function authenticateToken(req: Request, res: Response, next: NextFunction) {

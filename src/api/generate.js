@@ -3,13 +3,11 @@
  * Production API endpoint for OpenAI integration
  */
 
-import OpenAI from 'openai';
+import { openai } from '../../core/clients/openai.js';
 
-// Initialize OpenAI client
+// OpenAI client from centralized core module
 // Note: the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-const openai = new OpenAI({
-    apiKey: process.env.OPENAI_API_KEY,
-});
+const client = openai();
 
 export default async function handler(req, res) {
     // Set CORS headers for iframe embedding
@@ -63,7 +61,7 @@ export default async function handler(req, res) {
 
         // Call OpenAI API
         // Note: the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
-        const completion = await openai.chat.completions.create({
+        const completion = await client.chat.completions.create({
             model: "gpt-5",
             messages: [
                 {
