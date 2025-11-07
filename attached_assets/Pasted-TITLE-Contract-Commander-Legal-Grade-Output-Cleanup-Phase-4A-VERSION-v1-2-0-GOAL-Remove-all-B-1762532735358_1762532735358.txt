@@ -1,0 +1,115 @@
+TITLE: Contract Commander — Legal-Grade Output Cleanup (Phase 4A)
+VERSION: v1.2.0
+GOAL: Remove all BizPlan residue and produce a professional, print-ready contract with correct sections, formatting, and signature blocks. Keep backward compatibility with current inputs.
+
+SCOPE (DO):
+1) Replace the “report-like” output with a single, clean contract document (no KPIs, no charts, no “Executive Snapshot” cards).
+2) Generate clauses based on form inputs + contract type (Service Agreement, NDA, Employment, MOU).
+3) Update PDF export to legal formatting (page margins, headings, page numbers, signature lines).
+4) Persist the new plain-text/HTML contract to Supabase (same contract record; new fields are OK).
+5) Keep current UI inputs; only hide/remove fields that don’t apply to contracts.
+
+NON-SCOPE (DON’T):
+– No new auth or billing changes.
+– No e-signature integration (placeholder signature lines only).
+– No clause library UI yet (we’ll add later).
+
+FILES/AREAS TO TOUCH (high level — no code requested):
+• “Output/Results” renderer → swap report layout for Contract Layout.
+• PDF generation helper → adjust styles for legal docs.
+• Prompt composer for OpenAI → switch from “business plan” to “contract” system prompt.
+• Contract type templates → minimal, with clause toggles and slots.
+• Data model → add fields if needed (e.g., effective_date, governing_law, ip_ownership, termination_terms, additional_clauses, signatories[]).
+
+————— CONTRACT LAYOUT SPEC —————
+Document Order (all contract types):
+A. Title Block
+   • Title (e.g., “Service Agreement”)
+   • Effective Date (from form)
+   • Parties line: “This Agreement is made by and between {Your Org} (“Company”) and {Counterparty} (“Contractor/Counterparty”).”
+B. Definitions (only if needed for the chosen type; keep concise)
+C. Scope of Work / Services
+D. Term & Termination
+E. Compensation & Invoicing
+F. Confidentiality / NDA (toggleable; include when box checked)
+G. Intellectual Property & Work Product (dropdown drives ownership text)
+H. Warranties & Indemnification (standard, non-extreme)
+I. Compliance (laws, data protection as applicable)
+J. Limitation of Liability
+K. Dispute Resolution / Governing Law (state from form)
+L. Miscellaneous (assignment, notices, amendments, counterparts, entire agreement)
+M. Signatures (two signers; name, title, date lines)
+
+Remove Entirely (from both on-screen preview and PDF):
+• “Executive Snapshot” section
+• KPI table + KPI Visualization (bar/line charts)
+• “AI Insights” bullet panel
+• “Stage/Industry/Target Market” cards
+• Any “marketing/plan/roadmap” headings or numbered chapters
+
+————— PROMPT COMPOSER (INSTRUCTION-ONLY) —————
+Replace the current generation prompt with a contract-focused composer:
+• Inputs: contract_type, contract_title, effective_date, your_org_name, your_role, counterparty_name, counterparty_role, scope_of_work, compensation_terms, term_duration, termination_terms, governing_law, ip_ownership, include_confidentiality(bool), additional_clauses.
+• Output target: a single Markdown/HTML document following the “Contract Layout Spec”.
+• Tone: “plain-English legal” → precise, neutral, concise; no advisory notes, no KPIs, no analysis.
+• Constraints:
+  – No filler labels like “Executive Summary,” “Snapshot,” “KPI.”
+  – Use section numbering 1., 2., 3. and sub-clauses (a), (b), (c).
+  – Insert party defined terms exactly once (“Company”, “Contractor” or “Disclosing/Receiving Party” for NDAs), then reuse consistently.
+• Variants by contract_type:
+  – Service Agreement: emphasize SOW, payment, IP, confidentiality (if toggled), termination.
+  – NDA: define Confidential Information, exclusions, permitted disclosures, term of confidentiality, injunctive relief.
+  – Employment: role, duties, at-will or fixed term, compensation/benefits, IP assignment, confidentiality.
+  – MOU: intent (non-binding/binding toggles later), responsibilities, timeline, next steps.
+
+————— PDF STYLING (INSTRUCTION-ONLY) —————
+• Page: A4/Letter, 1" margins, serif body font, clear H1/H2 hierarchy.
+• Header: Contract title (left), Effective Date (right). Footer: page X of Y centered.
+• Section numbers bold; clause spacing 8–10px; no background colors.
+• Signature block at end with 2 columns:
+  Company:
+   By: ______________________
+   Name/Title: ______________
+   Date: ____________________
+  Counterparty:
+   By: ______________________
+   Name/Title: ______________
+   Date: ____________________
+
+————— FIELD MAPPING —————
+Form → Document
+• Contract Type → Title + clause schema switches
+• Contract Title → Title line (optional subtitle)
+• Effective Date → Title Block
+• Your Org Name/Role + Counterparty Name/Role → Parties paragraph + signature captions
+• Scope of Work → Section C
+• Compensation/Payment → Section E
+• Term/Duration + Termination Terms → Section D
+• Governing Law/Jurisdiction → Section K
+• IP Ownership (Company owns / Contractor owns / Joint / License) → Section G wording
+• Confidentiality toggle → include Section F; else omit
+• Additional Clauses → Append to Section L as new numbered sub-clauses
+
+————— CLEANUP TASKS —————
+1) Remove all BizPlan components from the preview container.
+2) Replace “Results” panel with a single scrollable contract preview (plain white background).
+3) Update any left-over labels (“Generate Plan” → “Generate Contract” already done).
+4) Ensure the generated doc contains **no N/A placeholders**; if a field is empty, omit that sentence/section.
+5) Add a document meta strip above preview: “Generated: {timestamp} • Contract Type: {type} • Effective Date: {date} • Parties: {A} & {B}”.
+6) Ensure copy/download exports the **clean contract only** (no UI elements).
+7) Save to Supabase in `contracts.text_content` (HTML or Markdown) plus normalized metadata columns (effective_date, governing_law, ip_ownership, type, party_a, party_b).
+
+————— VALIDATION / ACCEPTANCE CRITERIA —————
+✓ No KPI/Charts/Insights/Executive Snapshot in preview or PDF.
+✓ Section numbering is contiguous; headings match spec; no “Marketing/Plan” words exist.
+✓ “Service Agreement” sample renders ≤ 8 pages with clean spacing, prints cleanly.
+✓ Confidentiality section appears only when toggle = true.
+✓ IP ownership wording switches correctly for each option.
+✓ Parties/Effective Date appear in Title Block **and** signature block.
+✓ Supabase save/load returns the same clean contract text.
+✓ “Export PDF” produces identical content to on-screen preview (fonts aside).
+
+ROLLBACK
+– Keep a feature flag `USE_CONTRACT_LAYOUT` (default ON). If OFF, fall back to current behavior for emergency rollback.
+
+DONE = when all acceptance criteria pass with three smoke tests (Service Agreement, NDA, Employment) and PDF looks professional with no BizPlan artifacts.
