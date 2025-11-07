@@ -741,7 +741,7 @@ CRITICAL INSTRUCTIONS:
       
       try {
         parsedResponse = JSON.parse(content);
-        console.log("Business plan generated successfully with premium structure");
+        console.log("Contract generated successfully");
       } catch (parseError) {
         console.error("Failed to parse OpenAI JSON response:", parseError);
         console.error("Raw content:", content.substring(0, 500));

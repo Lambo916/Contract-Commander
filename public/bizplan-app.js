@@ -914,12 +914,10 @@ async function handleSaveReport(filename, reportId) {
         industry: currentReportData.industry,
         title: saveFilename,
         metadata: {
-          executiveSnapshot: currentReportData.executiveSnapshot,
           mainContent: currentReportData.mainContent,
-          kpiTable: currentReportData.kpiTable,
-          aiInsights: currentReportData.aiInsights,
-          financialProjections: currentReportData.financialProjections,
-          stage: currentReportData.stage
+          contractType: currentReportData.contractType,
+          parties: currentReportData.parties,
+          effectiveDate: currentReportData.effectiveDate
         }
       })
     });

@@ -1,14 +1,13 @@
 /**
  * Contract Commander - Professional PDF Export System
- * Clean, Professional Layout with Chart Capture
+ * Legal Document Formatting with Professional Typography
  * 
  * Features:
- * - Automatic Table of Contents
- * - Chart capture with html2canvas (scale: 2 for crisp rendering)
+ * - Legal document formatting (serif font, proper margins)
  * - Repeating headers & footers with page numbers
- * - Professional typography & spacing
- * - jsPDF autoTable for clean table rendering
- * - Consistent margins and visual hierarchy
+ * - Professional legal typography & spacing
+ * - Clean section rendering with proper hierarchy
+ * - Signature block formatting
  */
 
 (() => {
@@ -55,26 +54,6 @@
     };
   })();
 
-  const loadHtml2Canvas = (() => {
-    let cached;
-    return async () => {
-      if (cached) return cached;
-      if (window.html2canvas) {
-        cached = window.html2canvas;
-        return cached;
-      }
-      const script = document.createElement("script");
-      script.src = "https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js";
-      await new Promise((resolve, reject) => {
-        script.onload = resolve;
-        script.onerror = () => reject(new Error("Failed to load html2canvas"));
-        document.head.appendChild(script);
-      });
-      cached = window.html2canvas;
-      return cached;
-    };
-  })();
-
   // ---- Constants ----
   const PAGE = {
     width: 210,  // mm (A4)
@@ -82,10 +61,10 @@
   };
 
   const MARGINS = {
-    top: 25,
-    bottom: 25,
-    left: 20,
-    right: 20
+    top: 25.4,    // 1 inch
+    bottom: 25.4, // 1 inch
+    left: 25.4,   // 1 inch
+    right: 25.4   // 1 inch
   };
 
   const CONTENT = {
@@ -98,14 +77,14 @@
   };
 
   const TYPOGRAPHY = {
-    fontFamily: "helvetica",
-    sectionHeader: { size: 14, weight: "bold" },
+    fontFamily: "times",         // Serif font for legal documents
+    sectionHeader: { size: 12, weight: "bold" },
     body: { size: 11, weight: "normal" },
     footer: { size: 9, weight: "normal" },
     lineHeight: 5.5,
     paragraphSpacing: 4,
-    colorText: [33, 33, 33],
-    colorHeader: [17, 17, 17],
+    colorText: [0, 0, 0],        // Pure black for legal documents
+    colorHeader: [0, 0, 0],      // Pure black for headers
     colorMeta: [102, 102, 102],
     colorGold: [245, 197, 67],   // #F5C543 (Contract Commander gold)
     colorAccent: [201, 201, 209]  // #C9C9D1 (light gray accent)
@@ -149,110 +128,6 @@
     return name.replace(/[^a-z0-9]/gi, '_').replace(/_+/g, '_');
   }
 
-  // ---- Chart Capture ----
-  async function captureCharts() {
-    const html2canvas = await loadHtml2Canvas();
-    const charts = {};
-
-    // Capture KPI Chart
-    const kpiCanvas = document.getElementById('kpi-chart');
-    if (kpiCanvas) {
-      try {
-        const kpiContainer = kpiCanvas.closest('.kpi-charts-container');
-        if (kpiContainer) {
-          const canvas = await html2canvas(kpiContainer, {
-            scale: 2,
-            useCORS: true,
-            backgroundColor: null,
-            logging: false
-          });
-          charts.kpi = canvas.toDataURL('image/png');
-        }
-      } catch (e) {
-        console.warn('Failed to capture KPI chart:', e);
-      }
-    }
-
-    // Capture Financial Charts
-    const financialSection = document.querySelector('.financial-charts-section');
-    if (financialSection) {
-      // Check which view is active
-      const combinedView = document.getElementById('combined-chart-view');
-      const individualView = document.getElementById('individual-charts-view');
-
-      if (combinedView && !combinedView.classList.contains('hidden')) {
-        // Capture combined chart
-        try {
-          const canvas = await html2canvas(combinedView, {
-            scale: 2,
-            useCORS: true,
-            backgroundColor: null,
-            logging: false
-          });
-          charts.financialCombined = canvas.toDataURL('image/png');
-        } catch (e) {
-          console.warn('Failed to capture combined financial chart:', e);
-        }
-      } else if (individualView && !individualView.classList.contains('hidden')) {
-        // Capture individual charts
-        const chartIds = ['financial-chart-revenue', 'financial-chart-expenses', 'financial-chart-profit'];
-        for (const id of chartIds) {
-          const canvas = document.getElementById(id);
-          if (canvas) {
-            try {
-              const container = canvas.closest('.individual-chart-item');
-              if (container) {
-                const capturedCanvas = await html2canvas(container, {
-                  scale: 2,
-                  useCORS: true,
-                  backgroundColor: null,
-                  logging: false
-                });
-                charts[id] = capturedCanvas.toDataURL('image/png');
-              }
-            } catch (e) {
-              console.warn(`Failed to capture ${id}:`, e);
-            }
-          }
-        }
-      }
-    }
-
-    // Capture Financial Summary panel
-    const financialSummary = document.querySelector('.financial-summary-stats');
-    if (financialSummary) {
-      try {
-        const canvas = await html2canvas(financialSummary, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: '#1a1a1a',
-          logging: false
-        });
-        charts.financialSummary = canvas.toDataURL('image/png');
-      } catch (e) {
-        console.warn('Failed to capture financial summary:', e);
-      }
-    }
-
-    // Capture AI Insights panel
-    const aiInsights = document.querySelector('.ai-insights-section');
-    if (aiInsights) {
-      try {
-        const canvas = await html2canvas(aiInsights, {
-          scale: 2,
-          useCORS: true,
-          backgroundColor: null,
-          logging: false
-        });
-        charts.aiInsights = canvas.toDataURL('image/png');
-      } catch (e) {
-        console.warn('Failed to capture AI insights:', e);
-      }
-    }
-
-    return charts;
-  }
-
   // ---- PDF Writer Class ----
   class PDFWriter {
     constructor(doc) {
@@ -270,7 +145,7 @@
       this.doc.setFont(TYPOGRAPHY.fontFamily, "normal");
       this.doc.setFontSize(10);
       this.doc.setTextColor(...TYPOGRAPHY.colorMeta);
-      this.doc.text("BizPlan Builder | YourBizGuru.com", MARGINS.left, MARGINS.top - 5);
+      this.doc.text("Contract Commander", MARGINS.left, MARGINS.top - 5);
     }
 
     drawFooter(totalPages) {
@@ -280,7 +155,7 @@
       this.doc.setFont(TYPOGRAPHY.fontFamily, "normal");
       this.doc.setFontSize(TYPOGRAPHY.footer.size);
       this.doc.setTextColor(...TYPOGRAPHY.colorMeta);
-      this.doc.text("Powered by YourBizGuru.com    For informational purposes only. Not legal, tax, or financial advice.", 
+      this.doc.text("Contract Commander    For informational purposes only. Not legal, tax, or financial advice.", 
         MARGINS.left, y);
       
       // Page number (right-aligned)
@@ -439,7 +314,7 @@
   // ---- Main Export Function ----
   async function exportToPDF() {
     try {
-      console.log('Starting PDF export...');
+      console.log('Starting contract PDF export...');
       
       // Show loading indicator
       const existingToast = document.querySelector('.toast');
@@ -447,25 +322,14 @@
       
       const toast = document.createElement('div');
       toast.className = 'toast';
-      toast.innerHTML = '<span class="spinner"></span> Preparing PDF export...';
+      toast.innerHTML = '<span class="spinner"></span> Generating PDF...';
       document.body.appendChild(toast);
 
-      console.log('Loading jsPDF library...');
-      // Load libraries
+      // Load jsPDF library
       const jsPDF = await loadJsPDF();
-      console.log('jsPDF loaded, loading autoTable...');
       await loadJsPDFAutoTable();
-      console.log('AutoTable loaded');
 
-      toast.innerHTML = '<span class="spinner"></span> Capturing charts...';
-      
-      // Capture all charts (wait for animations to complete)
-      await new Promise(resolve => setTimeout(resolve, 500));
-      const charts = await captureCharts();
-
-      toast.innerHTML = '<span class="spinner"></span> Generating PDF...';
-
-      // Initialize PDF
+      // Initialize PDF with legal document settings
       const doc = new jsPDF({
         orientation: 'portrait',
         unit: 'mm',
@@ -475,110 +339,61 @@
 
       const writer = new PDFWriter(doc);
 
-      // Get report data from current session
+      // Get contract data from current session
       const reportData = window.currentReportData || {};
-      const companyName = reportData.company || 'Business';
-      const mainContent = reportData.mainContent || reportData.fullPlan || '';
+      const contractTitle = reportData.contractType || 'Contract';
+      const parties = reportData.parties || 'Parties';
+      const mainContent = reportData.mainContent || reportData.markdown || '';
 
-      // ---- Cover Page ----
-      doc.setFont(TYPOGRAPHY.fontFamily, "bold");
-      doc.setFontSize(18);
-      doc.setTextColor(...TYPOGRAPHY.colorHeader);
-      doc.text('BizPlan Builder | YourBizGuru.com', CONTENT.left, 40);
-      
-      doc.setFont(TYPOGRAPHY.fontFamily, "normal");
-      doc.setFontSize(12);
-      doc.setTextColor(...TYPOGRAPHY.colorText);
-      doc.text(`Generated: ${new Date().toLocaleString()}`, CONTENT.left, 55);
-      doc.text(`Company: ${companyName}`, CONTENT.left, 65);
-      if (reportData.industry) {
-        doc.text(`Industry: ${reportData.industry}`, CONTENT.left, 75);
-      }
-      if (reportData.stage) {
-        doc.text(`Stage: ${reportData.stage}`, CONTENT.left, 85);
-      }
-
-      // ---- Page 2: Table of Contents (Placeholder) ----
-      writer.addNewPage();
-      // We'll record sections as we create them, then come back to update the TOC
-      const tocStartY = writer.yPosition;
-      const tocPageNumber = writer.pageNumber;
-      
-      writer.addSectionHeader('Table of Contents');
-      
-      // Reserve space for TOC (we'll fill it in later)
-      const tocReservedSpace = 150; // mm - enough for ~20 sections
-      writer.yPosition += tocReservedSpace;
-
-      // ---- Executive Snapshot ----
-      if (reportData.executiveSnapshot) {
-        writer.addNewPage();
-        writer.addSectionHeader('Executive Snapshot');
-
-        const snapshot = reportData.executiveSnapshot;
-        
-        // Company info as table
-        const snapshotData = [
-          ['Company', snapshot.company || ''],
-          ['Stage', snapshot.stage || ''],
-          ['Industry', snapshot.industry || ''],
-          ['Target Market', snapshot.targetMarket || '']
-        ];
-        
-        writer.addTable(['Field', 'Value'], snapshotData, {
-          0: { cellWidth: 45 },
-          1: { cellWidth: 'auto' }
-        });
-
-        // Top 3 Goals
-        if (snapshot.top3Goals && snapshot.top3Goals.length > 0) {
-          writer.addParagraph('Top 3 Goals:');
-          doc.setFont(TYPOGRAPHY.fontFamily, "normal");
-          doc.setFontSize(11);
-          for (const goal of snapshot.top3Goals) {
-            if (writer.needsNewPage(TYPOGRAPHY.lineHeight)) {
-              writer.addNewPage();
-            }
-            doc.text(`• ${goal}`, CONTENT.left + 5, writer.yPosition);
-            writer.yPosition += TYPOGRAPHY.lineHeight;
-          }
-          writer.yPosition += TYPOGRAPHY.paragraphSpacing;
-        }
-      }
-
-      // ---- Main Content ----
+      // ---- Main Contract Content ----
       if (mainContent) {
         const lines = mainContent.split('\n');
-        let currentSection = '';
         
         for (const line of lines) {
           const trimmed = line.trim();
           
-          if (trimmed.startsWith('## ')) {
-            // New section - only add new page if needed
-            currentSection = trimmed.substring(3).trim();
-            
-            // Add extra spacing before section, new page only if insufficient space
+          // Handle heading levels
+          if (trimmed.startsWith('# ')) {
+            // Title (H1) - centered and larger
+            const title = trimmed.substring(2).trim();
+            doc.setFont(TYPOGRAPHY.fontFamily, "bold");
+            doc.setFontSize(16);
+            doc.setTextColor(...TYPOGRAPHY.colorHeader);
+            const titleWidth = doc.getTextWidth(title);
+            const titleX = (PAGE.width - titleWidth) / 2;
+            doc.text(title, titleX, writer.yPosition);
+            writer.yPosition += 10;
+          } else if (trimmed.startsWith('## ')) {
+            // Section heading (H2)
+            const section = trimmed.substring(3).trim();
             writer.yPosition += 6;
             if (writer.needsNewPage(20)) {
               writer.addNewPage();
             }
-            
-            writer.addSectionHeader(currentSection);
+            writer.addSectionHeader(section);
           } else if (trimmed.startsWith('### ')) {
-            // Subsection
+            // Subsection (H3)
             writer.yPosition += 4;
             doc.setFont(TYPOGRAPHY.fontFamily, "bold");
-            doc.setFontSize(12);
+            doc.setFontSize(11);
             doc.setTextColor(...TYPOGRAPHY.colorHeader);
             const subsection = trimmed.substring(4).trim();
-            
             if (writer.needsNewPage(10)) {
               writer.addNewPage();
             }
-            
             doc.text(subsection, CONTENT.left, writer.yPosition);
-            writer.yPosition += 8;
+            writer.yPosition += 7;
+          } else if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
+            // Bold paragraph (for party names, signature blocks)
+            const boldText = trimmed.substring(2, trimmed.length - 2);
+            doc.setFont(TYPOGRAPHY.fontFamily, "bold");
+            doc.setFontSize(11);
+            doc.setTextColor(...TYPOGRAPHY.colorText);
+            if (writer.needsNewPage(TYPOGRAPHY.lineHeight)) {
+              writer.addNewPage();
+            }
+            doc.text(boldText, CONTENT.left, writer.yPosition);
+            writer.yPosition += TYPOGRAPHY.lineHeight + 2;
           } else if (trimmed) {
             // Regular paragraph
             writer.addParagraph(trimmed);
@@ -589,164 +404,18 @@
         }
       }
 
-      // ---- KPI Table & Chart ----
-      if (reportData.kpiTable && reportData.kpiTable.length > 0) {
-        // Add spacing and only create new page if needed
-        writer.yPosition += 6;
-        if (writer.needsNewPage(40)) {
-          writer.addNewPage();
-        }
-        writer.addSectionHeader('Key Performance Indicators');
-
-        const headers = ['Objective', 'KPI', 'Target', 'Timeframe'];
-        const rows = reportData.kpiTable.map(kpi => [
-          kpi.objective || '',
-          kpi.kpi || '',
-          kpi.target || '',
-          kpi.timeframe || ''
-        ]);
-
-        writer.addTable(headers, rows, {
-          0: { cellWidth: 60 },
-          1: { cellWidth: 40 },
-          2: { cellWidth: 30 },
-          3: { cellWidth: 30 }
-        });
-
-        // Add KPI Chart if captured
-        if (charts.kpi) {
-          writer.addSectionHeader('KPI Visualization');
-          writer.addImage(charts.kpi);
-        }
-      }
-
-      // ---- Financial Projections ----
-      if (reportData.financialProjections) {
-        // Add spacing and only create new page if needed
-        writer.yPosition += 6;
-        if (writer.needsNewPage(40)) {
-          writer.addNewPage();
-        }
-        writer.addSectionHeader('Financial Projections (12-Month Forecast)');
-
-        const fp = reportData.financialProjections;
-        
-        // Summary stats
-        if (fp.revenue && fp.expenses && fp.profit) {
-          const totalRevenue = fp.revenue.reduce((a, b) => a + b, 0);
-          const totalExpenses = fp.expenses.reduce((a, b) => a + b, 0);
-          const totalProfit = fp.profit.reduce((a, b) => a + b, 0);
-          const profitMargin = Math.round((totalProfit / totalRevenue) * 100);
-
-          const summaryData = [
-            ['Total Year 1 Revenue', `$${totalRevenue.toLocaleString()}`],
-            ['Total Year 1 Expenses', `$${totalExpenses.toLocaleString()}`],
-            ['Total Year 1 Profit', `$${totalProfit.toLocaleString()}`],
-            ['Average Profit Margin', `${profitMargin}%`]
-          ];
-
-          writer.addTable(['Metric', 'Value'], summaryData, {
-            0: { cellWidth: 80 },
-            1: { cellWidth: 'auto' }
-          });
-        }
-
-        // Add Financial Charts
-        if (charts.financialCombined) {
-          writer.addImage(charts.financialCombined, 'Revenue, Expenses, and Profit Trends');
-        } else if (charts['financial-chart-revenue']) {
-          // Individual charts
-          writer.addImage(charts['financial-chart-revenue'], 'Revenue Forecast');
-          if (charts['financial-chart-expenses']) {
-            writer.addImage(charts['financial-chart-expenses'], 'Expense Projection');
-          }
-          if (charts['financial-chart-profit']) {
-            writer.addImage(charts['financial-chart-profit'], 'Profit Trend');
-          }
-        }
-      }
-
-      // ---- AI Insights ----
-      if (reportData.aiInsights && reportData.aiInsights.length > 0) {
-        // Add spacing and only create new page if needed
-        writer.yPosition += 6;
-        if (writer.needsNewPage(30)) {
-          writer.addNewPage();
-        }
-        writer.addSectionHeader('AI Insights');
-
-        doc.setFont(TYPOGRAPHY.fontFamily, "normal");
-        doc.setFontSize(11);
-        
-        for (const insight of reportData.aiInsights) {
-          // Use splitTextToSize to prevent text overflow
-          const maxWidth = CONTENT.width - 8; // Account for bullet and margins
-          const wrappedText = doc.splitTextToSize(`• ${insight}`, maxWidth);
-          const textHeight = wrappedText.length * TYPOGRAPHY.lineHeight;
-          
-          if (writer.needsNewPage(textHeight + 5)) {
-            writer.addNewPage();
-          }
-          
-          doc.text(wrappedText, CONTENT.left + 3, writer.yPosition);
-          writer.yPosition += textHeight + 3;
-        }
-      }
-
-      // ---- Render Table of Contents with Page Numbers ----
-      // Now that all sections are created, go back to page 1 and fill in the TOC
-      doc.setPage(tocPageNumber);
-      let tocY = tocStartY + 15; // Start below the "Table of Contents" header
-
-      doc.setFont(TYPOGRAPHY.fontFamily, "normal");
-      doc.setFontSize(11);
-      doc.setTextColor(...TYPOGRAPHY.colorText);
-
-      for (const section of writer.sections) {
-        doc.text(`• ${section.title}`, CONTENT.left + 5, tocY);
-        
-        // Page number (right-aligned)
-        const pageNumText = `${section.page}`;
-        const pageNumWidth = doc.getTextWidth(pageNumText);
-        doc.text(pageNumText, CONTENT.right - pageNumWidth, tocY);
-        
-        tocY += 7;
-      }
-
-      // Add divider after TOC
-      tocY += 3;
-      doc.setDrawColor(...TYPOGRAPHY.colorAccent);
-      doc.setLineWidth(0.34);
-      doc.line(CONTENT.left, tocY, CONTENT.right, tocY);
-
       // ---- Finalize: Add headers and footers to all pages ----
-      const totalPages = doc.internal.pages.length - 1; // -1 because first element is null
+      const totalPages = doc.internal.pages.length - 1;
       
       for (let i = 1; i <= totalPages; i++) {
         doc.setPage(i);
-        
-        // Re-draw header
-        doc.setFont(TYPOGRAPHY.fontFamily, "normal");
-        doc.setFontSize(10);
-        doc.setTextColor(...TYPOGRAPHY.colorMeta);
-        doc.text("BizPlan Builder | YourBizGuru.com", MARGINS.left, MARGINS.top - 5);
-        
-        // Re-draw footer
-        const y = PAGE.height - MARGINS.bottom + 10;
-        doc.setFont(TYPOGRAPHY.fontFamily, "normal");
-        doc.setFontSize(TYPOGRAPHY.footer.size);
-        doc.setTextColor(...TYPOGRAPHY.colorMeta);
-        doc.text("Powered by YourBizGuru.com   For informational purposes only. Not legal, tax, or financial advice.", 
-          MARGINS.left, y);
-        
-        // Page number
-        const pageText = `Page ${i} of ${totalPages}`;
-        const pageWidth = doc.getTextWidth(pageText);
-        doc.text(pageText, CONTENT.right - pageWidth, y);
+        writer.pageNumber = i;
+        writer.drawHeader();
+        writer.drawFooter(totalPages);
       }
 
       // ---- Save PDF ----
-      const filename = `BizPlanBuilder_${sanitizeFilename(companyName)}_${formatDate()}.pdf`;
+      const filename = `Contract_${sanitizeFilename(contractTitle)}_${formatDate()}.pdf`;
       doc.save(filename);
 
       // Success message
@@ -759,7 +428,6 @@
 
     } catch (error) {
       console.error('PDF export failed:', error);
-      console.error('Error details - message:', error?.message, 'stack:', error?.stack);
       
       const existingToast = document.querySelector('.toast');
       if (existingToast) existingToast.remove();
@@ -771,7 +439,6 @@
       document.body.appendChild(errorToast);
       setTimeout(() => errorToast.remove(), 5000);
       
-      // Re-throw to see full error in console
       throw error;
     }
   }
