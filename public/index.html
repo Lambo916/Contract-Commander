@@ -3,16 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BizPlan Builder — YourBizGuru</title>
-  <meta name="description" content="Draft investor-ready business plans with AI-powered assistance from YourBizGuru">
+  <title>Contract Commander</title>
+  <meta name="description" content="Draft, customize, and export professional contracts (NDAs, MOUs, Service Agreements) with AI assistance. Secure, fast, and export-ready.">
   
-  <link rel="icon" type="image/png" sizes="32x32" href="/assets/bizplan-builder-logo.png">
-  <link rel="icon" type="image/png" sizes="16x16" href="/assets/bizplan-builder-logo.png">
-  <link rel="apple-touch-icon" href="/assets/bizplan-builder-logo.png">
-  <meta name="theme-color" content="#4DB6E7">
+  <link rel="icon" type="image/png" sizes="32x32" href="/assets/contract-commander-logo.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/assets/contract-commander-logo.png">
+  <link rel="apple-touch-icon" href="/assets/contract-commander-logo.png">
+  <meta name="theme-color" content="#F5C543">
   
-  <meta property="og:title" content="BizPlan Builder — YourBizGuru">
-  <meta property="og:description" content="Draft investor-ready business plans with AI-powered assistance">
+  <meta property="og:title" content="Contract Commander">
+  <meta property="og:description" content="Draft, customize, and export professional contracts (NDAs, MOUs, Service Agreements) with AI assistance.">
   <meta property="og:type" content="website">
   
   <link rel="stylesheet" href="/ybg.css">
@@ -21,17 +21,17 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
   <script src="/pdf-export.js"></script>
   <script>
-    window.currentToolkitName = "BizPlan Builder";
-    window.currentToolkitLogo = "/assets/bizplan-builder-logo.png";
+    window.currentToolkitName = "Contract Commander";
+    window.currentToolkitLogo = "/assets/contract-commander-logo.png";
   </script>
 </head>
 <body>
   <div class="ybg-wrap">
     <div class="ybg-hero">
-      <img class="ybg-logo" src="/assets/bizplan-builder-logo.png" alt="BizPlan Builder"/>
+      <img class="ybg-logo" src="/assets/contract-commander-logo.png" alt="Contract Commander logo"/>
       <div>
-        <div class="ybg-title">BizPlan Builder</div>
-        <div class="ybg-sub">Draft investor-ready business plans — powered by YourBizGuru</div>
+        <div class="ybg-title">Contract Commander</div>
+        <div class="ybg-sub">Create NDAs, MOUs, and Service Agreements with AI.</div>
       </div>
     </div>
 
@@ -45,11 +45,11 @@
       <div class="ybg-section-title">Input</div>
       <div class="ybg-grid">
         <div class="full">
-          <label class="label-with-tooltip" data-tooltip="Enter your business or project name as it will appear in the plan.">
-            <span>Company / Project Name *</span>
+          <label class="label-with-tooltip" data-tooltip="Enter your company or organization name as it will appear in the contract.">
+            <span>Company / Organization Name *</span>
             <span class="tooltip-wrapper">
-              <span class="tooltip-icon" tabindex="0" role="button" aria-label="Help" data-tip="Enter your business or project name as it will appear in the plan.">i</span>
-              <span class="tooltip-bubble" role="tooltip">Enter your business or project name as it will appear in the plan.</span>
+              <span class="tooltip-icon" tabindex="0" role="button" aria-label="Help" data-tip="Enter your company or organization name as it will appear in the contract.">i</span>
+              <span class="tooltip-bubble" role="tooltip">Enter your company or organization name as it will appear in the contract.</span>
             </span>
           </label>
           <input id="company" placeholder="Your Company or Project" data-testid="input-company"/>
@@ -67,25 +67,25 @@
           <textarea id="product" placeholder="Describe your offering..." data-testid="input-product"></textarea>
         </div>
         <div>
-          <label class="label-with-tooltip" data-tooltip="How will your business make money? (e.g., subscription, one-time sales, commissions)">
-            <span>Revenue Model</span>
+          <label class="label-with-tooltip" data-tooltip="Payment model for this contract (e.g., fixed fee, hourly rate, milestone-based)">
+            <span>Payment Model</span>
             <span class="tooltip-wrapper">
-              <span class="tooltip-icon" tabindex="0" role="button" aria-label="Help" data-tip="How will your business make money? (e.g., subscription, one-time sales, commissions)">i</span>
-              <span class="tooltip-bubble" role="tooltip">How will your business make money? (e.g., subscription, one-time sales, commissions)</span>
+              <span class="tooltip-icon" tabindex="0" role="button" aria-label="Help" data-tip="Payment model for this contract (e.g., fixed fee, hourly rate, milestone-based)">i</span>
+              <span class="tooltip-bubble" role="tooltip">Payment model for this contract (e.g., fixed fee, hourly rate, milestone-based)</span>
             </span>
           </label>
-          <input id="revenue" placeholder="e.g., subscription, storefront, marketplace" data-testid="input-revenue"/>
+          <input id="revenue" placeholder="e.g., fixed fee, hourly rate, milestone-based" data-testid="input-revenue"/>
         </div>
         <div>
           <label>Current Stage</label>
           <input id="stage" placeholder="idea, MVP, launched, scaling" data-testid="input-stage"/>
         </div>
         <div class="full">
-          <label class="label-with-tooltip" data-tooltip="List your key objectives for the next 6-12 months to focus your business plan.">
-            <span>Top Goals (next 6–12 months)</span>
+          <label class="label-with-tooltip" data-tooltip="List your key objectives or requirements for this contract.">
+            <span>Contract Objectives</span>
             <span class="tooltip-wrapper">
-              <span class="tooltip-icon" tabindex="0" role="button" aria-label="Help" data-tip="List your key objectives for the next 6-12 months to focus your business plan.">i</span>
-              <span class="tooltip-bubble" role="tooltip">List your key objectives for the next 6-12 months to focus your business plan.</span>
+              <span class="tooltip-icon" tabindex="0" role="button" aria-label="Help" data-tip="List your key objectives or requirements for this contract.">i</span>
+              <span class="tooltip-bubble" role="tooltip">List your key objectives or requirements for this contract.</span>
             </span>
           </label>
           <textarea id="goals" placeholder="Your top 3–5 outcomes..." data-testid="input-goals"></textarea>
@@ -100,11 +100,11 @@
           </select>
         </div>
         <div>
-          <label class="label-with-tooltip" data-tooltip="Controls narrative depth in generated plan">
+          <label class="label-with-tooltip" data-tooltip="Controls detail depth in generated contract">
             <span>Detail Level</span>
             <span class="tooltip-wrapper">
-              <span class="tooltip-icon" tabindex="0" role="button" aria-label="Help" data-tip="Controls narrative depth in generated plan">i</span>
-              <span class="tooltip-bubble" role="tooltip">Controls narrative depth in generated plan</span>
+              <span class="tooltip-icon" tabindex="0" role="button" aria-label="Help" data-tip="Controls detail depth in generated contract">i</span>
+              <span class="tooltip-bubble" role="tooltip">Controls detail depth in generated contract</span>
             </span>
           </label>
           <select id="detailLevel" data-testid="select-detail-level">
@@ -114,7 +114,7 @@
           </select>
         </div>
         <div class="full">
-          <button class="btn btn-primary btn-generate-inline" id="btn-generate" data-testid="button-generate" title="Generate business plan">Generate Plan</button>
+          <button class="btn btn-primary btn-generate-inline" id="btn-generate" data-testid="button-generate" title="Generate contract">Generate Contract</button>
         </div>
       </div>
 
@@ -126,7 +126,7 @@
               File ▾
             </button>
             <div class="dropdown-menu" id="file-menu">
-              <button class="dropdown-item" id="btn-new-plan" data-testid="button-new-plan" title="Start a new business plan">New</button>
+              <button class="dropdown-item" id="btn-new-plan" data-testid="button-new-plan" title="Start a new contract">New</button>
               <button class="dropdown-item" id="btn-open" data-testid="button-open" title="Open a saved report">Open</button>
               <button class="dropdown-item" id="btn-save" data-testid="button-save" title="Save this report">Save</button>
               <button class="dropdown-item" id="btn-save-as" data-testid="button-save-as" title="Save with a new name">Save As...</button>
@@ -164,7 +164,7 @@
           <div class="progress-bar">
             <div class="progress-bar-fill"></div>
           </div>
-          <div class="progress-text">Generating your business plan...</div>
+          <div class="progress-text">Generating your contract...</div>
         </div>
         
         <!-- Report Metadata (shown after generation, inside Results panel) -->
@@ -275,31 +275,31 @@
         <button class="modal-close" data-testid="button-close-template-modal" aria-label="Close">&times;</button>
       </div>
       <div class="modal-body">
-        <p class="modal-hint">Choose a template to pre-fill your business plan inputs</p>
+        <p class="modal-hint">Choose a template to pre-fill your contract inputs</p>
         <div class="template-grid">
           <button class="template-card" data-template="saas" data-testid="template-saas">
-            <div class="template-name">SaaS Startup</div>
-            <div class="template-desc">Software-as-a-Service platform with recurring revenue</div>
+            <div class="template-name">SaaS Licensing Agreement</div>
+            <div class="template-desc">Software licensing and service terms</div>
           </button>
           <button class="template-card" data-template="realestate" data-testid="template-realestate">
-            <div class="template-name">Real Estate Investment</div>
-            <div class="template-desc">Property acquisition, development, and management</div>
+            <div class="template-name">Real Estate Contract</div>
+            <div class="template-desc">Property purchase agreements and disclosures</div>
           </button>
           <button class="template-card" data-template="consulting" data-testid="template-consulting">
-            <div class="template-name">Management Consulting</div>
-            <div class="template-desc">Professional services and advisory practice</div>
+            <div class="template-name">Consulting Service Agreement</div>
+            <div class="template-desc">Professional services contract with confidentiality</div>
           </button>
           <button class="template-card" data-template="nonprofit" data-testid="template-nonprofit">
-            <div class="template-name">Nonprofit Organization</div>
-            <div class="template-desc">Mission-driven organization with community impact</div>
+            <div class="template-name">Nonprofit Partnership Agreement</div>
+            <div class="template-desc">Donor and partnership agreements</div>
           </button>
           <button class="template-card" data-template="ecommerce" data-testid="template-ecommerce">
-            <div class="template-name">E-Commerce Store</div>
-            <div class="template-desc">Online retail and product sales platform</div>
+            <div class="template-name">Vendor Agreement</div>
+            <div class="template-desc">Marketplace vendor partnership terms</div>
           </button>
           <button class="template-card" data-template="restaurant" data-testid="template-restaurant">
-            <div class="template-name">Restaurant / Food Service</div>
-            <div class="template-desc">Dining establishment or food delivery service</div>
+            <div class="template-name">Catering Service Contract</div>
+            <div class="template-desc">Food service and supplier agreements</div>
           </button>
         </div>
       </div>

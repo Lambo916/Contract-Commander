@@ -1,47 +1,45 @@
-# BizPlan Builder
+# Contract Commander
 
-> **Create professional, investor-ready business plans powered by AI**
+> **AI-assisted contract drafting for NDAs, MOUs, Service Agreements, and more**
 
-BizPlan Builder is an AI-powered business planning platform that helps entrepreneurs and business owners generate comprehensive, actionable business plans in minutes. Featuring intelligent content generation, interactive financial projections, KPI tracking, and professional PDF exports with YourBizGuru branding.
+Contract Commander is an AI-powered contract generation platform that helps businesses and professionals create comprehensive, lawyer-style contracts in minutes. Featuring intelligent content generation, customizable templates, and professional PDF exports with YourBizGuru branding.
 
-🌐 **Live Production**: [bizplan.yourbizguru.com](https://bizplan.yourbizguru.com)
+🌐 **Live Production**: [contract.yourbizguru.com](https://contract.yourbizguru.com)
 
 ---
 
 ## ✨ Features
 
 ### Core Functionality
-- **🤖 AI-Powered Generation**: GPT-4o creates detailed, context-aware business plan sections
-- **📊 Interactive Charts**: Real-time KPI dashboard and 12-month financial projections with Chart.js
-- **📄 Professional PDF Export**: Generate investor-ready PDFs with automatic table of contents, proper pagination, and WYSIWYG parity
-- **💾 Report Management**: Save, load, and manage multiple business plans with Supabase PostgreSQL
-- **📚 Template Library**: Pre-built templates for common business types (coming soon)
+- **🤖 AI-Powered Generation**: GPT-4o creates detailed, context-aware contract clauses
+- **📄 Professional PDF Export**: Generate lawyer-ready PDFs with automatic table of contents and proper pagination
+- **💾 Contract Management**: Save, load, and manage multiple contracts with Supabase PostgreSQL
+- **📚 Template Library**: Pre-built templates for common contract types
 
 ### Customization Options
-- **Detail Levels**: Choose between Standard, Expanded, or Comprehensive narrative depth
+- **Detail Levels**: Choose between Standard, Expanded, or Comprehensive detail depth
   - Standard: 1500-2200 words
   - Expanded: 2200-3200 words
   - Comprehensive: 3200-4500 words
 - **Tone Selection**: Professional, Investor-ready, Concise, or Visionary
 - **Theme Toggle**: Professional light and dark themes with persistent preferences
 
-### Business Plan Sections
-1. **Executive Summary**: Overview and mission statement
-2. **Market Analysis**: Target market, competition, and positioning
-3. **Products & Services**: Detailed offering descriptions
-4. **Marketing & Sales**: Go-to-market strategy
-5. **Operations Plan**: Day-to-day execution strategy
-6. **Financial Plan**: Revenue model and projections
-7. **KPI Dashboard**: Key performance indicators
-8. **AI Insights**: Strategic recommendations based on business stage
-9. **Financial Projections**: 12-month revenue and expense forecasts
+### Contract Sections
+1. **Parties & Recitals**: Legal entities and background information
+2. **Scope of Work**: Detailed service or product descriptions
+3. **Terms & Conditions**: Key contract terms and obligations
+4. **Payment Terms**: Pricing, invoicing, and payment schedules
+5. **Confidentiality**: Protection of proprietary information
+6. **Termination Clauses**: Exit conditions and procedures
+7. **Dispute Resolution**: Mediation and arbitration processes
+8. **Governing Law**: Jurisdiction and applicable laws
 
 ---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 18+ or compatible runtime
+- Node.js 20+ or compatible runtime
 - OpenAI API key ([get one here](https://platform.openai.com/api-keys))
 - Supabase account ([create free account](https://supabase.com))
 
@@ -49,8 +47,8 @@ BizPlan Builder is an AI-powered business planning platform that helps entrepren
 
 1. **Clone the repository**
    ```bash
-   git clone https://github.com/Lambo916/BizPlan-Builder.git
-   cd BizPlan-Builder
+   git clone https://github.com/Lambo916/Contract-Commander.git
+   cd Contract-Commander
    ```
 
 2. **Install dependencies**
@@ -89,7 +87,7 @@ BizPlan Builder is an AI-powered business planning platform that helps entrepren
 1. **Push to GitHub**
    ```bash
    git add .
-   git commit -m "Deploy BizPlan Builder"
+   git commit -m "Deploy Contract Commander"
    git push origin main
    ```
 
@@ -106,11 +104,13 @@ BizPlan Builder is an AI-powered business planning platform that helps entrepren
    DATABASE_URL=postgresql://***
    SUPABASE_URL=https://***
    SUPABASE_ANON_KEY=eyJhbGci***
+   TOOL_NAME=contractcommander
+   PUBLIC_SITE_URL=https://contract.yourbizguru.com
    ```
 
 4. **Set Custom Domain**
    - Go to Project Settings → Domains
-   - Add: `bizplan.yourbizguru.com`
+   - Add: `contract.yourbizguru.com`
    - Update DNS with CNAME record pointing to `cname.vercel-dns.com`
 
 5. **Deploy!**
@@ -118,15 +118,13 @@ BizPlan Builder is an AI-powered business planning platform that helps entrepren
    - Wait 2-3 minutes for build
    - Your app is live! 🎉
 
-For detailed deployment instructions, see [VERCEL_SETUP.md](./VERCEL_SETUP.md)
-
 ---
 
 ## 🏗️ Tech Stack
 
 ### Frontend
 - **Vanilla JavaScript**: Zero framework dependencies for maximum compatibility
-- **Chart.js**: Interactive KPI and financial projection charts
+- **Chart.js**: Interactive visualizations
 - **jsPDF**: Professional PDF generation with custom formatting
 - **CSS3**: Custom property-based theming system
 
@@ -149,11 +147,11 @@ For detailed deployment instructions, see [VERCEL_SETUP.md](./VERCEL_SETUP.md)
 ## 📁 Project Structure
 
 ```
-BizPlan-Builder/
+Contract-Commander/
 ├── public/                      # Frontend assets
 │   ├── index.html              # Main HTML entry point
 │   ├── ybg.css                 # Theme system and base styles
-│   ├── bizplan-styles.css      # BizPlan-specific styles
+│   ├── bizplan-styles.css      # Application-specific styles
 │   ├── bizplan-app.js          # Main application logic
 │   ├── pdf-export.js           # PDF generation module
 │   └── assets/                 # Images and logos
@@ -166,9 +164,11 @@ BizPlan-Builder/
 │   └── schema.ts               # Drizzle database schema
 ├── lib/                         # Utilities
 │   └── supabase.ts             # Supabase client initialization
+├── src/                         # Source files
+│   └── config/
+│       └── branding.ts         # Contract Commander branding constants
 ├── .env.example                # Environment variables template
 ├── vercel.json                 # Vercel deployment config
-├── VERCEL_SETUP.md             # Detailed deployment guide
 └── package.json                # Dependencies and scripts
 ```
 
@@ -176,17 +176,17 @@ BizPlan-Builder/
 
 ## 🔌 API Endpoints
 
-### Business Plan Generation
-- **POST** `/api/bizplan/generate`
-  - Generates AI-powered business plan content
-  - Request: Business details, tone, detail level
-  - Response: Structured JSON with all sections
+### Contract Generation
+- **POST** `/api/bizplan`
+  - Generates AI-powered contract content
+  - Request: Company details, tone, detail level
+  - Response: Structured JSON with all contract sections
 
-### Report Management
-- **POST** `/api/reports/save` - Save a business plan
-- **GET** `/api/reports/list` - List all saved reports
-- **GET** `/api/reports/:id` - Get specific report by ID
-- **DELETE** `/api/reports/:id` - Delete a report
+### Contract Management
+- **POST** `/api/bizplan/reports/save` - Save a contract
+- **GET** `/api/bizplan/reports` - List all saved contracts
+- **GET** `/api/bizplan/reports/:id` - Get specific contract by ID
+- **DELETE** `/api/bizplan/reports/:id` - Delete a contract
 
 ### Health Checks
 - **GET** `/api/health/db` - Database connection status
@@ -197,10 +197,10 @@ BizPlan-Builder/
 ## 🎨 Branding & Design
 
 ### Color Palette
-- **Primary Blue**: `#4DB6E7` - Trust, professionalism
-- **Accent Yellow**: `#FFEB3B` - Energy, optimism
-- **Background (Dark)**: `#0f141a` → `#121820` gradient
-- **Background (Light)**: `#e0eff6` → `#ffffff` gradient
+- **Primary Gold**: `#F5C543` - Professional, premium
+- **Background (Dark)**: `#111111` - Clean, modern
+- **Text (Light)**: `#FFFFFF` - High contrast readability
+- **Accent Gray**: `#C9C9D1` - Subtle accents
 
 ### Typography
 - **Headings**: System UI font stack
@@ -228,58 +228,12 @@ BizPlan-Builder/
 ### Optional
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `PUBLIC_SITE_URL` | Production URL | `https://bizplan.yourbizguru.com` |
+| `PUBLIC_SITE_URL` | Production URL | `https://contract.yourbizguru.com` |
+| `TOOL_NAME` | Application name | `contractcommander` |
 | `CORS_ALLOWED_ORIGINS` | Allowed CORS origins | `*` (dev), production domain |
-| `TOOL_NAME` | Application name | `BizPlanBuilder` |
 | `SESSION_SECRET` | Session encryption key | Auto-generated |
-| `REPORT_CAP` | Max reports per user | `30` |
+| `REPORT_CAP` | Max contracts per user | `30` |
 | `RATE_LIMIT_WINDOW` | Rate limit window (seconds) | `86400` |
-
----
-
-## 🧪 Testing
-
-### Health Checks
-```bash
-# Database connectivity
-curl https://bizplan.yourbizguru.com/api/health/db
-
-# Supabase ping
-curl https://bizplan.yourbizguru.com/api/db/ping
-```
-
-### Generate a Business Plan
-1. Fill in company details
-2. Select tone and detail level
-3. Click "Generate Plan"
-4. Review sections and charts
-5. Export to PDF or save to database
-
----
-
-## 📝 Database Schema
-
-### `bizplan_reports`
-```typescript
-{
-  id: integer (primary key, auto-increment)
-  userId: text (nullable - future auth integration)
-  title: text (required)
-  company: text (required)
-  industry: text (required)
-  htmlContent: text (full HTML report)
-  metadata: jsonb {
-    executiveSnapshot: {...}
-    mainContent: {...}
-    kpiTable: {...}
-    aiInsights: {...}
-    financialProjections: {...}
-    stage: string
-  }
-  createdAt: timestamp (default: now())
-  updatedAt: timestamp (auto-update)
-}
-```
 
 ---
 
@@ -299,7 +253,6 @@ Unauthorized copying, modification, or distribution of this software is strictly
 
 ## 🆘 Support
 
-- **Documentation**: [VERCEL_SETUP.md](./VERCEL_SETUP.md)
 - **Email**: support@yourbizguru.com
 - **Website**: [yourbizguru.com](https://yourbizguru.com)
 
@@ -309,7 +262,7 @@ Unauthorized copying, modification, or distribution of this software is strictly
 
 - ✅ **Version**: 1.0.0
 - ✅ **Status**: Production Ready
-- ✅ **Live URL**: [bizplan.yourbizguru.com](https://bizplan.yourbizguru.com)
+- ✅ **Live URL**: [contract.yourbizguru.com](https://contract.yourbizguru.com)
 - ✅ **Last Updated**: November 2025
 - ✅ **Deployment**: Vercel (Serverless)
 

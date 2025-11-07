@@ -1,0 +1,97 @@
+AGENT BRIEF — PHASE 2: CLEAN-UP & REBRAND (Contract Commander)
+
+Goal:
+Rebrand the current repo (forked from BizPlan Builder) to “Contract Commander,” remove BizPlan-specific UI, and set up clean branding files without breaking the working wiring.
+
+Constraints:
+- Keep all Supabase/OpenAI wiring intact.
+- Do not change server endpoints or env keys.
+- Node runtime stays at 20.x (Vercel already good).
+
+Tasks:
+
+1) Global rename of visible copy
+- Perform case-sensitive, whole-word replacements in source files (tsx/js/ts/html/md):
+  - “BizPlan Builder” → “Contract Commander”
+  - “BizPlan” → “Contract Commander”
+  - “business plan(s)” → “contract(s)”
+  - “plan” (when referring to document) → “contract” (skip occurrences in code identifiers; only update UI text and README).
+- Files to include: /client, /app, /src, /pages, /components, /public, README.md.
+- Exclude: node_modules, .vercel, build/output, server logic strings that refer to table names.
+
+2) Site metadata
+- Edit /client/index.html (or /app/layout.tsx head, depending on project):
+  - <title>Contract Commander</title>
+  - meta description: “Draft, customize, and export professional contracts (NDAs, MOUs, Service Agreements) with AI assistance. Secure, fast, and export-ready.”
+
+3) Branding constants
+- Create (or update) src/config/branding.ts with:
+  export const BRAND = {
+    name: "Contract Commander",
+    short: "Contract Commander",
+    tagline: "AI-assisted contracts in minutes.",
+    primary: "#F5C543",   // gold
+    dark: "#111111",
+    light: "#FFFFFF",
+    accent: "#C9C9D1"     // light gray
+  };
+
+4) Styles (CSS variables)
+- In /public/ybg.css (or the main global stylesheet), add/update root variables:
+  :root{
+    --brand-primary:#F5C543;
+    --brand-bg:#111111;
+    --brand-text:#FFFFFF;
+    --brand-muted:#C9C9D1;
+  }
+- Update header/footer/button classes to use these variables (no layout changes).
+
+5) Header & footer components
+- Update site logo text and tagline in the shared layout component (e.g., /components/Header.tsx and /components/Footer.tsx):
+  - Header title: Contract Commander
+  - Subtitle: “Create NDAs, MOUs, and Service Agreements with AI.”
+  - Footer link text should reference YourBizGuru.com and Contract Commander.
+
+6) Remove BizPlan-specific UI
+- Comment out or delete components that are strictly BizPlan features:
+  Likely files/folders to de-scope:
+  - /components/Kpi*, /components/Financial*, /components/PricingAssumptions*
+  - Any charting/metrics panels labeled “MRR”, “CAC”, “LTV”, “pitch”, “funding”
+- If these components are imported into the main page, remove the imports and JSX usage.
+
+7) Contract Commander home copy (landing panel)
+- Replace the hero/intro block content with:
+  H1: “Contract Commander”
+  Lead: “Generate lawyer-style contracts in minutes — NDA, MOU, Service Agreement, and more.”
+  Bullets:
+    • Guided questions → clean clauses
+    • Editable preview before export
+    • Save versions to your workspace
+    • PDF & DOCX export
+
+8) Asset swap
+- Add /public/contract-commander-logo.svg (simple placeholder ok).
+- Point header/logo to this asset. Alt text: “Contract Commander logo”.
+
+9) README refresh
+- Overwrite README.md top section with:
+  # Contract Commander
+  AI-assisted contract drafting for NDAs, MOUs, Service Agreements, and more.  
+  **Stack:** Next.js (or Vite) + Vercel Functions + Supabase + OpenAI.  
+  **Env:** TOOL_NAME=contractcommander, PUBLIC_SITE_URL=https://contract.yourbizguru.com
+
+10) Build & smoke test
+- Run project build and preview.
+- Confirm: app loads, header/footer show new brand, no BizPlan panels visible, generate/export still works.
+- Deliver a short changelog of files touched.
+
+Success Criteria:
+- No references to “BizPlan Builder” remain in UI/README.
+- Colors/branding reflect gold/white/dark theme.
+- Only contract-related panels remain.
+- App compiles and runs locally in Replit and deploys cleanly on Vercel.
+
+Output:
+- List of edited/removed files
+- Before/after screenshots of header + main screen
+- Notes on any places where BizPlan terms were embedded in code identifiers and intentionally left unchanged to avoid breakage.

@@ -1,6 +1,6 @@
 /**
- * BizPlan Builder - Professional PDF Export System
- * Investor-Ready, Clean Layout with Chart Capture
+ * Contract Commander - Professional PDF Export System
+ * Clean, Professional Layout with Chart Capture
  * 
  * Features:
  * - Automatic Table of Contents
@@ -107,8 +107,8 @@
     colorText: [33, 33, 33],
     colorHeader: [17, 17, 17],
     colorMeta: [102, 102, 102],
-    colorBlue: [77, 182, 231],   // #4DB6E7
-    colorYellow: [255, 235, 59]  // #FFEB3B
+    colorGold: [245, 197, 67],   // #F5C543 (Contract Commander gold)
+    colorAccent: [201, 201, 209]  // #C9C9D1 (light gray accent)
   };
 
   // ---- Helper Functions ----
@@ -303,7 +303,7 @@
 
     addDivider() {
       // Slim yellow divider (15% thinner = 0.34mm instead of 0.4mm)
-      this.doc.setDrawColor(...TYPOGRAPHY.colorYellow);
+      this.doc.setDrawColor(...TYPOGRAPHY.colorAccent);
       this.doc.setLineWidth(0.34);
       this.doc.line(CONTENT.left, this.yPosition, CONTENT.right, this.yPosition);
       this.yPosition += 4; // 10px top + 15px bottom spacing
@@ -363,7 +363,7 @@
         margin: { left: MARGINS.left, right: MARGINS.right },
         theme: 'grid',
         headStyles: {
-          fillColor: TYPOGRAPHY.colorBlue,
+          fillColor: TYPOGRAPHY.colorGold,
           textColor: [255, 255, 255],
           fontSize: 11,
           fontStyle: 'bold',
@@ -715,7 +715,7 @@
 
       // Add divider after TOC
       tocY += 3;
-      doc.setDrawColor(...TYPOGRAPHY.colorYellow);
+      doc.setDrawColor(...TYPOGRAPHY.colorAccent);
       doc.setLineWidth(0.34);
       doc.line(CONTENT.left, tocY, CONTENT.right, tocY);
 

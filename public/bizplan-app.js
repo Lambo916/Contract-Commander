@@ -171,7 +171,7 @@ function setGeneratingState(generating) {
     if (progressBar) {
       progressBar.style.display = 'block';
       progressBar.setAttribute('role', 'progressbar');
-      progressBar.setAttribute('aria-label', 'Generating business plan');
+      progressBar.setAttribute('aria-label', 'Generating contract');
     }
     
     // Set Results container as busy
@@ -182,7 +182,7 @@ function setGeneratingState(generating) {
     // Restore Generate button
     generateBtn.disabled = false;
     generateBtn.removeAttribute('aria-busy');
-    generateBtn.textContent = 'Generate Plan';
+    generateBtn.textContent = 'Generate Contract';
     
     // Enable menu buttons
     fileBtn.disabled = false;
@@ -220,7 +220,7 @@ function generateDefaultFilename(companyName) {
   const hour = String(now.getHours()).padStart(2, '0');
   const minute = String(now.getMinutes()).padStart(2, '0');
   
-  return `${company} - BizPlan - ${year}-${month}-${day}_${hour}-${minute}`;
+  return `${company} - Contract - ${year}-${month}-${day}_${hour}-${minute}`;
 }
 
 // ==== TOAST NOTIFICATION SYSTEM ====
@@ -255,72 +255,72 @@ function showToast(message, type = 'success') {
 }
 
 
-// Business Plan Templates
+// Contract Templates
 const BIZPLAN_TEMPLATES = {
   saas: {
     name: "SaaS Startup",
-    company: "CloudFlow Analytics",
-    industry: "SaaS / B2B Software",
-    target: "Mid-sized businesses and enterprises",
-    product: "AI-powered workflow automation platform that integrates with existing tools to streamline business processes, reduce manual tasks, and provide real-time analytics.",
-    revenue: "Subscription-based (monthly/annual plans)",
-    stage: "MVP launched, seeking seed funding",
-    goals: "1. Acquire 50 paying customers in first 6 months\n2. Achieve $50K MRR by end of year\n3. Build integrations with top 5 business tools\n4. Raise $1.5M seed round\n5. Hire 3 key engineering team members",
-    tone: "Investor-ready"
+    company: "TechVenture Inc.",
+    industry: "Technology / Software",
+    target: "Business clients requiring software licensing",
+    product: "Cloud-based software platform requiring licensing agreement and service terms",
+    revenue: "License fees and subscription services",
+    stage: "Negotiating contracts",
+    goals: "1. Define clear licensing terms and usage rights\n2. Establish payment schedules and renewal terms\n3. Protect intellectual property and proprietary code\n4. Include standard warranty and liability clauses\n5. Set termination and data retention policies",
+    tone: "Professional"
   },
   realestate: {
     name: "Real Estate Investment",
-    company: "Urban Property Partners",
-    industry: "Real Estate Investment",
-    target: "First-time homebuyers and investors",
-    product: "Full-service real estate investment firm specializing in residential properties, offering property acquisition, renovation management, and rental property management services.",
-    revenue: "Commission-based sales, property management fees, consulting fees",
-    stage: "Established business, expanding to new markets",
-    goals: "1. Close 30 property transactions in next 12 months\n2. Expand to 2 additional cities\n3. Build team of 5 licensed agents\n4. Establish property management division with 50+ units\n5. Achieve $2M in annual revenue",
+    company: "Property Partners LLC",
+    industry: "Real Estate",
+    target: "Property sellers and buyers",
+    product: "Real estate transaction services requiring purchase agreements and disclosure documents",
+    revenue: "Transaction-based service fees",
+    stage: "Establishing contracts",
+    goals: "1. Draft clear property purchase terms\n2. Include inspection and contingency clauses\n3. Define closing timeline and payment milestones\n4. Establish seller disclosures and warranties\n5. Include dispute resolution procedures",
     tone: "Professional"
   },
   consulting: {
     name: "Management Consulting",
-    company: "Strategic Edge Consulting",
+    company: "Advisory Solutions Group",
     industry: "Business Consulting",
-    target: "Small to mid-sized businesses undergoing transformation",
-    product: "Strategic consulting services focused on digital transformation, operational efficiency, and change management. We help businesses modernize operations, implement new technologies, and optimize workflows.",
-    revenue: "Project-based fees, retainer agreements, hourly consulting",
-    stage: "Launched and growing client base",
-    goals: "1. Secure 10 consulting engagements in Q1-Q2\n2. Build team of 3 senior consultants\n3. Develop proprietary methodology and IP\n4. Achieve 80% client retention rate\n5. Generate $500K in annual revenue",
+    target: "Corporate clients requiring consulting services",
+    product: "Professional consulting services requiring service agreements and confidentiality terms",
+    revenue: "Project fees and retainer agreements",
+    stage: "Contract negotiation",
+    goals: "1. Define scope of consulting services clearly\n2. Establish payment terms and billing procedures\n3. Include confidentiality and non-disclosure clauses\n4. Set deliverables and performance metrics\n5. Define contract duration and renewal options",
     tone: "Professional"
   },
   nonprofit: {
     name: "Nonprofit Organization",
-    company: "Community Connect Foundation",
+    company: "Community Foundation",
     industry: "Nonprofit / Social Services",
-    target: "Underserved communities, youth education programs",
-    product: "Community-based nonprofit providing educational resources, mentorship programs, and career development opportunities for underserved youth ages 14-24.",
-    revenue: "Grants, individual donations, corporate sponsorships, fundraising events",
-    stage: "Idea stage, preparing grant applications",
-    goals: "1. Secure 501(c)(3) status and initial $100K in grant funding\n2. Launch pilot program serving 50 students\n3. Build board of directors with 7 community leaders\n4. Establish partnerships with 3 local schools\n5. Host inaugural fundraising gala",
-    tone: "Visionary"
+    target: "Donors, volunteers, and service partners",
+    product: "Partnership agreements and donor agreements requiring clear terms",
+    revenue: "Grants and donations",
+    stage: "Formalizing agreements",
+    goals: "1. Establish partnership terms with stakeholders\n2. Define donor contribution terms and recognition\n3. Create volunteer agreements and waivers\n4. Set program collaboration guidelines\n5. Include standard nonprofit compliance clauses",
+    tone: "Professional"
   },
   ecommerce: {
     name: "E-Commerce Store",
-    company: "Artisan Home Goods",
+    company: "Digital Marketplace Co.",
     industry: "E-Commerce / Retail",
-    target: "Environmentally-conscious consumers aged 25-45",
-    product: "Online marketplace for sustainable, handcrafted home goods including furniture, decor, and kitchenware. All products sourced from verified eco-friendly artisans and manufacturers.",
-    revenue: "Direct product sales with 40% markup, premium shipping options",
-    stage: "Launched with initial inventory",
-    goals: "1. Reach $100K in monthly sales within 6 months\n2. Onboard 50 artisan vendors\n3. Achieve 25% customer repeat purchase rate\n4. Launch mobile app\n5. Expand product categories to include textiles and lighting",
+    target: "Customers and vendor partners",
+    product: "Online marketplace requiring vendor agreements and terms of service",
+    revenue: "Sales commissions and platform fees",
+    stage: "Establishing vendor contracts",
+    goals: "1. Create clear vendor partnership terms\n2. Define commission structure and payment schedules\n3. Establish product quality standards\n4. Include intellectual property protections\n5. Set termination and dispute procedures",
     tone: "Concise"
   },
   restaurant: {
     name: "Restaurant / Food Service",
-    company: "Harvest Table Bistro",
-    industry: "Food & Beverage / Restaurant",
-    target: "Health-conscious diners, local food enthusiasts",
-    product: "Farm-to-table restaurant featuring seasonal menus crafted from locally-sourced ingredients. Offering dine-in, takeout, and catering services with focus on organic, sustainable dining experience.",
-    revenue: "Food and beverage sales, catering services, private events",
-    stage: "Planning phase, securing location and funding",
-    goals: "1. Secure restaurant location and complete buildout\n2. Raise $300K in startup capital\n3. Hire executive chef and core team of 8\n4. Establish partnerships with 10 local farms and suppliers\n5. Launch with 3-month marketing campaign targeting 100+ daily covers",
+    company: "Culinary Services LLC",
+    industry: "Food & Beverage",
+    target: "Suppliers and catering clients",
+    product: "Catering services and supplier agreements requiring formal contracts",
+    revenue: "Service fees and catering contracts",
+    stage: "Contract creation",
+    goals: "1. Establish supplier terms and pricing agreements\n2. Create catering service contracts with clear deliverables\n3. Include food safety and liability clauses\n4. Define cancellation and refund policies\n5. Set payment terms and deposit requirements",
     tone: "Professional"
   }
 };
@@ -595,7 +595,7 @@ function renderFinancialChartsSection(financialData) {
             <div class="financial-summary-stats">
               <div class="summary-stat">
                 <div class="stat-label">Total Year 1 Revenue</div>
-                <div class="stat-value" style="color: #4DB6E7;">$${formatNumber(financialData.revenue.reduce((a, b) => a + b, 0))}</div>
+                <div class="stat-value" style="color: #F5C543;">$${formatNumber(financialData.revenue.reduce((a, b) => a + b, 0))}</div>
               </div>
               <div class="summary-stat">
                 <div class="stat-label">Total Year 1 Expenses</div>
@@ -779,7 +779,7 @@ function initializeKpiChart(kpiData, chartType = 'bar') {
   
   // YBG branding colors
   const chartColors = {
-    primary: '#4DB6E7',
+    primary: '#F5C543',
     secondary: '#FFEB3B',
     grid: 'rgba(0, 0, 0, 0.1)',
     text: '#1a1a1a'
@@ -792,7 +792,7 @@ function initializeKpiChart(kpiData, chartType = 'bar') {
       datasets: [{
         label: 'Target Values',
         data: data,
-        backgroundColor: chartType === 'bar' ? chartColors.primary : 'rgba(77, 182, 231, 0.2)',
+        backgroundColor: chartType === 'bar' ? chartColors.primary : 'rgba(245, 197, 67, 0.2)',
         borderColor: chartColors.primary,
         borderWidth: 2,
         tension: 0.4,
@@ -878,7 +878,7 @@ function initializeFinancialCharts(financialData, view = 'combined') {
   if (!financialData || !financialData.months) return;
   
   const chartColors = {
-    revenue: '#4DB6E7',
+    revenue: '#F5C543',
     expenses: '#FF6B6B',
     profit: '#51CF66',
     grid: 'rgba(0, 0, 0, 0.1)',
@@ -944,7 +944,7 @@ function initializeFinancialCharts(financialData, view = 'combined') {
             label: 'Revenue',
             data: financialData.revenue,
             borderColor: chartColors.revenue,
-            backgroundColor: 'rgba(77, 182, 231, 0.1)',
+            backgroundColor: 'rgba(245, 197, 67, 0.1)',
             borderWidth: 3,
             tension: 0.4,
             fill: true
@@ -1004,7 +1004,7 @@ function initializeFinancialCharts(financialData, view = 'combined') {
           datasets: [{
             data: financialData.revenue,
             borderColor: chartColors.revenue,
-            backgroundColor: 'rgba(77, 182, 231, 0.2)',
+            backgroundColor: 'rgba(245, 197, 67, 0.2)',
             borderWidth: 3,
             tension: 0.4,
             fill: true
@@ -1249,7 +1249,7 @@ $('btn-generate').addEventListener('click', async () => {
     // Auto-save to localStorage
     saveCurrentReport();
     
-    showToast('Business plan generated successfully!', 'success');
+    showToast('Contract generated successfully!', 'success');
     
   } catch (e) {
     console.error('Generation error:', e);
@@ -1305,7 +1305,7 @@ document.addEventListener('click', () => {
 
 $('btn-new-plan').addEventListener('click', () => {
   if (hasUnsavedChanges) {
-    if (!confirm('You have unsaved changes. Are you sure you want to start a new plan?')) {
+    if (!confirm('You have unsaved changes. Are you sure you want to start a new contract?')) {
       return;
     }
   }
@@ -1328,7 +1328,7 @@ $('btn-new-plan').addEventListener('click', () => {
   hasUnsavedChanges = false;
   hideMetadata();
   
-  showToast('Started new business plan', 'success');
+  showToast('Started new contract', 'success');
   $('file-menu').classList.remove('active');
 });
 

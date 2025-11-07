@@ -581,7 +581,7 @@ IMPORTANT:
     }
   });
 
-  // BizPlan Builder - Generate business plan (SDK-free fetch for Vercel portability)
+  // Contract Commander - Generate contract (SDK-free fetch for Vercel portability)
   app.post("/api/bizplan", async (req, res) => {
     try {
       // Validate request body
@@ -598,11 +598,11 @@ IMPORTANT:
         detailLevel
       } = validatedData;
 
-      console.log(`Generating business plan for: ${company} - ${industry} (Detail: ${detailLevel})`);
+      console.log(`Generating contract for: ${company} - ${industry} (Detail: ${detailLevel})`);
 
       // Adjust prompt based on detail level
       let wordCount = '1500-2200';
-      let depthGuidance = 'Write 2-3 substantial paragraphs per major section. Each section should include: (1) Strategic overview and context, (2) Specific actionable steps your client can implement, (3) Success metrics and timelines. Include real-world examples relevant to the industry. Make content immediately actionable for business planning.';
+      let depthGuidance = 'Write 2-3 substantial paragraphs per major section. Each section should include: (1) Strategic overview and context, (2) Specific actionable clauses and terms, (3) Success metrics and compliance requirements. Include real-world examples relevant to the industry. Make content immediately actionable for contract drafting.';
       
       if (detailLevel === 'expanded') {
         wordCount = '2200-3200';
@@ -612,9 +612,9 @@ IMPORTANT:
         depthGuidance = 'Write 4-6 comprehensive paragraphs per major section. Each section must include: (1) In-depth strategic overview with market dynamics, competitive landscape, and trends, (2) Detailed step-by-step actionable tactics with implementation roadmap, (3) Comprehensive metrics, KPIs, and success criteria with specific numeric targets and benchmarks, (4) Multiple real-world examples, case studies, and industry best practices, (5) Risk analysis with specific mitigation strategies, (6) Resource requirements (budget, team, tools) with recommendations. Include multiple scenarios (conservative/moderate/optimistic), specific timelines with milestones, and quarterly planning guidance. Make every section a complete playbook your client can follow.';
       }
 
-      // Build comprehensive business plan prompt with premium structured output
+      // Build comprehensive contract prompt with premium structured output
       const prompt = `
-You are BizPlan Builder, an elite business planning assistant. Generate a premium, investor-ready business plan with enhanced structure.
+You are Contract Commander, an elite contract drafting assistant. Generate a professional, lawyer-style contract with enhanced structure.
 
 COMPANY INFORMATION:
 Company: ${company}
@@ -638,7 +638,7 @@ Generate a JSON object with this exact structure:
     "top3Goals": ["Extract and format the top 3 goals from: ${goals || 'Growth, Revenue, Market Entry'}"]
   },
   
-  "mainPlan": "Full business plan as markdown (${wordCount} words). Include these sections with ## headings: Executive Summary, Market Analysis, Business Model, Go-to-Market Strategy, Product Roadmap, Financial Outlook, Risk Mitigation, Next Steps. Use ${tone} tone. ${depthGuidance}",
+  "mainPlan": "Full contract as markdown (${wordCount} words). Include these sections with ## headings: Parties & Recitals, Scope of Work, Terms & Conditions, Payment Terms, Confidentiality, Termination Clauses, Dispute Resolution, Governing Law. Use ${tone} tone. ${depthGuidance}",
   
   "kpiTable": [
     {
@@ -650,7 +650,7 @@ Generate a JSON object with this exact structure:
   ],
   
   "aiInsights": [
-    "Generate 4-6 practical, actionable insights based on the business plan. Focus on: immediate priorities (specific next steps), risks to watch, opportunities to capitalize on, resource optimization, and strategic partnerships. Keep each insight concise but specific (1-2 sentences with concrete recommendations). Examples: 'Focus next 90 days on revenue traction and brand visibility by launching beta program with 10 early customers.', 'Consider partnering with established players in ${industry} to accelerate market entry and reduce customer acquisition costs by 40%.'"
+    "Generate 4-6 practical, actionable insights based on the contract. Focus on: key protections, compliance requirements, risks to mitigate, amendments to consider, and enforcement strategies. Keep each insight concise but specific (1-2 sentences with concrete recommendations). Examples: 'Ensure confidentiality clause includes specific definition of proprietary information and 3-year duration post-termination.', 'Consider adding indemnification clause to protect against third-party claims arising from breach of contract.'"
   ],
   
   "financialProjections": {
@@ -663,7 +663,7 @@ Generate a JSON object with this exact structure:
 
 INSTRUCTIONS:
 - executiveSnapshot: Auto-populate from inputs, keep factual
-- mainPlan: Write comprehensive, actionable markdown business plan (${wordCount} words) with professional ${tone} tone. ${depthGuidance} Each major section MUST have multiple substantial paragraphs. Focus on practical, implementable guidance that helps clients build their business. Include specific examples, timelines, metrics, and next steps in every section.
+- mainPlan: Write comprehensive, actionable markdown contract (${wordCount} words) with professional ${tone} tone. ${depthGuidance} Each major section MUST have multiple substantial paragraphs. Focus on practical, implementable clauses that protect clients' interests. Include specific examples, timelines, compliance requirements, and enforcement mechanisms in every section.
 - kpiTable: Intelligently suggest 4-6 KPIs based on goals and stage (e.g., "sales" → Revenue Growth %; "users" → User Acquisition Rate). Make them specific and measurable.
 - aiInsights: Generate 4-6 strategic, actionable insights tied to the plan. Focus on immediate priorities, risks to watch, opportunities to capitalize on, and specific next steps. Each insight should be practical and implementable.
 - financialProjections: Generate realistic 12-month financial projections based on the business model, stage, and revenue information. Include monthly values for revenue, expenses, and profit. Ensure values show realistic growth trajectory for ${stage} stage in ${industry} industry. Revenue should align with stated revenue model: ${revenue}. Make expenses realistic (60-80% of revenue initially, decreasing over time as business scales).
@@ -680,7 +680,7 @@ INSTRUCTIONS:
         body: JSON.stringify({
           model: 'gpt-4o',
           messages: [
-            { role: 'system', content: 'You are an expert business planning consultant generating premium, investor-ready business plans with comprehensive, actionable insights.' },
+            { role: 'system', content: 'You are an expert contract drafting consultant generating professional, lawyer-style contracts with comprehensive, enforceable clauses.' },
             { role: 'user', content: prompt }
           ],
           response_format: { type: 'json_object' },
@@ -708,7 +708,7 @@ INSTRUCTIONS:
         console.error("Failed to parse OpenAI JSON response:", parseError);
         console.error("Raw content:", content.substring(0, 500));
         return res.status(500).json({
-          error: "Failed to generate structured business plan. Please try again.",
+          error: "Failed to generate structured contract. Please try again.",
           details: "AI response was not in expected format"
         });
       }
@@ -747,12 +747,12 @@ INSTRUCTIONS:
 
       // Generic error response
       res.status(500).json({
-        error: "Failed to generate business plan.",
+        error: "Failed to generate contract.",
       });
     }
   });
 
-  // BizPlan Builder - Generate AI Improvement Suggestions
+  // Contract Commander - Generate AI Improvement Suggestions
   app.post("/api/bizplan/suggestions", async (req, res) => {
     try {
       const { company, industry, markdown, kpiTable } = req.body;
@@ -770,18 +770,18 @@ INSTRUCTIONS:
       const kpiSummary = kpiTable ? kpiTable.map((k: any) => `${k.objective}: ${k.kpi} (${k.target})`).join('; ') : 'None';
 
       const prompt = `
-You are a business strategy consultant providing actionable improvement suggestions for a business plan.
+You are a legal contract consultant providing actionable improvement suggestions for a contract.
 
 COMPANY: ${company}
 INDUSTRY: ${industry}
 
-PLAN SUMMARY:
+CONTRACT SUMMARY:
 ${planSummary}
 
 KPIS:
 ${kpiSummary}
 
-Analyze this business plan and provide 4-6 specific, actionable improvement suggestions. Focus on:
+Analyze this contract and provide 4-6 specific, actionable improvement suggestions. Focus on:
 1. Strategic gaps or missed opportunities
 2. KPI optimization or additional metrics to track
 3. Market positioning or competitive advantages to emphasize
@@ -798,7 +798,7 @@ Return a JSON object with this structure:
   ]
 }
 
-Make suggestions concrete and tailored to this specific business. Avoid generic advice.
+Make suggestions concrete and tailored to this specific contract. Avoid generic advice.
       `.trim();
 
       // SDK-free fetch to OpenAI API
