@@ -1,0 +1,135 @@
+PROJECT: Contract Commander – Phase 4 “Wire It Up” (No code – instructions only)
+
+OWNER INTENT
+Rewire the BizPlan-derived app into a true Contract generator. Keep the current build/deploy setup working (Replit → GitHub → Vercel). Do NOT break existing working flows. No UI redesign beyond what’s needed to fit the new fields.
+
+TOP-LEVEL OBJECTIVES
+1) Replace business-plan inputs with contract-specific inputs.
+2) Generate high-quality contract text based on contract type + fields.
+3) Export clean PDFs with proper headings, parties, dates, signatures.
+4) Save/Load contracts in Supabase (backward compatible table names OK).
+5) Keep CORS, env, and deployment stable.
+
+SCOPE (WHAT TO CHANGE)
+A) INPUT MODEL & FORM
+- Remove: Industry, Target Customer, Product/Service (rename to “Scope of Work”), Current Stage.
+- Keep but rename/tune: Payment Model → “Compensation / Payment Terms”; Tone; Detail Level.
+- Add new fields & order exactly like this:
+
+   Section: Contract Setup
+   - Contract Type (select): NDA, Service Agreement, MOU, Employment Agreement, Partnership Agreement, Custom.
+   - Contract Title / Reference (text)
+   - Effective Date (date; default today)
+
+   Section: Parties
+   - Your Organization Name (text)
+   - Your Role (select: Employer, Client, Company, Service Provider, Disclosing Party, etc.)
+   - Counterparty Name (text)
+   - Counterparty Role (select: Contractor, Vendor, Consultant, Employee, Receiving Party, Partner, etc.)
+
+   Section: Key Terms
+   - Scope of Work / Purpose (multiline)
+   - Compensation / Payment Terms (multiline; allow “N/A”)
+   - Term / Duration (text; e.g., “6 months”, “until terminated”)
+   - Termination Terms (multiline; default “Either party may terminate with 30 days notice.”)
+   - Confidentiality (checkbox include_NDA_clause; default ON except when Contract Type = NDA, where it’s inherent)
+
+   Section: Legal Options (Optional)
+   - Governing Law / Jurisdiction (text; default “California, USA”)
+   - IP Ownership (select: Company owns, Contractor owns, Joint; default Company owns)
+   - Additional Clauses (tags or multiline freeform)
+
+   Section: Output & Signature
+   - Tone (Professional, Friendly, Legal)
+   - Detail Level (Summary, Standard, Comprehensive)
+   - Signatory 1 (Name + Title)
+   - Signatory 2 (Name + Title)
+   - Output Format (PDF default; also Markdown/Text)
+
+B) DYNAMIC FORM LOGIC
+- Show/Hide per Contract Type:
+  - NDA: Hide Compensation; Term becomes “Agreement remains in effect for X years from Effective Date”; include confidentiality + permitted disclosures + return of materials.
+  - Service Agreement: Show Scope, Compensation, IP Ownership, Termination; Confidentiality ON by default.
+  - Employment Agreement: Show Compensation (salary/benefits), At-Will language toggle, IP/Confidentiality, Probation Period (optional).
+  - MOU: Softer language; emphasize non-binding toggle.
+  - Partnership Agreement: Show capital contributions, profit/loss split, decision-making, dispute resolution.
+- Validation: Require Contract Type, Effective Date, both Party Names, and either Scope or Purpose depending on type.
+- Pre-fill sensible defaults for each type; allow overrides.
+
+C) TEXT GENERATION PIPELINE (OpenAI)
+- Build prompt composer that:
+  1) Injects contract type + field values
+  2) Applies Tone + Detail Level
+  3) Includes governing law, IP ownership, termination, confidentiality choices
+  4) Outputs structured sections: Title, Parties, Recitals/Purpose, Definitions (when detail = Comprehensive), Scope/Services (if applicable), Compensation (if applicable), Confidentiality/NDA (if selected or inherent), IP, Warranties & Liability, Term & Termination, Governing Law, Entire Agreement, Signatures.
+- Keep the API surface the same path (e.g., POST /api/generate or /api/bizplan → alias to /api/contract for backward compatibility). Ensure request/response schema matches the new model.
+- Add safe-guard: redact API key, validate unknown fields, return 400 on invalid input with clear messages.
+
+D) PDF EXPORT
+- Title block uses: Contract Title + Effective Date.
+- Parties section: “This {Contract Type} (“Agreement”) is made effective {Effective Date} between {Your Org} ({Your Role}) and {Counterparty} ({Counterparty Role}).”
+- Include auto page numbers, table of contents only when Detail = Comprehensive.
+- Signature page:
+  - Signatory 1: Name, Title, Organization, signature line, date line
+  - Signatory 2: Name, Title, Organization, signature line, date line
+- Keep current exporter; update template slots to new field names. Ensure line wrapping & spacing are clean on mobile-generated PDFs.
+
+E) DATA PERSISTENCE (SUPABASE)
+- Table: contracts (create if not exists)
+  - id (uuid), created_at, updated_at
+  - user_id (nullable for now)
+  - contract_type, title, effective_date
+  - party_a_name, party_a_role, party_b_name, party_b_role
+  - scope, compensation, term, termination, confidentiality (bool), governing_law, ip_ownership, extra_clauses (json/text)
+  - tone, detail_level
+  - generated_markdown (text), generated_pdf_url (text nullable)
+- Provide save on successful generation; provide Load list modal (search by title/party/date). Keep backward-compatible loader; migrate old records by mapping where possible.
+
+F) ROUTING / CONFIG
+- Keep existing Vercel build setup; update any rewrite from /api/:path* to /api/index if still required.
+- Maintain existing CORS list; confirm subdomain for this toolkit once it’s deployed (e.g., contract.yourbizguru.com). Add it if needed.
+- No changes to env keys’ names; only read them through centralized config.
+
+G) ACCESSIBILITY & MOBILE
+- All inputs labeled; helper text on complex fields (IP ownership, MOU binding toggle).
+- Ensure mobile keyboards don’t cover large textareas; add autosize textareas.
+- Persist unsaved form state to localStorage with a simple “Draft restored” banner.
+
+H) QA – WHAT TO TEST
+1) Each Contract Type generates without errors using only required fields.
+2) Confidentiality present:
+   - NDA: always present and robust.
+   - Others: included only when toggle is ON.
+3) Detail Level:
+   - Summary = ~1–2 paragraphs/section
+   - Standard = balanced
+   - Comprehensive = adds Definitions + extra clauses
+4) PDF exports consistently; no clipped signatures; TOC appears only for Comprehensive.
+5) Save and Reload works; previously saved contracts open and re-populate the form.
+6) CORS: Calls succeed from Replit preview and Vercel domain.
+7) Error handling: Missing required field returns friendly inline hints + 400 from API.
+
+NON-GOALS (FOR LATER)
+- E-signature integration
+- Multi-party (>2) contracts
+- Payment collection
+- Account auth/role-gating
+
+DELIVERABLES
+- Updated form UI with fields and dynamic logic above.
+- Prompt composer that maps the new model to strong legal text (per contract type).
+- Updated PDF template and signature page.
+- Supabase table creation/migration + save/load API endpoints.
+- Minimal changelog and README update: “Contract Commander v1.1.0 – form model + PDF + persistence.”
+
+ACCEPTANCE CRITERIA (MUST PASS)
+- ✅ Generate NDA, Service Agreement, Employment Agreement using only required fields.
+- ✅ Exports valid PDFs for all three; signatures render correctly.
+- ✅ Save, list, and reload a contract record from Supabase.
+- ✅ No TypeScript/LSP errors; npm run build passes; Vercel deploy green.
+- ✅ No hardcoded domains; CORS allows the active preview + production domain.
+- ✅ Backward compatibility: legacy endpoints still respond or are cleanly redirected.
+
+VERSION & META
+- Bump version: v1.1.0
+- Tag commit message: “feat(contract): rewire to Contract Commander field model + PDF + persistence (v1.1.0)”
