@@ -65,9 +65,87 @@ document.addEventListener('DOMContentLoaded', () => {
     handleContractTypeChange();
   }
   
+  // Add number of parties change handler for dynamic party fields
+  const numberOfParties = $('numberOfParties');
+  if (numberOfParties) {
+    numberOfParties.addEventListener('change', handleNumberOfPartiesChange);
+    // Initialize based on current selection
+    handleNumberOfPartiesChange();
+  }
+  
+  // Auto-focus on Contract Title field
+  const titleInput = $('title');
+  if (titleInput) {
+    titleInput.focus();
+  }
+  
+  // Add keyboard shortcuts
+  document.addEventListener('keydown', handleKeyboardShortcuts);
+  
   // Load saved report if it exists
   loadSavedReport();
 });
+
+// Keyboard shortcuts handler
+function handleKeyboardShortcuts(e) {
+  // Ctrl+Enter or Cmd+Enter: Generate contract
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    const generateBtn = $('btn-generate');
+    if (generateBtn && !isGenerating) {
+      generateBtn.click();
+    }
+  }
+  
+  // Ctrl+S or Cmd+S: Save contract
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    saveToDatabase();
+  }
+  
+  // Ctrl+N or Cmd+N: New contract
+  if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
+    e.preventDefault();
+    newContract();
+  }
+}
+
+// Dynamic party field visibility based on number of parties
+function handleNumberOfPartiesChange() {
+  const numParties = parseInt($('numberOfParties').value) || 2;
+  
+  // Party C (show if 3+ parties)
+  const partyCContainer = $('partyCContainer');
+  const partyCRoleContainer = $('partyCRoleContainer');
+  if (partyCContainer && partyCRoleContainer) {
+    partyCContainer.style.display = numParties >= 3 ? '' : 'none';
+    partyCRoleContainer.style.display = numParties >= 3 ? '' : 'none';
+  }
+  
+  // Party D (show if 4+ parties)
+  const partyDContainer = $('partyDContainer');
+  const partyDRoleContainer = $('partyDRoleContainer');
+  if (partyDContainer && partyDRoleContainer) {
+    partyDContainer.style.display = numParties >= 4 ? '' : 'none';
+    partyDRoleContainer.style.display = numParties >= 4 ? '' : 'none';
+  }
+  
+  // Party E (show if 5+ parties)
+  const partyEContainer = $('partyEContainer');
+  const partyERoleContainer = $('partyERoleContainer');
+  if (partyEContainer && partyERoleContainer) {
+    partyEContainer.style.display = numParties >= 5 ? '' : 'none';
+    partyERoleContainer.style.display = numParties >= 5 ? '' : 'none';
+  }
+  
+  // Party F (show if 6 parties)
+  const partyFContainer = $('partyFContainer');
+  const partyFRoleContainer = $('partyFRoleContainer');
+  if (partyFContainer && partyFRoleContainer) {
+    partyFContainer.style.display = numParties >= 6 ? '' : 'none';
+    partyFRoleContainer.style.display = numParties >= 6 ? '' : 'none';
+  }
+}
 
 // Dynamic form logic based on contract type
 function handleContractTypeChange() {
@@ -137,10 +215,19 @@ function saveCurrentReport() {
       contractType: $('contractType')?.value || 'Service Agreement',
       title: $('title')?.value.trim() || '',
       effectiveDate: $('effectiveDate')?.value || '',
+      numberOfParties: $('numberOfParties')?.value || '2',
       partyAName: $('partyAName')?.value.trim() || '',
       partyARole: $('partyARole')?.value || '',
       partyBName: $('partyBName')?.value.trim() || '',
       partyBRole: $('partyBRole')?.value || '',
+      partyCName: $('partyCName')?.value.trim() || '',
+      partyCRole: $('partyCRole')?.value.trim() || '',
+      partyDName: $('partyDName')?.value.trim() || '',
+      partyDRole: $('partyDRole')?.value.trim() || '',
+      partyEName: $('partyEName')?.value.trim() || '',
+      partyERole: $('partyERole')?.value.trim() || '',
+      partyFName: $('partyFName')?.value.trim() || '',
+      partyFRole: $('partyFRole')?.value.trim() || '',
       scope: $('scope')?.value.trim() || '',
       compensation: $('compensation')?.value.trim() || '',
       term: $('term')?.value.trim() || '',
@@ -184,10 +271,19 @@ function loadSavedReport() {
       if ($('contractType')) $('contractType').value = saveData.formData.contractType || 'Service Agreement';
       if ($('title')) $('title').value = saveData.formData.title || '';
       if ($('effectiveDate')) $('effectiveDate').value = saveData.formData.effectiveDate || '';
+      if ($('numberOfParties')) $('numberOfParties').value = saveData.formData.numberOfParties || '2';
       if ($('partyAName')) $('partyAName').value = saveData.formData.partyAName || '';
       if ($('partyARole')) $('partyARole').value = saveData.formData.partyARole || 'Company';
       if ($('partyBName')) $('partyBName').value = saveData.formData.partyBName || '';
       if ($('partyBRole')) $('partyBRole').value = saveData.formData.partyBRole || 'Contractor';
+      if ($('partyCName')) $('partyCName').value = saveData.formData.partyCName || '';
+      if ($('partyCRole')) $('partyCRole').value = saveData.formData.partyCRole || '';
+      if ($('partyDName')) $('partyDName').value = saveData.formData.partyDName || '';
+      if ($('partyDRole')) $('partyDRole').value = saveData.formData.partyDRole || '';
+      if ($('partyEName')) $('partyEName').value = saveData.formData.partyEName || '';
+      if ($('partyERole')) $('partyERole').value = saveData.formData.partyERole || '';
+      if ($('partyFName')) $('partyFName').value = saveData.formData.partyFName || '';
+      if ($('partyFRole')) $('partyFRole').value = saveData.formData.partyFRole || '';
       if ($('scope')) $('scope').value = saveData.formData.scope || '';
       if ($('compensation')) $('compensation').value = saveData.formData.compensation || '';
       if ($('term')) $('term').value = saveData.formData.term || '';
@@ -202,6 +298,9 @@ function loadSavedReport() {
       if ($('signatory1Title')) $('signatory1Title').value = saveData.formData.signatory1Title || '';
       if ($('signatory2Name')) $('signatory2Name').value = saveData.formData.signatory2Name || '';
       if ($('signatory2Title')) $('signatory2Title').value = saveData.formData.signatory2Title || '';
+      
+      // Trigger party field visibility update after restoring numberOfParties
+      handleNumberOfPartiesChange();
     }
     
     // Restore report data

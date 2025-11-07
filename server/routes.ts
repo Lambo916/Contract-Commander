@@ -580,10 +580,19 @@ IMPORTANT:
         contractType,
         title,
         effectiveDate,
+        numberOfParties = '2',
         partyAName,
         partyARole,
         partyBName,
         partyBRole,
+        partyCName,
+        partyCRole,
+        partyDName,
+        partyDRole,
+        partyEName,
+        partyERole,
+        partyFName,
+        partyFRole,
         scope,
         compensation,
         term,
@@ -600,7 +609,20 @@ IMPORTANT:
         signatory2Title
       } = validatedData;
 
-      console.log(`Generating ${contractType} for: ${partyAName} <> ${partyBName} (Detail: ${detailLevel})`);
+      // Build party list dynamically
+      const parties = [
+        { name: partyAName, role: partyARole },
+        { name: partyBName, role: partyBRole }
+      ];
+      
+      const numParties = parseInt(numberOfParties) || 2;
+      if (numParties >= 3 && partyCName) parties.push({ name: partyCName, role: partyCRole || 'Party C' });
+      if (numParties >= 4 && partyDName) parties.push({ name: partyDName, role: partyDRole || 'Party D' });
+      if (numParties >= 5 && partyEName) parties.push({ name: partyEName, role: partyERole || 'Party E' });
+      if (numParties >= 6 && partyFName) parties.push({ name: partyFName, role: partyFRole || 'Party F' });
+
+      const partySummary = parties.map(p => p.name).join(', ');
+      console.log(`Generating ${contractType} for: ${partySummary} (Detail: ${detailLevel})`);
 
       // Adjust contract depth based on detail level
       let wordTarget = '1500-2000';
@@ -628,6 +650,12 @@ IMPORTANT:
 
       const typeSpecificGuidance = contractTypeGuidance[contractType as keyof typeof contractTypeGuidance] || contractTypeGuidance['Custom'];
       
+      // Build parties section for prompt
+      const partiesSection = parties.map((p, idx) => {
+        const letter = String.fromCharCode(65 + idx); // A, B, C, D, E, F
+        return `Party ${letter} (${p.role}): ${p.name}`;
+      }).join('\n');
+      
       const prompt = `
 You are Contract Commander, an elite legal contract drafting assistant. Generate a professional, enforceable ${contractType} with proper legal structure.
 
@@ -637,8 +665,7 @@ Title: ${title}
 Effective Date: ${effectiveDate}
 
 PARTIES:
-Party A (${partyARole}): ${partyAName}
-Party B (${partyBRole}): ${partyBName}
+${partiesSection}
 
 KEY TERMS:
 Scope/Purpose: ${scope || 'To be defined in contract'}
@@ -663,7 +690,8 @@ REQUIRED STRUCTURE:
 # ${title}
 
 ## 1. PARTIES
-State this Agreement is made on ${effectiveDate} between ${partyAName} ('${partyARole}') and ${partyBName} ('${partyBRole}').
+State this Agreement is made on ${effectiveDate} between the following parties:
+${parties.map((p, idx) => `- ${p.name} ('${p.role}')`).join('\n')}
 
 ${includeDefinitions ? '## 2. DEFINITIONS\nDefine key terms used throughout the contract.\n\n## 3. RECITALS\nProvide background and purpose of the agreement.\n\n## 4. ' : '## 2. '}SCOPE ${contractType === 'NDA' ? 'OF CONFIDENTIAL INFORMATION' : 'OF WORK/SERVICES'}
 ${scope ? `Detail: ${scope}` : 'Define the work, services, or subject matter of this agreement.'}
@@ -690,7 +718,18 @@ Include jurisdiction, dispute resolution method (arbitration/mediation), and ven
 ## GENERAL PROVISIONS
 Include entire agreement, amendments, severability, waiver, notices, and assignment clauses.
 
-${signatory1Name && signatory2Name ? `## SIGNATURES\n\nIN WITNESS WHEREOF, the parties have executed this Agreement as of ${effectiveDate}.\n\n**${partyAName}**\nBy: ${signatory1Name}\nTitle: ${signatory1Title}\nDate: _________________\n\n**${partyBName}**\nBy: ${signatory2Name}\nTitle: ${signatory2Title}\nDate: _________________` : '## SIGNATURES\n\nIN WITNESS WHEREOF, the parties have executed this Agreement.\n\n**${partyAName}** (${partyARole})\n\nSignature: _________________\nName: _________________\nTitle: _________________\nDate: _________________\n\n**${partyBName}** (${partyBRole})\n\nSignature: _________________\nName: _________________\nTitle: _________________\nDate: _________________'}
+## SIGNATURES
+
+IN WITNESS WHEREOF, the parties have executed this Agreement as of ${effectiveDate}.
+
+${parties.map((p, idx) => {
+  const hasSignatoryInfo = idx === 0 && signatory1Name || idx === 1 && signatory2Name;
+  if (hasSignatoryInfo) {
+    return `**${p.name}**\nBy: ${idx === 0 ? signatory1Name : signatory2Name}\nTitle: ${idx === 0 ? signatory1Title : signatory2Title}\nDate: _________________`;
+  } else {
+    return `**${p.name}** (${p.role})\n\nSignature: _________________\nName: _________________\nTitle: _________________\nDate: _________________`;
+  }
+}).join('\n\n')}
 
 ${extraClauses ? `\nADDITIONAL CLAUSES TO INCLUDE:\n${extraClauses}` : ''}
 
