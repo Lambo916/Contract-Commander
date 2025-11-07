@@ -657,14 +657,6 @@ ${typeSpecificGuidance}
 Generate a JSON object with this structure:
 
 {
-  "executiveSnapshot": {
-    "contractType": "${contractType}",
-    "title": "${title}",
-    "parties": "${partyAName} (${partyARole}) and ${partyBName} (${partyBRole})",
-    "effectiveDate": "${effectiveDate}",
-    "keyTerms": ["Extract 3-4 most important terms from the contract details above"]
-  },
-  
   "mainPlan": "Full ${contractType} contract as markdown (${wordTarget} words). ${sectionGuidance}
 
 REQUIRED STRUCTURE:
@@ -702,22 +694,7 @@ ${signatory1Name && signatory2Name ? `## SIGNATURES\n\nIN WITNESS WHEREOF, the p
 
 ${extraClauses ? `\nADDITIONAL CLAUSES TO INCLUDE:\n${extraClauses}` : ''}
 
-Use ${tone} tone throughout. Make all clauses clear, enforceable, and appropriate for ${contractType}.",
-  
-  "kpiTable": [
-    {
-      "objective": "Contract execution milestone (e.g., 'Finalize agreement terms')",
-      "kpi": "Specific compliance metric (e.g., 'Contract signed by both parties')",
-      "target": "Target value (e.g., 'Within 14 days')",
-      "timeframe": "Timeline (e.g., '${effectiveDate}')"
-    }
-  ],
-  
-  "aiInsights": [
-    "Generate 4-6 strategic, actionable insights for THIS ${contractType}. Focus on: key protections missing, compliance requirements, risks to mitigate, recommended amendments, and enforceability considerations. Examples: 'Consider adding indemnification clause for third-party claims.', 'Specify exact definition of confidential information to avoid disputes.', 'Include mediation before arbitration to reduce costs.'"
-  ],
-  
-  "financialProjections": null
+Use ${tone} tone throughout. Make all clauses clear, enforceable, and appropriate for ${contractType}."
 }
 
 CRITICAL INSTRUCTIONS:
@@ -774,20 +751,10 @@ CRITICAL INSTRUCTIONS:
         });
       }
       
-      // Return structured response with contract data
+      // Return clean contract response (no BizPlan artifacts)
       res.json({
-        executiveSnapshot: parsedResponse.executiveSnapshot || {
-          contractType,
-          title,
-          parties: `${partyAName} (${partyARole}) and ${partyBName} (${partyBRole})`,
-          effectiveDate,
-          keyTerms: [scope, compensation, term].filter(Boolean).slice(0, 3)
-        },
         mainPlan: parsedResponse.mainPlan || `# ${title}\n\nContract content not available. Please try again.`,
-        kpiTable: parsedResponse.kpiTable || [],
-        aiInsights: parsedResponse.aiInsights || [],
-        financialProjections: parsedResponse.financialProjections || null,
-        // Contract-specific metadata for frontend
+        // Contract metadata for frontend
         contractType,
         title,
         parties: `${partyAName} and ${partyBName}`,
