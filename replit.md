@@ -6,6 +6,22 @@ GrantGenie is a production-grade AI-powered platform for discovering and applyin
 
 Preferred communication style: Simple, everyday language.
 
+# Recent Changes (Phase 3 - v1.1.0)
+
+## Core Framework Extraction (November 2025)
+- **Centralized Clients**: All Supabase and OpenAI client initialization now lives in `/core/clients/`
+  - `core/clients/supabase.ts` - Unified Supabase client with browser/server/auth variants
+  - `core/clients/openai.ts` - Singleton OpenAI client with automatic API key handling
+- **Shared Utilities**: Created `/core/utils/` for reusable functions
+  - `core/utils/errors.ts` - HttpError class and response helpers
+- **Configuration Management**: Centralized app config in `/core/config/index.ts`
+  - TOOL_NAME, REPORT_CAP, RATE_LIMIT settings
+- **PDF Layer**: Created `/core/pdf/export.ts` placeholder for future server-side PDF generation
+- **Type Definitions**: Consolidated contract types in `/models/contracts.ts`
+  - ContractInput, GeneratedContract, Party, Clause types
+- **Backward Compatibility**: Legacy imports in `lib/supabase.ts` re-export from core
+- **Build Status**: ✅ All builds pass, no LSP errors, runtime verified
+
 # System Architecture
 
 ## Frontend Architecture
