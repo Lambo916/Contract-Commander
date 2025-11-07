@@ -1,69 +1,106 @@
 // Contract Commander - Shared type definitions
 // Used across frontend, backend, and API routes
 
+export type ContractType = 
+  | 'NDA' 
+  | 'Service Agreement' 
+  | 'MOU' 
+  | 'Employment Agreement' 
+  | 'Partnership Agreement' 
+  | 'Custom';
+
+export type PartyRole = 
+  | 'Employer'
+  | 'Client'
+  | 'Company'
+  | 'Service Provider'
+  | 'Disclosing Party'
+  | 'Receiving Party'
+  | 'Contractor'
+  | 'Vendor'
+  | 'Consultant'
+  | 'Employee'
+  | 'Partner'
+  | string;
+
 export type Party = {
   name: string;
-  role?: 'Company' | 'Client' | 'Contractor' | 'Employee' | string;
+  role: PartyRole;
   address?: string;
   email?: string;
   phone?: string;
 };
 
-export type Clause = {
-  title: string;
-  text: string;
-  section?: string;
-  order?: number;
-};
+export type Tone = 'Professional' | 'Friendly' | 'Legal';
+export type DetailLevel = 'Summary' | 'Standard' | 'Comprehensive';
+export type IPOwnership = 'Company owns' | 'Contractor owns' | 'Joint';
 
+// Frontend form input structure
 export type ContractInput = {
-  // Core information
-  companyName: string;
-  industry?: string;
-  productOrService?: string;
-  paymentModel?: string;
-  currentStage?: string;
-  objectives?: string[];
+  // Contract Setup
+  contractType: ContractType;
+  title: string;
+  effectiveDate: string;
   
-  // Contract-specific
-  contractType?: 'NDA' | 'Service Agreement' | 'Employment Agreement' | 'MOU' | 'Consulting Agreement' | 'Partnership Agreement' | string;
-  parties?: Party[];
+  // Parties
+  partyAName: string;
+  partyARole: PartyRole;
+  partyBName: string;
+  partyBRole: PartyRole;
   
-  // Generation preferences
-  tone?: 'Professional' | 'Investor-ready' | 'Plain-language' | 'Technical' | string;
-  detailLevel?: 'Brief' | 'Standard' | 'Comprehensive' | string;
+  // Key Terms
+  scope?: string;
+  compensation?: string;
+  term?: string;
+  termination?: string;
+  confidentiality?: boolean | string; // Can be boolean from form or string from API
   
-  // Additional context
-  specialTerms?: string[];
-  jurisdiction?: string;
-  duration?: string;
+  // Legal Options
+  governingLaw?: string;
+  ipOwnership?: IPOwnership;
+  extraClauses?: string;
+  
+  // Output & Signature
+  tone?: Tone;
+  detailLevel?: DetailLevel;
+  signatory1Name?: string;
+  signatory1Title?: string;
+  signatory2Name?: string;
+  signatory2Title?: string;
+  outputFormat?: 'PDF' | 'Markdown' | 'Text';
 };
 
+// Generated contract structure
 export type GeneratedContract = {
   title: string;
-  summary: string;
-  clauses: Clause[];
-  notes?: string[];
-  warnings?: string[];
-  raw?: string; // Raw HTML content
+  effectiveDate: string;
+  parties: {
+    partyA: Party;
+    partyB: Party;
+  };
+  sections: {
+    recitals?: string;
+    definitions?: string;
+    scope?: string;
+    compensation?: string;
+    confidentiality?: string;
+    ipOwnership?: string;
+    warranties?: string;
+    termAndTermination?: string;
+    governingLaw?: string;
+    entireAgreement?: string;
+    [key: string]: string | undefined;
+  };
+  signatures: {
+    signatory1?: { name: string; title: string };
+    signatory2?: { name: string; title: string };
+  };
+  markdown?: string; // Full markdown content
   metadata?: {
     generatedAt?: string;
     model?: string;
     version?: string;
   };
-};
-
-// BizPlan/Contract report database schema types
-export type SavedReport = {
-  id: number;
-  userId: string | null;
-  title: string;
-  companyName: string;
-  industry: string | null;
-  htmlContent: string;
-  checksum: string;
-  metadata: any;
-  createdAt: Date;
 };
 
 // API request/response types
@@ -75,16 +112,34 @@ export type GenerateContractResponse = {
   error?: string;
 };
 
-export type SaveReportRequest = {
+export type SaveContractRequest = {
+  userId?: string;
+  contractType: string;
   title: string;
-  companyName: string;
-  industry?: string;
-  htmlContent: string;
-  metadata?: any;
+  effectiveDate: string;
+  partyAName: string;
+  partyARole: string;
+  partyBName: string;
+  partyBRole: string;
+  scope?: string;
+  compensation?: string;
+  term?: string;
+  termination?: string;
+  confidentiality?: string;
+  governingLaw?: string;
+  ipOwnership?: string;
+  extraClauses?: string;
+  tone?: string;
+  detailLevel?: string;
+  generatedMarkdown: string;
+  signatory1Name?: string;
+  signatory1Title?: string;
+  signatory2Name?: string;
+  signatory2Title?: string;
 };
 
-export type SaveReportResponse = {
+export type SaveContractResponse = {
   success: boolean;
-  reportId?: number;
+  contractId?: string;
   error?: string;
 };

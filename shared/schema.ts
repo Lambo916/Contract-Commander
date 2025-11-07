@@ -97,3 +97,88 @@ export const insertBizplanReportSchema = createInsertSchema(bizplanReports).omit
 
 export type InsertBizplanReport = z.infer<typeof insertBizplanReportSchema>;
 export type BizplanReport = typeof bizplanReports.$inferSelect;
+
+// Contract Commander table
+export const contracts = pgTable("contracts", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  userId: text("user_id").notNull().default(''),
+  
+  // Contract metadata
+  contractType: text("contract_type").notNull(),
+  title: text("title").notNull(),
+  effectiveDate: text("effective_date").notNull(),
+  
+  // Parties
+  partyAName: text("party_a_name").notNull(),
+  partyARole: text("party_a_role").notNull(),
+  partyBName: text("party_b_name").notNull(),
+  partyBRole: text("party_b_role").notNull(),
+  
+  // Terms
+  scope: text("scope"),
+  compensation: text("compensation"),
+  term: text("term"),
+  termination: text("termination"),
+  confidentiality: text("confidentiality").notNull().default('true'),
+  governingLaw: text("governing_law").notNull().default('California, USA'),
+  ipOwnership: text("ip_ownership").notNull().default('Company owns'),
+  extraClauses: text("extra_clauses"),
+  
+  // Generation settings
+  tone: text("tone").notNull().default('Professional'),
+  detailLevel: text("detail_level").notNull().default('Standard'),
+  
+  // Generated content
+  generatedMarkdown: text("generated_markdown").notNull(),
+  generatedPdfUrl: text("generated_pdf_url"),
+  
+  // Signatures
+  signatory1Name: text("signatory1_name"),
+  signatory1Title: text("signatory1_title"),
+  signatory2Name: text("signatory2_name"),
+  signatory2Title: text("signatory2_title"),
+  
+  // Timestamps
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const insertContractSchema = createInsertSchema(contracts).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type InsertContract = z.infer<typeof insertContractSchema>;
+export type Contract = typeof contracts.$inferSelect;
+
+// Contract request validation schema
+export const contractRequestSchema = z.object({
+  contractType: z.string().min(1, "Contract type is required"),
+  title: z.string().min(1, "Contract title is required"),
+  effectiveDate: z.string().min(1, "Effective date is required"),
+  
+  partyAName: z.string().min(1, "Your organization name is required"),
+  partyARole: z.string().min(1, "Your role is required"),
+  partyBName: z.string().min(1, "Counterparty name is required"),
+  partyBRole: z.string().min(1, "Counterparty role is required"),
+  
+  scope: z.string().optional(),
+  compensation: z.string().optional(),
+  term: z.string().optional(),
+  termination: z.string().optional(),
+  confidentiality: z.union([z.string(), z.boolean()]).optional().default('true').transform(val => typeof val === 'boolean' ? (val ? 'true' : 'false') : val),
+  governingLaw: z.string().optional().default('California, USA'),
+  ipOwnership: z.string().optional().default('Company owns'),
+  extraClauses: z.string().optional(),
+  
+  tone: z.string().optional().default('Professional'),
+  detailLevel: z.string().optional().default('Standard'),
+  
+  signatory1Name: z.string().optional(),
+  signatory1Title: z.string().optional(),
+  signatory2Name: z.string().optional(),
+  signatory2Title: z.string().optional(),
+});
+
+export type ContractRequest = z.infer<typeof contractRequestSchema>;

@@ -50,9 +50,77 @@ document.addEventListener('DOMContentLoaded', () => {
     themeToggle.addEventListener('click', toggleTheme);
   }
   
+  // Set effective date to today by default
+  const effectiveDate = $('effectiveDate');
+  if (effectiveDate && !effectiveDate.value) {
+    const today = new Date().toISOString().split('T')[0];
+    effectiveDate.value = today;
+  }
+  
+  // Add contract type change handler for dynamic form logic
+  const contractType = $('contractType');
+  if (contractType) {
+    contractType.addEventListener('change', handleContractTypeChange);
+    // Initialize based on current selection
+    handleContractTypeChange();
+  }
+  
   // Load saved report if it exists
   loadSavedReport();
 });
+
+// Dynamic form logic based on contract type
+function handleContractTypeChange() {
+  const contractType = $('contractType').value;
+  const compensationGroup = $('compensation')?.closest('div.full');
+  const confidentialityCheckbox = $('confidentiality');
+  const termInput = $('term');
+  
+  // NDA-specific logic
+  if (contractType === 'NDA') {
+    // Hide compensation for NDAs
+    if (compensationGroup) {
+      compensationGroup.style.display = 'none';
+    }
+    // Confidentiality is inherent in NDAs, so check and disable
+    if (confidentialityCheckbox) {
+      confidentialityCheckbox.checked = true;
+      confidentialityCheckbox.disabled = true;
+    }
+    // Set default term for NDAs
+    if (termInput && !termInput.value) {
+      termInput.placeholder = 'e.g., 3 years from Effective Date';
+    }
+  } else {
+    // Show compensation for other contract types
+    if (compensationGroup) {
+      compensationGroup.style.display = '';
+    }
+    // Enable confidentiality checkbox for non-NDA contracts
+    if (confidentialityCheckbox) {
+      confidentialityCheckbox.disabled = false;
+      confidentialityCheckbox.checked = true; // Default ON for Service Agreements, etc.
+    }
+    // Reset term placeholder
+    if (termInput) {
+      termInput.placeholder = 'e.g., 6 months, until terminated';
+    }
+  }
+  
+  // Employment Agreement-specific defaults
+  if (contractType === 'Employment Agreement') {
+    if (termInput && !termInput.value) {
+      termInput.placeholder = 'e.g., At-will, or specify duration';
+    }
+  }
+  
+  // Partnership Agreement-specific defaults
+  if (contractType === 'Partnership Agreement') {
+    if (termInput && !termInput.value) {
+      termInput.placeholder = 'e.g., Until dissolved by partners';
+    }
+  }
+}
 
 // Auto-save before page unload
 window.addEventListener('beforeunload', () => {
@@ -66,15 +134,27 @@ const AUTOSAVE_KEY = 'ybg-bizplan-autosave';
 function saveCurrentReport() {
   try {
     const formData = {
-      company: $('company').value.trim(),
-      industry: $('industry').value.trim(),
-      target: $('target').value.trim(),
-      product: $('product').value.trim(),
-      revenue: $('revenue').value.trim(),
-      stage: $('stage').value.trim(),
-      goals: $('goals').value.trim(),
-      tone: $('tone').value,
-      detailLevel: $('detailLevel')?.value || 'standard'
+      contractType: $('contractType')?.value || 'Service Agreement',
+      title: $('title')?.value.trim() || '',
+      effectiveDate: $('effectiveDate')?.value || '',
+      partyAName: $('partyAName')?.value.trim() || '',
+      partyARole: $('partyARole')?.value || '',
+      partyBName: $('partyBName')?.value.trim() || '',
+      partyBRole: $('partyBRole')?.value || '',
+      scope: $('scope')?.value.trim() || '',
+      compensation: $('compensation')?.value.trim() || '',
+      term: $('term')?.value.trim() || '',
+      termination: $('termination')?.value.trim() || '',
+      confidentiality: $('confidentiality')?.checked || false,
+      governingLaw: $('governingLaw')?.value.trim() || 'California, USA',
+      ipOwnership: $('ipOwnership')?.value || 'Company owns',
+      extraClauses: $('extraClauses')?.value.trim() || '',
+      tone: $('tone')?.value || 'Professional',
+      detailLevel: $('detailLevel')?.value || 'Standard',
+      signatory1Name: $('signatory1Name')?.value.trim() || '',
+      signatory1Title: $('signatory1Title')?.value.trim() || '',
+      signatory2Name: $('signatory2Name')?.value.trim() || '',
+      signatory2Title: $('signatory2Title')?.value.trim() || ''
     };
     
     const saveData = {
@@ -100,17 +180,28 @@ function loadSavedReport() {
     
     // Restore form data
     if (saveData.formData) {
-      $('company').value = saveData.formData.company || '';
-      $('industry').value = saveData.formData.industry || '';
-      $('target').value = saveData.formData.target || '';
-      $('product').value = saveData.formData.product || '';
-      $('revenue').value = saveData.formData.revenue || '';
-      $('stage').value = saveData.formData.stage || '';
-      $('goals').value = saveData.formData.goals || '';
-      $('tone').value = saveData.formData.tone || 'Professional';
-      if ($('detailLevel')) {
-        $('detailLevel').value = saveData.formData.detailLevel || 'standard';
-      }
+      // New contract fields
+      if ($('contractType')) $('contractType').value = saveData.formData.contractType || 'Service Agreement';
+      if ($('title')) $('title').value = saveData.formData.title || '';
+      if ($('effectiveDate')) $('effectiveDate').value = saveData.formData.effectiveDate || '';
+      if ($('partyAName')) $('partyAName').value = saveData.formData.partyAName || '';
+      if ($('partyARole')) $('partyARole').value = saveData.formData.partyARole || 'Company';
+      if ($('partyBName')) $('partyBName').value = saveData.formData.partyBName || '';
+      if ($('partyBRole')) $('partyBRole').value = saveData.formData.partyBRole || 'Contractor';
+      if ($('scope')) $('scope').value = saveData.formData.scope || '';
+      if ($('compensation')) $('compensation').value = saveData.formData.compensation || '';
+      if ($('term')) $('term').value = saveData.formData.term || '';
+      if ($('termination')) $('termination').value = saveData.formData.termination || '';
+      if ($('confidentiality')) $('confidentiality').checked = saveData.formData.confidentiality !== false;
+      if ($('governingLaw')) $('governingLaw').value = saveData.formData.governingLaw || 'California, USA';
+      if ($('ipOwnership')) $('ipOwnership').value = saveData.formData.ipOwnership || 'Company owns';
+      if ($('extraClauses')) $('extraClauses').value = saveData.formData.extraClauses || '';
+      if ($('tone')) $('tone').value = saveData.formData.tone || 'Professional';
+      if ($('detailLevel')) $('detailLevel').value = saveData.formData.detailLevel || 'Standard';
+      if ($('signatory1Name')) $('signatory1Name').value = saveData.formData.signatory1Name || '';
+      if ($('signatory1Title')) $('signatory1Title').value = saveData.formData.signatory1Title || '';
+      if ($('signatory2Name')) $('signatory2Name').value = saveData.formData.signatory2Name || '';
+      if ($('signatory2Title')) $('signatory2Title').value = saveData.formData.signatory2Title || '';
     }
     
     // Restore report data
@@ -134,9 +225,9 @@ function loadSavedReport() {
         
         // Show metadata
         showMetadata(
-          currentReportData.company, 
-          currentReportData.industry, 
-          currentReportData.stage
+          currentReportData.contractType || 'Contract', 
+          currentReportData.parties || '', 
+          currentReportData.effectiveDate || ''
         );
       }
     }
@@ -211,8 +302,8 @@ function markSaved() {
   hasUnsavedChanges = false;
 }
 
-function generateDefaultFilename(companyName) {
-  const company = companyName || 'Untitled';
+function generateDefaultFilename(title, contractType) {
+  const name = title || contractType || 'Contract';
   const now = new Date();
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -220,7 +311,7 @@ function generateDefaultFilename(companyName) {
   const hour = String(now.getHours()).padStart(2, '0');
   const minute = String(now.getMinutes()).padStart(2, '0');
   
-  return `${company} - Contract - ${year}-${month}-${day}_${hour}-${minute}`;
+  return `${name} - ${year}-${month}-${day}_${hour}-${minute}`;
 }
 
 // ==== TOAST NOTIFICATION SYSTEM ====
@@ -398,14 +489,14 @@ function updateButtonStates(hasReport) {
   // File, Export, and Tools menus handle their own state internally
 }
 
-function showMetadata(company, industry, stage) {
+function showMetadata(contractType, parties, effectiveDate) {
   const metadataBar = $('report-metadata');
-  $('meta-company').textContent = company || 'N/A';
-  $('meta-industry').textContent = industry || 'N/A';
-  $('meta-stage').textContent = stage || 'N/A';
+  if ($('meta-contract-type')) $('meta-contract-type').textContent = contractType || 'N/A';
+  if ($('meta-parties')) $('meta-parties').textContent = parties || 'N/A';
+  if ($('meta-effective-date')) $('meta-effective-date').textContent = effectiveDate || 'N/A';
   
   const now = new Date();
-  $('meta-timestamp').textContent = now.toLocaleString();
+  if ($('meta-timestamp')) $('meta-timestamp').textContent = now.toLocaleString();
   
   // Metadata is now inside Results panel
   if (metadataBar) {
@@ -1172,19 +1263,38 @@ $('btn-generate').addEventListener('click', async () => {
   setGeneratingState(true);
   
   const payload = {
-    company: $('company').value.trim(),
-    industry: $('industry').value.trim(),
-    target: $('target').value.trim(),
-    product: $('product').value.trim(),
-    revenue: $('revenue').value.trim(),
-    stage: $('stage').value.trim(),
-    goals: $('goals').value.trim(),
+    contractType: $('contractType').value,
+    title: $('title').value.trim(),
+    effectiveDate: $('effectiveDate').value,
+    partyAName: $('partyAName').value.trim(),
+    partyARole: $('partyARole').value,
+    partyBName: $('partyBName').value.trim(),
+    partyBRole: $('partyBRole').value,
+    scope: $('scope').value.trim(),
+    compensation: $('compensation').value.trim(),
+    term: $('term').value.trim(),
+    termination: $('termination').value.trim(),
+    confidentiality: $('confidentiality').checked ? 'true' : 'false',
+    governingLaw: $('governingLaw').value.trim() || 'California, USA',
+    ipOwnership: $('ipOwnership').value,
+    extraClauses: $('extraClauses').value.trim(),
     tone: $('tone').value,
-    detailLevel: $('detailLevel')?.value || 'standard'
+    detailLevel: $('detailLevel').value || 'Standard',
+    signatory1Name: $('signatory1Name').value.trim(),
+    signatory1Title: $('signatory1Title').value.trim(),
+    signatory2Name: $('signatory2Name').value.trim(),
+    signatory2Title: $('signatory2Title').value.trim()
   };
   
-  if (!payload.company || !payload.industry) {
-    showToast('Please fill in required fields: Company and Industry', 'error');
+  // Validate required fields
+  if (!payload.contractType || !payload.title || !payload.effectiveDate) {
+    showToast('Please fill in required fields: Contract Type, Title, and Effective Date', 'error');
+    setGeneratingState(false);
+    return;
+  }
+  
+  if (!payload.partyAName || !payload.partyBName) {
+    showToast('Please fill in both party names', 'error');
     setGeneratingState(false);
     return;
   }

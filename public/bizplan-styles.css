@@ -124,6 +124,25 @@
   font-weight: 600;
 }
 
+/* Subsection titles for contract form sections */
+.ybg-subsection-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--brand-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-top: 20px;
+  margin-bottom: 12px;
+  padding-top: 16px;
+  border-top: 2px solid var(--ybg-border);
+}
+
+.ybg-subsection-title:first-of-type {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: none;
+}
+
 .report-view {
   background: var(--ybg-report-bg);
   color: var(--ybg-report-text);

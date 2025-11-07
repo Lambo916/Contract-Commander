@@ -7,7 +7,7 @@ import { openai } from "../core/clients/openai";
 import sanitizeHtml from "sanitize-html";
 import { resolveProfile, type FilingProfile } from "@shared/filing-profiles";
 import { db } from "./db";
-import { complianceReports, insertComplianceReportSchema, type ComplianceReport, usageTracking, bizPlanRequestSchema, bizplanReports, insertBizplanReportSchema, type BizplanReport } from "@shared/schema";
+import { complianceReports, insertComplianceReportSchema, type ComplianceReport, usageTracking, bizPlanRequestSchema, contractRequestSchema, bizplanReports, contracts, insertBizplanReportSchema, insertContractSchema, type BizplanReport, type Contract } from "@shared/schema";
 import { eq, desc, or, and, sql } from "drizzle-orm";
 import { getUserId, hasAccess, requireAuth } from "./auth";
 
@@ -574,89 +574,160 @@ IMPORTANT:
   // Contract Commander - Generate contract (SDK-free fetch for Vercel portability)
   app.post("/api/bizplan", async (req, res) => {
     try {
-      // Validate request body
-      const validatedData = bizPlanRequestSchema.parse(req.body);
+      // Validate request body with new contract schema
+      const validatedData = contractRequestSchema.parse(req.body);
       const {
-        company,
-        industry,
-        target,
-        product,
-        revenue,
-        stage,
-        goals,
+        contractType,
+        title,
+        effectiveDate,
+        partyAName,
+        partyARole,
+        partyBName,
+        partyBRole,
+        scope,
+        compensation,
+        term,
+        termination,
+        confidentiality,
+        governingLaw,
+        ipOwnership,
+        extraClauses,
         tone,
-        detailLevel
+        detailLevel,
+        signatory1Name,
+        signatory1Title,
+        signatory2Name,
+        signatory2Title
       } = validatedData;
 
-      console.log(`Generating contract for: ${company} - ${industry} (Detail: ${detailLevel})`);
+      console.log(`Generating ${contractType} for: ${partyAName} <> ${partyBName} (Detail: ${detailLevel})`);
 
-      // Adjust prompt based on detail level
-      let wordCount = '1500-2200';
-      let depthGuidance = 'Write 2-3 substantial paragraphs per major section. Each section should include: (1) Strategic overview and context, (2) Specific actionable clauses and terms, (3) Success metrics and compliance requirements. Include real-world examples relevant to the industry. Make content immediately actionable for contract drafting.';
+      // Adjust contract depth based on detail level
+      let wordTarget = '1500-2000';
+      let sectionGuidance = 'Write 2-3 clear paragraphs per section. Each clause should be enforceable and specific.';
+      let includeDefinitions = false;
       
-      if (detailLevel === 'expanded') {
-        wordCount = '2200-3200';
-        depthGuidance = 'Write 3-4 detailed paragraphs per major section. Each section must include: (1) Strategic overview with market context and trends, (2) Detailed actionable tactics and implementation steps, (3) Metrics, KPIs, and success criteria with specific targets, (4) Real-world examples, case studies, or best practices from the industry. Add potential pitfalls to avoid and resource requirements. Provide specific next steps with timelines (30/60/90 day plans where relevant).';
-      } else if (detailLevel === 'comprehensive') {
-        wordCount = '3200-4500';
-        depthGuidance = 'Write 4-6 comprehensive paragraphs per major section. Each section must include: (1) In-depth strategic overview with market dynamics, competitive landscape, and trends, (2) Detailed step-by-step actionable tactics with implementation roadmap, (3) Comprehensive metrics, KPIs, and success criteria with specific numeric targets and benchmarks, (4) Multiple real-world examples, case studies, and industry best practices, (5) Risk analysis with specific mitigation strategies, (6) Resource requirements (budget, team, tools) with recommendations. Include multiple scenarios (conservative/moderate/optimistic), specific timelines with milestones, and quarterly planning guidance. Make every section a complete playbook your client can follow.';
+      if (detailLevel === 'Standard') {
+        wordTarget = '2000-3000';
+        sectionGuidance = 'Write 3-4 detailed paragraphs per section with specific legal language. Include examples and enforcement mechanisms.';
+      } else if (detailLevel === 'Comprehensive') {
+        wordTarget = '3500-5000';
+        sectionGuidance = 'Write 4-6 comprehensive paragraphs per section with precise legal terminology. Include definitions, examples, exceptions, and detailed enforcement provisions.';
+        includeDefinitions = true;
       }
 
-      // Build comprehensive contract prompt with premium structured output
+      // Build contract-specific prompt based on contract type
+      const contractTypeGuidance = {
+        'NDA': 'Focus on confidential information definition, permitted disclosures, return of materials, duration (typically 2-5 years), and remedies for breach. Include mutual vs unilateral designation.',
+        'Service Agreement': 'Focus on scope of services, deliverables, payment terms, IP ownership, warranties, liability limitations, and termination rights.',
+        'Employment Agreement': 'Focus on job duties, compensation and benefits, at-will or fixed-term employment, IP assignment, confidentiality, non-compete (if applicable), and termination conditions.',
+        'MOU': 'Use softer language emphasizing intent and cooperation. Include non-binding disclaimer if appropriate. Focus on objectives, responsibilities, and next steps.',
+        'Partnership Agreement': 'Focus on capital contributions, profit/loss allocation, decision-making authority, partner duties, dispute resolution, and dissolution procedures.',
+        'Custom': 'Generate a comprehensive contract appropriate for the stated purpose and parties.'
+      };
+
+      const typeSpecificGuidance = contractTypeGuidance[contractType as keyof typeof contractTypeGuidance] || contractTypeGuidance['Custom'];
+      
       const prompt = `
-You are Contract Commander, an elite contract drafting assistant. Generate a professional, lawyer-style contract with enhanced structure.
+You are Contract Commander, an elite legal contract drafting assistant. Generate a professional, enforceable ${contractType} with proper legal structure.
 
-COMPANY INFORMATION:
-Company: ${company}
-Industry: ${industry}
-Target Customer: ${target || 'N/A'}
-Product/Service: ${product || 'N/A'}
-Revenue Model: ${revenue || 'N/A'}
-Stage: ${stage || 'N/A'}
-Top Goals (next 6-12 months): ${goals || 'N/A'}
-Tone: ${tone || 'Professional'}
-Detail Level: ${detailLevel || 'standard'}
+CONTRACT DETAILS:
+Type: ${contractType}
+Title: ${title}
+Effective Date: ${effectiveDate}
 
-Generate a JSON object with this exact structure:
+PARTIES:
+Party A (${partyARole}): ${partyAName}
+Party B (${partyBRole}): ${partyBName}
+
+KEY TERMS:
+Scope/Purpose: ${scope || 'To be defined in contract'}
+Compensation: ${compensation || 'N/A'}
+Term/Duration: ${term || 'As specified in contract'}
+Termination: ${termination || 'Either party may terminate with 30 days written notice'}
+Confidentiality Clause: ${confidentiality === 'true' ? 'Yes - Include robust NDA provisions' : 'No'}
+Governing Law: ${governingLaw}
+IP Ownership: ${ipOwnership}
+Additional Clauses: ${extraClauses || 'None'}
+
+TONE: ${tone}
+DETAIL LEVEL: ${detailLevel}
+${typeSpecificGuidance}
+
+Generate a JSON object with this structure:
 
 {
   "executiveSnapshot": {
-    "company": "${company}",
-    "stage": "${stage || 'Startup'}",
-    "industry": "${industry}",
-    "targetMarket": "${target || 'To be defined'}",
-    "top3Goals": ["Extract and format the top 3 goals from: ${goals || 'Growth, Revenue, Market Entry'}"]
+    "contractType": "${contractType}",
+    "title": "${title}",
+    "parties": "${partyAName} (${partyARole}) and ${partyBName} (${partyBRole})",
+    "effectiveDate": "${effectiveDate}",
+    "keyTerms": ["Extract 3-4 most important terms from the contract details above"]
   },
   
-  "mainPlan": "Full contract as markdown (${wordCount} words). Include these sections with ## headings: Parties & Recitals, Scope of Work, Terms & Conditions, Payment Terms, Confidentiality, Termination Clauses, Dispute Resolution, Governing Law. Use ${tone} tone. ${depthGuidance}",
+  "mainPlan": "Full ${contractType} contract as markdown (${wordTarget} words). ${sectionGuidance}
+
+REQUIRED STRUCTURE:
+# ${title}
+
+## 1. PARTIES
+State this Agreement is made on ${effectiveDate} between ${partyAName} ('${partyARole}') and ${partyBName} ('${partyBRole}').
+
+${includeDefinitions ? '## 2. DEFINITIONS\nDefine key terms used throughout the contract.\n\n## 3. RECITALS\nProvide background and purpose of the agreement.\n\n## 4. ' : '## 2. '}SCOPE ${contractType === 'NDA' ? 'OF CONFIDENTIAL INFORMATION' : 'OF WORK/SERVICES'}
+${scope ? `Detail: ${scope}` : 'Define the work, services, or subject matter of this agreement.'}
+
+${compensation && compensation !== 'N/A' ? `## ${includeDefinitions ? '5' : '3'}. COMPENSATION AND PAYMENT TERMS\n${compensation}\nInclude payment schedule, invoicing, late payment penalties.` : ''}
+
+${confidentiality === 'true' || contractType === 'NDA' ? `## ${includeDefinitions ? (compensation && compensation !== 'N/A' ? '6' : '5') : (compensation && compensation !== 'N/A' ? '4' : '3')}. CONFIDENTIALITY AND NON-DISCLOSURE\nDefine confidential information, obligations, permitted disclosures, duration, and return of materials.` : ''}
+
+## ${includeDefinitions ? (confidentiality === 'true' || contractType === 'NDA' ? (compensation && compensation !== 'N/A' ? '7' : '6') : (compensation && compensation !== 'N/A' ? '6' : '5')) : (confidentiality === 'true' || contractType === 'NDA' ? (compensation && compensation !== 'N/A' ? '5' : '4') : (compensation && compensation !== 'N/A' ? '4' : '3'))}. INTELLECTUAL PROPERTY
+${ipOwnership}. Detail ownership of work product, pre-existing IP, and assignments.
+
+## TERM AND TERMINATION
+Duration: ${term}
+Termination: ${termination}
+Include survival clauses for confidentiality and IP.
+
+## WARRANTIES AND LIABILITY
+Include representations, warranties, disclaimer of warranties, and limitation of liability.
+
+## GOVERNING LAW AND DISPUTE RESOLUTION
+Governing Law: ${governingLaw}
+Include jurisdiction, dispute resolution method (arbitration/mediation), and venue.
+
+## GENERAL PROVISIONS
+Include entire agreement, amendments, severability, waiver, notices, and assignment clauses.
+
+${signatory1Name && signatory2Name ? `## SIGNATURES\n\nIN WITNESS WHEREOF, the parties have executed this Agreement as of ${effectiveDate}.\n\n**${partyAName}**\nBy: ${signatory1Name}\nTitle: ${signatory1Title}\nDate: _________________\n\n**${partyBName}**\nBy: ${signatory2Name}\nTitle: ${signatory2Title}\nDate: _________________` : '## SIGNATURES\n\nIN WITNESS WHEREOF, the parties have executed this Agreement.\n\n**${partyAName}** (${partyARole})\n\nSignature: _________________\nName: _________________\nTitle: _________________\nDate: _________________\n\n**${partyBName}** (${partyBRole})\n\nSignature: _________________\nName: _________________\nTitle: _________________\nDate: _________________'}
+
+${extraClauses ? `\nADDITIONAL CLAUSES TO INCLUDE:\n${extraClauses}` : ''}
+
+Use ${tone} tone throughout. Make all clauses clear, enforceable, and appropriate for ${contractType}.",
   
   "kpiTable": [
     {
-      "objective": "Smart objective derived from goals (e.g., 'Achieve Product-Market Fit')",
-      "kpi": "Specific measurable KPI (e.g., 'Monthly Active Users')",
-      "target": "Numeric target (e.g., '10,000 users')",
-      "timeframe": "Timeline (e.g., 'Q2 2025')"
+      "objective": "Contract execution milestone (e.g., 'Finalize agreement terms')",
+      "kpi": "Specific compliance metric (e.g., 'Contract signed by both parties')",
+      "target": "Target value (e.g., 'Within 14 days')",
+      "timeframe": "Timeline (e.g., '${effectiveDate}')"
     }
   ],
   
   "aiInsights": [
-    "Generate 4-6 practical, actionable insights based on the contract. Focus on: key protections, compliance requirements, risks to mitigate, amendments to consider, and enforcement strategies. Keep each insight concise but specific (1-2 sentences with concrete recommendations). Examples: 'Ensure confidentiality clause includes specific definition of proprietary information and 3-year duration post-termination.', 'Consider adding indemnification clause to protect against third-party claims arising from breach of contract.'"
+    "Generate 4-6 strategic, actionable insights for THIS ${contractType}. Focus on: key protections missing, compliance requirements, risks to mitigate, recommended amendments, and enforceability considerations. Examples: 'Consider adding indemnification clause for third-party claims.', 'Specify exact definition of confidential information to avoid disputes.', 'Include mediation before arbitration to reduce costs.'"
   ],
   
-  "financialProjections": {
-    "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-    "revenue": [10000, 12000, 15000, 18000, 22000, 28000, 35000, 42000, 50000, 60000, 72000, 85000],
-    "expenses": [8000, 9000, 10000, 11000, 12000, 14000, 16000, 18000, 20000, 22000, 24000, 26000],
-    "profit": [2000, 3000, 5000, 7000, 10000, 14000, 19000, 24000, 30000, 38000, 48000, 59000]
-  }
+  "financialProjections": null
 }
 
-INSTRUCTIONS:
-- executiveSnapshot: Auto-populate from inputs, keep factual
-- mainPlan: Write comprehensive, actionable markdown contract (${wordCount} words) with professional ${tone} tone. ${depthGuidance} Each major section MUST have multiple substantial paragraphs. Focus on practical, implementable clauses that protect clients' interests. Include specific examples, timelines, compliance requirements, and enforcement mechanisms in every section.
-- kpiTable: Intelligently suggest 4-6 KPIs based on goals and stage (e.g., "sales" → Revenue Growth %; "users" → User Acquisition Rate). Make them specific and measurable.
-- aiInsights: Generate 4-6 strategic, actionable insights tied to the plan. Focus on immediate priorities, risks to watch, opportunities to capitalize on, and specific next steps. Each insight should be practical and implementable.
-- financialProjections: Generate realistic 12-month financial projections based on the business model, stage, and revenue information. Include monthly values for revenue, expenses, and profit. Ensure values show realistic growth trajectory for ${stage} stage in ${industry} industry. Revenue should align with stated revenue model: ${revenue}. Make expenses realistic (60-80% of revenue initially, decreasing over time as business scales).
+CRITICAL INSTRUCTIONS:
+- Generate legally sound, enforceable language appropriate for ${contractType}
+- Tailor ALL sections to ${contractType} - NDA should focus on confidentiality, Service Agreement on deliverables, etc.
+- Use proper contract formatting with numbered sections
+- Include signature blocks at the end
+- Make every clause specific and actionable
+- Use ${tone} tone: Professional = formal legal, Friendly = clear but warm, Legal = strict legal terminology
+- ${sectionGuidance}
 - Return ONLY valid JSON, no explanations
       `.trim();
 
@@ -703,24 +774,24 @@ INSTRUCTIONS:
         });
       }
       
-      // Return structured response with all sections and fallbacks
+      // Return structured response with contract data
       res.json({
         executiveSnapshot: parsedResponse.executiveSnapshot || {
-          company,
-          stage: stage || 'Startup',
-          industry,
-          targetMarket: target || 'To be defined',
-          top3Goals: (goals || '').split(/[,\n]/).filter(Boolean).slice(0, 3).map(g => g.trim())
+          contractType,
+          title,
+          parties: `${partyAName} (${partyARole}) and ${partyBName} (${partyBRole})`,
+          effectiveDate,
+          keyTerms: [scope, compensation, term].filter(Boolean).slice(0, 3)
         },
-        mainPlan: parsedResponse.mainPlan || "Business plan content not available",
+        mainPlan: parsedResponse.mainPlan || `# ${title}\n\nContract content not available. Please try again.`,
         kpiTable: parsedResponse.kpiTable || [],
         aiInsights: parsedResponse.aiInsights || [],
-        financialProjections: parsedResponse.financialProjections || {
-          months: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-          revenue: [5000, 7500, 11000, 15000, 20000, 26000, 33000, 41000, 50000, 60000, 72000, 85000],
-          expenses: [4000, 5000, 6500, 8000, 10000, 12000, 15000, 18000, 21000, 24000, 27000, 30000],
-          profit: [1000, 2500, 4500, 7000, 10000, 14000, 18000, 23000, 29000, 36000, 45000, 55000]
-        },
+        financialProjections: parsedResponse.financialProjections || null,
+        // Contract-specific metadata for frontend
+        contractType,
+        title,
+        parties: `${partyAName} and ${partyBName}`,
+        effectiveDate,
         // Legacy support - also return as markdown for compatibility
         markdown: parsedResponse.mainPlan || ""
       });

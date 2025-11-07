@@ -44,59 +44,150 @@
     <div class="ybg-card">
       <div class="ybg-section-title">Input</div>
       <div class="ybg-grid">
-        <div class="full">
-          <label class="label-with-tooltip" data-tooltip="Enter your company or organization name as it will appear in the contract.">
-            <span>Company / Organization Name *</span>
+        <!-- Contract Setup -->
+        <div class="full ybg-subsection-title">Contract Setup</div>
+        <div>
+          <label>Contract Type *</label>
+          <select id="contractType" data-testid="select-contract-type">
+            <option value="NDA">NDA</option>
+            <option value="Service Agreement" selected>Service Agreement</option>
+            <option value="MOU">MOU</option>
+            <option value="Employment Agreement">Employment Agreement</option>
+            <option value="Partnership Agreement">Partnership Agreement</option>
+            <option value="Custom">Custom</option>
+          </select>
+        </div>
+        <div>
+          <label>Contract Title *</label>
+          <input id="title" placeholder="e.g., Consulting Services Agreement" data-testid="input-title"/>
+        </div>
+        <div>
+          <label>Effective Date *</label>
+          <input type="date" id="effectiveDate" data-testid="input-effective-date"/>
+        </div>
+
+        <!-- Parties -->
+        <div class="full ybg-subsection-title">Parties</div>
+        <div>
+          <label>Your Organization Name *</label>
+          <input id="partyAName" placeholder="Your Company Name" data-testid="input-party-a-name"/>
+        </div>
+        <div>
+          <label class="label-with-tooltip" data-tooltip="Your role in this contract">
+            <span>Your Role *</span>
             <span class="tooltip-wrapper">
-              <span class="tooltip-icon" tabindex="0" role="button" aria-label="Help" data-tip="Enter your company or organization name as it will appear in the contract.">i</span>
-              <span class="tooltip-bubble" role="tooltip">Enter your company or organization name as it will appear in the contract.</span>
+              <span class="tooltip-icon" tabindex="0" role="button" aria-label="Help" data-tip="Your role in this contract">i</span>
+              <span class="tooltip-bubble" role="tooltip">Your role in this contract</span>
             </span>
           </label>
-          <input id="company" placeholder="Your Company or Project" data-testid="input-company"/>
+          <select id="partyARole" data-testid="select-party-a-role">
+            <option value="Company">Company</option>
+            <option value="Employer">Employer</option>
+            <option value="Client">Client</option>
+            <option value="Service Provider">Service Provider</option>
+            <option value="Disclosing Party">Disclosing Party</option>
+            <option value="Partner">Partner</option>
+          </select>
         </div>
         <div>
-          <label>Industry *</label>
-          <input id="industry" placeholder="e.g., Food, SaaS, Real Estate" data-testid="input-industry"/>
+          <label>Counterparty Name *</label>
+          <input id="partyBName" placeholder="Other Party Name" data-testid="input-party-b-name"/>
         </div>
         <div>
-          <label>Target Customer</label>
-          <input id="target" placeholder="e.g., SMBs, consumers, enterprises" data-testid="input-target"/>
-        </div>
-        <div class="full">
-          <label>Product / Service</label>
-          <textarea id="product" placeholder="Describe your offering..." data-testid="input-product"></textarea>
-        </div>
-        <div>
-          <label class="label-with-tooltip" data-tooltip="Payment model for this contract (e.g., fixed fee, hourly rate, milestone-based)">
-            <span>Payment Model</span>
+          <label class="label-with-tooltip" data-tooltip="The other party's role in this contract">
+            <span>Counterparty Role *</span>
             <span class="tooltip-wrapper">
-              <span class="tooltip-icon" tabindex="0" role="button" aria-label="Help" data-tip="Payment model for this contract (e.g., fixed fee, hourly rate, milestone-based)">i</span>
-              <span class="tooltip-bubble" role="tooltip">Payment model for this contract (e.g., fixed fee, hourly rate, milestone-based)</span>
+              <span class="tooltip-icon" tabindex="0" role="button" aria-label="Help" data-tip="The other party's role in this contract">i</span>
+              <span class="tooltip-bubble" role="tooltip">The other party's role in this contract</span>
             </span>
           </label>
-          <input id="revenue" placeholder="e.g., fixed fee, hourly rate, milestone-based" data-testid="input-revenue"/>
+          <select id="partyBRole" data-testid="select-party-b-role">
+            <option value="Contractor">Contractor</option>
+            <option value="Vendor">Vendor</option>
+            <option value="Consultant">Consultant</option>
+            <option value="Employee">Employee</option>
+            <option value="Receiving Party">Receiving Party</option>
+            <option value="Partner">Partner</option>
+            <option value="Client">Client</option>
+          </select>
         </div>
-        <div>
-          <label>Current Stage</label>
-          <input id="stage" placeholder="idea, MVP, launched, scaling" data-testid="input-stage"/>
-        </div>
+
+        <!-- Key Terms -->
+        <div class="full ybg-subsection-title">Key Terms</div>
         <div class="full">
-          <label class="label-with-tooltip" data-tooltip="List your key objectives or requirements for this contract.">
-            <span>Contract Objectives</span>
+          <label class="label-with-tooltip" data-tooltip="Describe the scope of work, services, or purpose of this contract">
+            <span>Scope of Work / Purpose</span>
             <span class="tooltip-wrapper">
-              <span class="tooltip-icon" tabindex="0" role="button" aria-label="Help" data-tip="List your key objectives or requirements for this contract.">i</span>
-              <span class="tooltip-bubble" role="tooltip">List your key objectives or requirements for this contract.</span>
+              <span class="tooltip-icon" tabindex="0" role="button" aria-label="Help" data-tip="Describe the scope of work, services, or purpose of this contract">i</span>
+              <span class="tooltip-bubble" role="tooltip">Describe the scope of work, services, or purpose of this contract</span>
             </span>
           </label>
-          <textarea id="goals" placeholder="Your top 3–5 outcomes..." data-testid="input-goals"></textarea>
+          <textarea id="scope" placeholder="Describe the services, work, or purpose..." data-testid="input-scope"></textarea>
         </div>
+        <div class="full">
+          <label class="label-with-tooltip" data-tooltip="Payment terms, compensation, or enter 'N/A' if not applicable">
+            <span>Compensation / Payment Terms</span>
+            <span class="tooltip-wrapper">
+              <span class="tooltip-icon" tabindex="0" role="button" aria-label="Help" data-tip="Payment terms, compensation, or enter 'N/A' if not applicable">i</span>
+              <span class="tooltip-bubble" role="tooltip">Payment terms, compensation, or enter "N/A" if not applicable</span>
+            </span>
+          </label>
+          <textarea id="compensation" placeholder="e.g., $5,000/month, hourly rate, or 'N/A'" data-testid="input-compensation"></textarea>
+        </div>
+        <div>
+          <label>Term / Duration</label>
+          <input id="term" placeholder="e.g., 6 months, until terminated" data-testid="input-term"/>
+        </div>
+        <div class="full">
+          <label>Termination Terms</label>
+          <textarea id="termination" placeholder="e.g., Either party may terminate with 30 days notice." data-testid="input-termination"></textarea>
+        </div>
+        <div class="full">
+          <label>
+            <input type="checkbox" id="confidentiality" checked data-testid="input-confidentiality"/>
+            Include Confidentiality / NDA Clause
+          </label>
+        </div>
+
+        <!-- Legal Options -->
+        <div class="full ybg-subsection-title">Legal Options</div>
+        <div>
+          <label>Governing Law / Jurisdiction</label>
+          <input id="governingLaw" placeholder="e.g., California, USA" value="California, USA" data-testid="input-governing-law"/>
+        </div>
+        <div>
+          <label class="label-with-tooltip" data-tooltip="Who owns intellectual property created under this contract">
+            <span>IP Ownership</span>
+            <span class="tooltip-wrapper">
+              <span class="tooltip-icon" tabindex="0" role="button" aria-label="Help" data-tip="Who owns intellectual property created under this contract">i</span>
+              <span class="tooltip-bubble" role="tooltip">Who owns intellectual property created under this contract</span>
+            </span>
+          </label>
+          <select id="ipOwnership" data-testid="select-ip-ownership">
+            <option value="Company owns">Company owns</option>
+            <option value="Contractor owns">Contractor owns</option>
+            <option value="Joint">Joint</option>
+          </select>
+        </div>
+        <div class="full">
+          <label class="label-with-tooltip" data-tooltip="Any additional clauses or special terms for this contract">
+            <span>Additional Clauses</span>
+            <span class="tooltip-wrapper">
+              <span class="tooltip-icon" tabindex="0" role="button" aria-label="Help" data-tip="Any additional clauses or special terms for this contract">i</span>
+              <span class="tooltip-bubble" role="tooltip">Any additional clauses or special terms for this contract</span>
+            </span>
+          </label>
+          <textarea id="extraClauses" placeholder="Add any additional terms or special clauses..." data-testid="input-extra-clauses"></textarea>
+        </div>
+
+        <!-- Output & Signature -->
+        <div class="full ybg-subsection-title">Output & Signature</div>
         <div>
           <label>Tone</label>
           <select id="tone" data-testid="select-tone">
-            <option>Professional</option>
-            <option>Investor-ready</option>
-            <option>Concise</option>
-            <option>Visionary</option>
+            <option value="Professional">Professional</option>
+            <option value="Friendly">Friendly</option>
+            <option value="Legal">Legal</option>
           </select>
         </div>
         <div>
@@ -108,10 +199,26 @@
             </span>
           </label>
           <select id="detailLevel" data-testid="select-detail-level">
-            <option value="standard" selected>Standard</option>
-            <option value="expanded">Expanded</option>
-            <option value="comprehensive">Comprehensive</option>
+            <option value="Summary">Summary</option>
+            <option value="Standard" selected>Standard</option>
+            <option value="Comprehensive">Comprehensive</option>
           </select>
+        </div>
+        <div>
+          <label>Signatory 1 Name</label>
+          <input id="signatory1Name" placeholder="e.g., John Smith" data-testid="input-signatory1-name"/>
+        </div>
+        <div>
+          <label>Signatory 1 Title</label>
+          <input id="signatory1Title" placeholder="e.g., CEO" data-testid="input-signatory1-title"/>
+        </div>
+        <div>
+          <label>Signatory 2 Name</label>
+          <input id="signatory2Name" placeholder="e.g., Jane Doe" data-testid="input-signatory2-name"/>
+        </div>
+        <div>
+          <label>Signatory 2 Title</label>
+          <input id="signatory2Title" placeholder="e.g., Contractor" data-testid="input-signatory2-title"/>
         </div>
         <div class="full">
           <button class="btn btn-primary btn-generate-inline" id="btn-generate" data-testid="button-generate" title="Generate contract">Generate Contract</button>
@@ -169,9 +276,9 @@
         
         <!-- Report Metadata (shown after generation, inside Results panel) -->
         <div id="report-metadata" class="report-meta-inline" style="display:none;">
-          <div class="meta-item"><strong>Company:</strong> <span id="meta-company">—</span></div>
-          <div class="meta-item"><strong>Industry:</strong> <span id="meta-industry">—</span></div>
-          <div class="meta-item"><strong>Stage:</strong> <span id="meta-stage">—</span></div>
+          <div class="meta-item"><strong>Contract Type:</strong> <span id="meta-contract-type">—</span></div>
+          <div class="meta-item"><strong>Parties:</strong> <span id="meta-parties">—</span></div>
+          <div class="meta-item"><strong>Effective Date:</strong> <span id="meta-effective-date">—</span></div>
           <div class="meta-item"><strong>Generated:</strong> <span id="meta-timestamp">—</span></div>
         </div>
         
