@@ -1,0 +1,138 @@
+AGENT IMPLEMENTATION BRIEF — Contract Commander
+Feature: User Logo Upload + Letterhead Block on PDF Export
+Owner: YBG / Contract Commander
+Priority: High
+Target: Production
+
+GOAL
+Allow any user to brand their exported contract PDFs by:
+(a) uploading a small logo, and
+(b) entering letterhead details (company name, address, contact lines).
+Branding appears tastefully on the PDF (first page only by default), with user controls.
+
+--- UX / UI CHANGES ---
+
+1) Input Panel: new “Branding” section (collapsible)
+   • Toggle: [ ] Include branding on PDF
+   • Logo
+     - Button: “Upload Logo (PNG/SVG/JPG, ≤ 300 KB)”
+     - Preview thumbnail (max width 180px), “Replace” and “Remove” actions
+   • Letterhead fields
+     - Company/Organization (text)
+     - Address (multi-line)
+     - Contact line (e.g., email | phone | website)
+   • Placement options
+     - Position: (• Top-left  • Top-center)
+     - Pages: (• First page only  ○ All pages)
+   • Optional legal footer toggle (defaults OFF)
+     - [ ] Add neutral legal footer on last page only
+
+2) Save behavior
+   • “Save Branding” persists to the user profile so they don’t re-enter each time.
+   • If a user is not authenticated, hide the branding section (branding requires login).
+
+--- DATA / STORAGE ---
+
+3) Supabase schema (extend existing “users” or “profiles” table)
+   Columns (nullable):
+   • logo_url TEXT (signed URL to storage object)
+   • lh_company TEXT
+   • lh_address TEXT
+   • lh_contact TEXT
+   • lh_position TEXT (‘left’ | ‘center’)  // default ‘left’
+   • lh_pages TEXT (‘first’ | ‘all’)       // default ‘first’
+   • add_legal_footer BOOLEAN              // default FALSE
+   Notes:
+   - Associate by auth.user().id (foreign key to users).
+   - Migrations idempotent and safe to re-run.
+
+4) Supabase Storage
+   • Bucket: branding (private)
+   • Path: branding/{user_id}/logo.{ext}
+   • Enforce max file size 300 KB; restrict mime types (image/png, image/svg+xml, image/jpeg).
+   • Generate a short-lived signed URL at render time (do NOT make public objects).
+
+--- SECURITY / PRIVACY ---
+
+5) Secrets & access
+   • No API keys in client logs.
+   • Validate file type and size client-side and server-side.
+   • Signed URL lifetime ≤ 60 seconds per export.
+   • Only allow the authenticated owner to upload/replace/delete their logo.
+
+--- PDF RENDERING RULES ---
+
+6) Header layout (applied if Include branding is ON)
+   • Page margin top: 0.75in; left/right: 0.75in
+   • Logo
+     - Max width 160–180px; auto-height; no distortion; no opacity changes
+     - Align with letterhead block; if center, center both
+   • Letterhead text block
+     - Font: same as body but 0.9× size; gray #555; line-height 1.2
+     - Order: Company (bold) → Address → Contact line
+   • Divider: 1px hairline below header with 0.3in spacing before body
+   • Pages:
+     - If “first”: Render on page 1 only
+     - If “all”: Repeat the header on each page
+   • Title offset rule:
+     - Automatically push the contract title (“Service Agreement,” “MOU,” etc.) down by 0.75–1.0in if branding is active, to prevent overlap with the logo or letterhead block.
+
+7) Signature block spacing
+   • Tighten vertical spacing by ~25%:
+     - Reduce empty space above “By:”, “Title:”, and Date lines
+     - Target signature block height ≤ 2.0–2.25in per party
+   • If content would push a party signature onto a new page, push the entire signature block to the next page (avoid split).
+
+8) Watermarks & platform branding
+   • Remove any YBG/Contract Commander branding/watermarks from the contract body, headers, and footers by default.
+   • Keep page numbers (bottom-right) only, small and gray (#999).
+   • If “Add neutral legal footer” is ON, include ONLY on the last page:
+     - Text (8–9pt, gray #777): 
+       “This document was generated with an AI-assisted drafting tool. It is provided for informational and drafting purposes only and is not legal, tax, or financial advice. No attorney-client relationship is created.”
+     - No URLs, no product names, no marketing language.
+
+--- EDGE CASES & VALIDATION ---
+
+9) Fallbacks
+   • If no logo uploaded but Include branding is ON → render letterhead text only.
+   • If no letterhead text provided but logo exists → render logo only.
+   • If neither provided → silently skip branding even if toggle is ON (show inline warning on the panel: “Add a logo or letterhead details to enable branding.”).
+
+10) Mobile UX
+   • Support image picker from camera roll.
+   • Show upload progress and clear error messages.
+
+11) PDF QA checklist
+   • No overlapping headers/footers
+   • First-page header never covers the contract title
+   • Page break logic clean around signature blocks
+   • Page numbers render on every page (except allowed to omit on page 1 if desired—keep consistent)
+   • Print-friendly (white background; no dark UI colors)
+
+--- DEFAULTS ---
+
+12) Defaults for new users
+   • Include branding: OFF
+   • Position: Top-left
+   • Pages: First page only
+   • Add neutral legal footer: OFF
+
+--- ACCEPTANCE CRITERIA ---
+
+A1. A logged-in user can upload a logo (validated, stored privately), preview it, replace it, and remove it.
+A2. A logged-in user can save letterhead fields and placement settings; they persist across sessions.
+A3. Exported PDF shows the user’s branding according to settings; no YBG/Contract Commander marks appear in the document.
+A4. Contract titles are automatically offset downward when branding is active, maintaining clean alignment.
+A5. Signature blocks consume ≤ 2.25in per party and never split across pages.
+A6. Optional neutral legal footer appears on the last page only when toggled ON.
+A7. If the user provides nothing, PDFs export cleanly with no branding and only page numbers.
+
+--- TECH NOTES (INTERNAL) ---
+
+• Use existing PDF generator; add a header component that consumes branding config from Supabase profile.
+• For images, fetch a fresh signed URL right before render.
+• Add a throttle/debounce on branding saves to reduce writes.
+• Unit test the header component (logo-only, text-only, both, none).
+• Visual regression screenshots for: 1/2/5+ page contracts, with and without branding, with long addresses, and with multiple parties.
+
+END OF BRIEF

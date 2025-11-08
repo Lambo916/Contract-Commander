@@ -82,6 +82,9 @@ document.addEventListener('DOMContentLoaded', () => {
   // Add keyboard shortcuts
   document.addEventListener('keydown', handleKeyboardShortcuts);
   
+  // Initialize branding section
+  initBrandingSection();
+  
   // Load saved report if it exists
   loadSavedReport();
 });
@@ -107,6 +110,314 @@ function handleKeyboardShortcuts(e) {
   if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
     e.preventDefault();
     newContract();
+  }
+}
+
+// ==== BRANDING SECTION (PHASE 1 & 2) ====
+
+const BRANDING_STORAGE_KEY = 'ybg.contractCommander.branding';
+const MAX_LOGO_SIZE = 300 * 1024; // 300KB
+
+function initBrandingSection() {
+  const collapseToggle = $('branding-collapse-toggle');
+  const brandingSection = $('branding-section');
+  const logoUploadInput = $('logoUpload');
+  const uploadBtn = $('btn-upload-logo');
+  const replaceBtn = $('btn-replace-logo');
+  const removeBtn = $('btn-remove-logo');
+  const includeBrandingCheckbox = $('includeBranding');
+  
+  // Load saved branding config from localStorage
+  loadBrandingConfig();
+  
+  // Collapse/expand toggle
+  if (collapseToggle && brandingSection) {
+    collapseToggle.addEventListener('click', () => {
+      const isHidden = brandingSection.style.display === 'none';
+      brandingSection.style.display = isHidden ? '' : 'none';
+      const icon = collapseToggle.querySelector('.collapse-icon');
+      if (icon) {
+        icon.classList.toggle('expanded', isHidden);
+      }
+    });
+  }
+  
+  // Logo upload handlers
+  if (uploadBtn && logoUploadInput) {
+    uploadBtn.addEventListener('click', () => logoUploadInput.click());
+  }
+  
+  if (replaceBtn && logoUploadInput) {
+    replaceBtn.addEventListener('click', () => logoUploadInput.click());
+  }
+  
+  if (removeBtn) {
+    removeBtn.addEventListener('click', removeLogo);
+  }
+  
+  if (logoUploadInput) {
+    logoUploadInput.addEventListener('change', handleLogoUpload);
+  }
+  
+  // Save branding config on any change
+  const brandingFields = [
+    'includeBranding',
+    'lhCompany',
+    'lhAddress',
+    'lhContact',
+    'addLegalFooter'
+  ];
+  
+  brandingFields.forEach(fieldId => {
+    const field = $(fieldId);
+    if (field) {
+      field.addEventListener('change', () => {
+        saveBrandingConfig();
+        updateBrandingWarning();
+      });
+      field.addEventListener('input', () => {
+        saveBrandingConfig();
+        updateBrandingWarning();
+      });
+    }
+  });
+  
+  // Save position and pages radio selections
+  const positionRadios = document.querySelectorAll('input[name="lhPosition"]');
+  const pagesRadios = document.querySelectorAll('input[name="lhPages"]');
+  
+  positionRadios.forEach(radio => {
+    radio.addEventListener('change', saveBrandingConfig);
+  });
+  
+  pagesRadios.forEach(radio => {
+    radio.addEventListener('change', saveBrandingConfig);
+  });
+  
+  // Reset branding button (Phase 2)
+  const resetBtn = $('btn-reset-branding');
+  if (resetBtn) {
+    resetBtn.addEventListener('click', resetBrandingConfig);
+  }
+  
+  // Initial warning check
+  updateBrandingWarning();
+}
+
+function resetBrandingConfig() {
+  if (!confirm('Reset all branding settings? This will clear your logo, letterhead, and preferences.')) {
+    return;
+  }
+  
+  // Clear localStorage
+  try {
+    localStorage.removeItem(BRANDING_STORAGE_KEY);
+  } catch (e) {
+    console.error('Failed to reset branding config:', e);
+  }
+  
+  // Reset form fields
+  if ($('includeBranding')) $('includeBranding').checked = false;
+  if ($('addLegalFooter')) $('addLegalFooter').checked = false;
+  if ($('lhCompany')) $('lhCompany').value = '';
+  if ($('lhAddress')) $('lhAddress').value = '';
+  if ($('lhContact')) $('lhContact').value = '';
+  
+  // Reset radio buttons to defaults
+  const leftRadio = document.querySelector('input[name="lhPosition"][value="left"]');
+  const firstRadio = document.querySelector('input[name="lhPages"][value="first"]');
+  if (leftRadio) leftRadio.checked = true;
+  if (firstRadio) firstRadio.checked = true;
+  
+  // Remove logo
+  removeLogo();
+  
+  // Update warning
+  updateBrandingWarning();
+  
+  // Show success message
+  alert('Branding settings have been reset.');
+}
+
+function handleLogoUpload(e) {
+  const file = e.target.files[0];
+  const logoError = $('logo-error');
+  
+  if (!file) return;
+  
+  // Validate file type
+  const validTypes = ['image/png', 'image/jpeg', 'image/svg+xml'];
+  if (!validTypes.includes(file.type)) {
+    showLogoError('Please upload a PNG, JPG, or SVG file.');
+    e.target.value = '';
+    return;
+  }
+  
+  // Validate file size
+  if (file.size > MAX_LOGO_SIZE) {
+    showLogoError(`File size must be ≤300KB. Your file is ${(file.size / 1024).toFixed(0)}KB.`);
+    e.target.value = '';
+    return;
+  }
+  
+  // Convert to Base64
+  const reader = new FileReader();
+  reader.onload = function(event) {
+    const dataUrl = event.target.result;
+    
+    // Show warning for SVG files (limited PDF support)
+    if (file.type === 'image/svg+xml') {
+      showLogoError('Note: SVG logos may have limited support in PDF export. PNG or JPG recommended for best results.');
+    } else {
+      hideLogoError();
+    }
+    
+    displayLogoPreview(dataUrl);
+    saveBrandingConfig();
+    updateBrandingWarning();
+  };
+  reader.onerror = function() {
+    showLogoError('Failed to read file. Please try again.');
+  };
+  reader.readAsDataURL(file);
+}
+
+function displayLogoPreview(dataUrl) {
+  const previewContainer = $('logo-preview-container');
+  const previewImg = $('logo-preview');
+  const uploadBtn = $('btn-upload-logo');
+  
+  if (previewImg && dataUrl) {
+    previewImg.src = dataUrl;
+  }
+  
+  if (previewContainer && uploadBtn) {
+    previewContainer.style.display = dataUrl ? 'flex' : 'none';
+    uploadBtn.style.display = dataUrl ? 'none' : '';
+  }
+}
+
+function removeLogo() {
+  const logoUploadInput = $('logoUpload');
+  if (logoUploadInput) {
+    logoUploadInput.value = '';
+  }
+  
+  displayLogoPreview(null);
+  saveBrandingConfig();
+  updateBrandingWarning();
+  hideLogoError();
+}
+
+function showLogoError(message) {
+  const logoError = $('logo-error');
+  if (logoError) {
+    logoError.textContent = message;
+    logoError.style.display = 'block';
+  }
+}
+
+function hideLogoError() {
+  const logoError = $('logo-error');
+  if (logoError) {
+    logoError.style.display = 'none';
+  }
+}
+
+function updateBrandingWarning() {
+  const includeBranding = $('includeBranding')?.checked;
+  const brandingWarning = $('branding-warning');
+  const config = getBrandingConfig();
+  
+  if (!brandingWarning) return;
+  
+  const hasContent = config.logoDataUrl || config.company || config.address || config.contact;
+  
+  if (includeBranding && !hasContent) {
+    brandingWarning.style.display = 'block';
+  } else {
+    brandingWarning.style.display = 'none';
+  }
+}
+
+function getBrandingConfig() {
+  const logoPreview = $('logo-preview');
+  const logoDataUrl = logoPreview?.src || null;
+  
+  const positionRadio = document.querySelector('input[name="lhPosition"]:checked');
+  const pagesRadio = document.querySelector('input[name="lhPages"]:checked');
+  
+  return {
+    enabled: $('includeBranding')?.checked || false,
+    logoDataUrl: logoDataUrl && logoDataUrl.startsWith('data:') ? logoDataUrl : null,
+    company: $('lhCompany')?.value?.trim() || '',
+    address: $('lhAddress')?.value?.trim() || '',
+    contact: $('lhContact')?.value?.trim() || '',
+    position: positionRadio?.value || 'left',
+    pages: pagesRadio?.value || 'first',
+    addLegalFooter: $('addLegalFooter')?.checked || false
+  };
+}
+
+function saveBrandingConfig() {
+  const config = getBrandingConfig();
+  try {
+    localStorage.setItem(BRANDING_STORAGE_KEY, JSON.stringify(config));
+  } catch (e) {
+    console.error('Failed to save branding config:', e);
+  }
+}
+
+function loadBrandingConfig() {
+  try {
+    const saved = localStorage.getItem(BRANDING_STORAGE_KEY);
+    if (!saved) return;
+    
+    const config = JSON.parse(saved);
+    
+    // Restore checkbox values
+    if ($('includeBranding')) {
+      $('includeBranding').checked = config.enabled || false;
+    }
+    if ($('addLegalFooter')) {
+      $('addLegalFooter').checked = config.addLegalFooter || false;
+    }
+    
+    // Restore text fields
+    if ($('lhCompany')) {
+      $('lhCompany').value = config.company || '';
+    }
+    if ($('lhAddress')) {
+      $('lhAddress').value = config.address || '';
+    }
+    if ($('lhContact')) {
+      $('lhContact').value = config.contact || '';
+    }
+    
+    // Restore radio selections
+    if (config.position) {
+      const positionRadio = document.querySelector(`input[name="lhPosition"][value="${config.position}"]`);
+      if (positionRadio) {
+        positionRadio.checked = true;
+      }
+    }
+    
+    if (config.pages) {
+      const pagesRadio = document.querySelector(`input[name="lhPages"][value="${config.pages}"]`);
+      if (pagesRadio) {
+        pagesRadio.checked = true;
+      }
+    }
+    
+    // Restore logo preview
+    if (config.logoDataUrl) {
+      displayLogoPreview(config.logoDataUrl);
+    }
+    
+    // Update warning display
+    updateBrandingWarning();
+  } catch (e) {
+    console.error('Failed to load branding config:', e);
   }
 }
 

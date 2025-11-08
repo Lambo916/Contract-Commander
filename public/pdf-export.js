@@ -106,18 +106,170 @@ No attorney-client relationship is formed. Review and adapt before execution.
     });
   }
 
-  function addHeader(doc, contractTitle = "") {
-    // White-label mode: no header branding
-    return;
+  function addHeader(doc, contractTitle = "", brandingConfig = null, pageNum = 1) {
+    // Phase 1: Render user branding on first page (or all pages in Phase 2)
+    if (!brandingConfig || !brandingConfig.enabled) {
+      return; // White-label mode: no header
+    }
+    
+    // Phase 1: Only render on first page (Phase 2 will support "all pages")
+    const showOnPage = (brandingConfig.pages === 'all') ? true : (pageNum === 1);
+    if (!showOnPage) return;
+    
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const marginLeft = CC_CONFIG.pdf.margin.left;
+    const marginRight = CC_CONFIG.pdf.margin.right;
+    const headerTop = 50; // Start 50pt from top (respects 72pt top margin)
+    
+    let logoWidth = 0;
+    let logoHeight = 0;
+    let hasLogo = false;
+    let cursorY = headerTop;
+    
+    // Check if we have a renderable logo (PNG/JPEG only)
+    if (brandingConfig.logoDataUrl) {
+      const logoMaxWidth = 180;
+      
+      // Detect image format from data URL
+      let imageFormat = 'PNG';
+      let canRender = true;
+      
+      if (brandingConfig.logoDataUrl.startsWith('data:image/jpeg')) {
+        imageFormat = 'JPEG';
+      } else if (brandingConfig.logoDataUrl.startsWith('data:image/jpg')) {
+        imageFormat = 'JPEG';
+      } else if (brandingConfig.logoDataUrl.startsWith('data:image/svg+xml')) {
+        console.warn('SVG logos not supported in PDF export.');
+        canRender = false;
+      }
+      
+      if (canRender) {
+        logoWidth = logoMaxWidth;
+        logoHeight = logoMaxWidth / 3; // Fixed aspect ratio
+        hasLogo = true;
+      }
+    }
+    
+    // Prepare letterhead text
+    const hasLetterhead = brandingConfig.company || brandingConfig.address || brandingConfig.contact;
+    const fontSize = 10;
+    let maxTextWidth = 0;
+    
+    // Calculate actual letterhead width if present
+    if (hasLetterhead) {
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(fontSize);
+      if (brandingConfig.company) {
+        maxTextWidth = Math.max(maxTextWidth, doc.getTextWidth(brandingConfig.company));
+      }
+      
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(fontSize * 0.9);
+      if (brandingConfig.address) {
+        const addressLines = brandingConfig.address.split('\n');
+        addressLines.forEach(line => {
+          if (line.trim()) {
+            maxTextWidth = Math.max(maxTextWidth, doc.getTextWidth(line.trim()));
+          }
+        });
+      }
+      if (brandingConfig.contact) {
+        maxTextWidth = Math.max(maxTextWidth, doc.getTextWidth(brandingConfig.contact));
+      }
+    }
+    
+    // Calculate positions based on alignment
+    let logoX = marginLeft;
+    let letterheadX = marginLeft;
+    
+    if (brandingConfig.position === 'center') {
+      if (hasLogo && hasLetterhead) {
+        // Both logo and text: center as a unit
+        const gap = 15;
+        const totalWidth = logoWidth + gap + maxTextWidth;
+        logoX = (pageWidth - totalWidth) / 2;
+        letterheadX = logoX + logoWidth + gap;
+      } else if (hasLogo) {
+        // Logo only: center the logo
+        logoX = (pageWidth - logoWidth) / 2;
+      } else if (hasLetterhead) {
+        // Text only: center the text
+        letterheadX = pageWidth / 2;
+      }
+    } else {
+      // Left alignment
+      if (hasLogo) {
+        logoX = marginLeft;
+        letterheadX = marginLeft + logoWidth + 15;
+      } else {
+        letterheadX = marginLeft;
+      }
+    }
+    
+    // Render logo if we have one
+    if (hasLogo) {
+      try {
+        const imageFormat = brandingConfig.logoDataUrl.startsWith('data:image/jpeg') || 
+                           brandingConfig.logoDataUrl.startsWith('data:image/jpg') 
+                           ? 'JPEG' : 'PNG';
+        doc.addImage(brandingConfig.logoDataUrl, imageFormat, logoX, cursorY, logoWidth, logoHeight);
+      } catch (e) {
+        console.error('Failed to add logo to PDF:', e);
+      }
+    }
+    
+    // Render letterhead text
+    if (hasLetterhead) {
+      const textAlign = (brandingConfig.position === 'center' && !hasLogo) ? 'center' : 'left';
+      let textY = cursorY;
+      const lineHeight = 13;
+      
+      if (brandingConfig.company) {
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(fontSize);
+        doc.setTextColor(85, 85, 85);
+        doc.text(brandingConfig.company, letterheadX, textY, { align: textAlign });
+        textY += lineHeight;
+      }
+      
+      if (brandingConfig.address) {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(fontSize * 0.9);
+        doc.setTextColor(85, 85, 85);
+        const addressLines = brandingConfig.address.split('\n');
+        addressLines.forEach(line => {
+          if (line.trim()) {
+            doc.text(line.trim(), letterheadX, textY, { align: textAlign });
+            textY += lineHeight;
+          }
+        });
+      }
+      
+      if (brandingConfig.contact) {
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(fontSize * 0.9);
+        doc.setTextColor(85, 85, 85);
+        doc.text(brandingConfig.contact, letterheadX, textY, { align: textAlign });
+      }
+    }
+    
+    // Add hairline divider below header
+    const dividerY = headerTop + Math.max(logoHeight, 60) + 10;
+    doc.setDrawColor(200, 200, 200);
+    doc.setLineWidth(0.5);
+    doc.line(marginLeft, dividerY, pageWidth - marginRight, dividerY);
   }
 
-  function addFooter(doc, pageNumber, totalPages, isLastPage = false) {
+  function addFooter(doc, pageNumber, totalPages, isLastPage = false, brandingConfig = null) {
     if (!CC_CONFIG.pdf.footer.show) return;
     const pageHeight = doc.internal.pageSize.getHeight();
     const pageWidth = doc.internal.pageSize.getWidth();
     
-    if (isLastPage) {
-      // White-label mode: Last page shows only disclaimer with divider
+    // Phase 1: Support optional legal footer on last page (user controlled)
+    const showLegalFooter = brandingConfig && brandingConfig.addLegalFooter;
+    
+    if (isLastPage && showLegalFooter) {
+      // User enabled legal footer: Show neutral disclaimer
       const legalY = pageHeight - 120;
       
       // Light divider line
@@ -130,11 +282,11 @@ No attorney-client relationship is formed. Review and adapt before execution.
         legalY - 10
       );
       
-      // Disclaimer only (no copyright, no branding)
+      // Neutral disclaimer (exact text from brief)
       doc.setFont("helvetica", "normal");
       doc.setFontSize(9);
       doc.setTextColor(119, 119, 119);  // #777777
-      const disclaimerText = "Disclaimer: This document is generated automatically for informational and drafting purposes only and does not constitute legal, tax, or financial advice. No attorney-client relationship is created.";
+      const disclaimerText = "This document was generated with an AI-assisted drafting tool. It is provided for informational and drafting purposes only and is not legal, tax, or financial advice. No attorney-client relationship is created.";
       const maxWidth = pageWidth - CC_CONFIG.pdf.margin.left - CC_CONFIG.pdf.margin.right;
       const disclaimerLines = doc.splitTextToSize(disclaimerText, maxWidth);
       
@@ -147,7 +299,9 @@ No attorney-client relationship is formed. Review and adapt before execution.
         disclaimerY += 12;
       }
     }
-    // White-label mode: Pages 1..N-1 have no footer at all
+    
+    // White-label mode: Pages have no page numbers or platform branding
+    // (This can be adjusted in Phase 2 if user wants page numbers)
   }
 
   function addWatermark(doc) {
@@ -214,6 +368,17 @@ No attorney-client relationship is formed. Review and adapt before execution.
       // Load jsPDF
       const jsPDF = await loadJsPDF();
 
+      // Phase 1: Load branding config from localStorage
+      let brandingConfig = null;
+      try {
+        const saved = localStorage.getItem('ybg.contractCommander.branding');
+        if (saved) {
+          brandingConfig = JSON.parse(saved);
+        }
+      } catch (e) {
+        console.error('Failed to load branding config for PDF:', e);
+      }
+
       // Build a professional visible title:
       const visibleTitle = safeDocTitle(
         title,
@@ -230,12 +395,15 @@ No attorney-client relationship is formed. Review and adapt before execution.
         creator: "Contract Commander | YourBizGuru.com"
       });
 
-      // First page visuals
-      addHeader(doc, contractType);
+      // First page visuals (with branding if enabled)
+      addHeader(doc, contractType, brandingConfig, 1);
       addWatermark(doc);
 
-      // Cursor start (respect margins + header)
-      let cursorY = CC_CONFIG.pdf.margin.top + 35;
+      // Cursor start: Adjust for branding header if active
+      const hasBranding = brandingConfig && brandingConfig.enabled && 
+                          (brandingConfig.logoDataUrl || brandingConfig.company || brandingConfig.address || brandingConfig.contact);
+      const titleOffset = hasBranding ? 72 : 35; // 72pt = ~1 inch offset when branding is active
+      let cursorY = CC_CONFIG.pdf.margin.top + titleOffset;
 
       // Title block
       doc.setFont("helvetica", "bold");
@@ -283,6 +451,7 @@ No attorney-client relationship is formed. Review and adapt before execution.
         CC_CONFIG.pdf.margin.left -
         CC_CONFIG.pdf.margin.right;
 
+      let currentPage = 1;
       for (const para of plain) {
         const lines = doc.splitTextToSize(para || " ", maxWidth);
         for (const ln of lines) {
@@ -290,7 +459,8 @@ No attorney-client relationship is formed. Review and adapt before execution.
           if (cursorY > doc.internal.pageSize.getHeight() - 150) {
             // Add new page
             doc.addPage();
-            addHeader(doc, contractType);
+            currentPage++;
+            addHeader(doc, contractType, brandingConfig, currentPage);
             addWatermark(doc);
             cursorY = CC_CONFIG.pdf.margin.top + 20;
           }
@@ -300,14 +470,14 @@ No attorney-client relationship is formed. Review and adapt before execution.
         cursorY += 10;  // Increased paragraph spacing
       }
 
-      // Remove old disclaimer logic (legal notice now only on last page footer)
+      // Remove old disclaimer logic (legal notice now only on last page footer via branding config)
       
       // Finalize footers with real page numbers
       const total = doc.getNumberOfPages();
       for (let i = 1; i <= total; i++) {
         doc.setPage(i);
         const isLast = (i === total);
-        addFooter(doc, i, total, isLast);
+        addFooter(doc, i, total, isLast, brandingConfig);
       }
 
       // Filename per spec: {YYYY}-{MM}-{DD}_ContractCommander_{ContractType}_{Counterparty}.pdf

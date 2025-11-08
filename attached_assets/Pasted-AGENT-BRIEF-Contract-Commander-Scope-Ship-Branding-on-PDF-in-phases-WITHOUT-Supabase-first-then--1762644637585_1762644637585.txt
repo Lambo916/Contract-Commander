@@ -1,0 +1,127 @@
+AGENT BRIEF — Contract Commander
+Scope: Ship Branding-on-PDF in phases WITHOUT Supabase first, then add Supabase later
+Owner: YBG / Contract Commander
+Priority: High
+
+OVERVIEW
+Deliver a user-facing Branding feature for exported PDFs (logo + letterhead). Phase 1 must work with NO backend: all data stored client-side and rendered directly. Later phases introduce placement controls and then Supabase/auth + private storage, without changing the UX.
+
+==================================================
+PHASE 1 — BRANDING (NO BACKEND)  ✅ Ship first
+Goal: Let users add a small logo + letterhead and see it on exported PDFs (first page only). Persist locally.
+
+UI
+• Add collapsible section “Branding” in the input panel:
+  - Toggle: [ ] Include branding on PDF
+  - Upload Logo (PNG/SVG/JPG, ≤300KB) with preview + Replace + Remove
+  - Letterhead fields:
+    ▸ Company/Organization (text)
+    ▸ Address (multi-line)
+    ▸ Contact line (e.g., email | phone | website)
+  - Options:
+    ▸ Position: (• Top-left  ○ Top-center)
+    ▸ Pages: (• First page only  ○ All pages)  → In Phase 1, enforce “First page only”; keep the control visible but disabled + tooltip “Coming soon”.
+  - Legal Footer (optional): [ ] Add neutral legal footer on last page only (OFF by default)
+
+Data (temporary, client-side only)
+• Persist branding config in localStorage under key: ybg.contractCommander.branding
+• Store logo as a data URL (Base64) capped at 300KB; if >300KB, show error.
+
+PDF Rendering (jsPDF or current renderer)
+• If Include branding is ON:
+  - Render header on page 1:
+    ▸ Top margin: 0.75in; left/right margins: 0.75in
+    ▸ Logo: max width 160–180px; keep aspect; crisp; no opacity effects
+    ▸ Letterhead block: Company (bold) → Address → Contact line
+      · Font smaller than body (~0.9×), color #555, line-height ~1.2
+    ▸ 1px hairline divider below header; 0.3in spacing before body
+  - Title offset: Push contract title down by 0.75–1.0in when branding is active so it never overlaps header.
+• Signature block tightening:
+  - Reduce vertical whitespace ~25%; keep block ≤2.25in per party.
+  - If a party’s block would split across pages, push entire block to next page.
+• White-label by default:
+  - Remove all YBG/Contract Commander branding, watermarks, and URLs from headers/footers.
+  - Keep small gray page numbers bottom-right (#999) on all pages.
+• Optional neutral legal footer (only if user toggles ON):
+  - Render on last page only, 8–9pt #777, text EXACTLY:
+    “This document was generated with an AI-assisted drafting tool. It is provided for informational and drafting purposes only and is not legal, tax, or financial advice. No attorney-client relationship is created.”
+
+Validation & UX
+• Block export if uploaded file is not PNG/SVG/JPG or >300KB; show friendly error.
+• If Include branding is ON but neither logo nor letterhead is provided, allow export but show inline warning “Add a logo or letterhead to enable branding.”
+
+Acceptance (Phase 1)
+1) Users can upload/preview/replace/remove a logo; data persists locally.
+2) Letterhead values persist locally and render on page 1 header.
+3) Title never overlaps header; signature blocks don’t split; page numbers show.
+4) No platform branding appears in the PDF.
+5) Optional legal footer appears only on last page when toggled ON.
+
+==================================================
+PHASE 2 — PLACEMENT & POLISH
+Goal: Unlock placement “All pages” + center alignment + minor export polish.
+
+Tasks
+• Enable “All pages” option to repeat the header uniformly.
+• Implement Top-center layout with balanced margins; ensure title offset still correct.
+• Add export QA:
+  - Long addresses wrap gracefully; no overlap with page numbers.
+  - Very long company names ellipsize or wrap to 2 lines.
+• Add “Reset Branding” action to clear localStorage.
+
+Acceptance (Phase 2)
+1) All pages header renders cleanly when selected.
+2) Center alignment works; no collisions with content or pagination.
+3) Long text wraps without layout breaks.
+
+==================================================
+PHASE 3 — SUPABASE + AUTH (deferred)
+Goal: Replace local storage with secure, per-user storage and private file hosting.
+
+Auth
+• Gate Branding section behind login. If not logged in, show disabled state + CTA to log in.
+
+Database
+• Extend users/profiles table with:
+  - logo_url TEXT
+  - lh_company TEXT
+  - lh_address TEXT
+  - lh_contact TEXT
+  - lh_position TEXT (‘left’|‘center’, default ‘left’)
+  - lh_pages TEXT (‘first’|‘all’, default ‘first’)
+  - add_legal_footer BOOLEAN (default false)
+
+Storage
+• Private bucket “branding”; path branding/{user_id}/logo.{ext}
+• Validate server-side type and size. Generate signed URL for PDF render (≤60s).
+
+Migration Hook
+• On first login, if localStorage branding exists and cloud profile empty:
+  - Offer “Save my branding to account”.
+  - Upload logo → store URL; write fields → profiles.
+
+Security
+• Enforce RLS: user_id = auth.uid() can read/write their row + objects.
+• Never log signed URLs or secrets to console.
+
+Acceptance (Phase 3)
+1) Branding persists across devices for logged-in users.
+2) Logos stored privately; PDFs render using short-lived signed URLs.
+3) Local→cloud migration path works; no data loss.
+
+==================================================
+NON-GOALS (for all phases)
+• No platform watermarking inside contracts.
+• No marketing links in footers.
+• No public file storage for user logos.
+
+QA CHECKLIST (each release)
+[ ] No overlapping header/title
+[ ] Signature blocks not split; ≤2.25in each
+[ ] Page numbers render on each page (no duplicates)
+[ ] Optional legal footer only on the last page
+[ ] Dark mode UI has no effect on PDF (PDF always clean/white)
+[ ] Large logo gracefully scaled; long addresses wrap
+[ ] No YBG/Contract Commander marks in PDFs
+
+END OF BRIEF

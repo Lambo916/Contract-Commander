@@ -229,6 +229,100 @@
           <label>Signatory 2 Title</label>
           <input id="signatory2Title" placeholder="e.g., Contractor" data-testid="input-signatory2-title"/>
         </div>
+
+        <!-- Branding (Phase 1 & 2) -->
+        <div class="full ybg-subsection-header branding-header">
+          <div class="ybg-subsection-title">Branding (Optional)</div>
+          <button class="branding-collapse-toggle" id="branding-collapse-toggle" type="button" aria-label="Toggle branding section" data-testid="button-toggle-branding">
+            <span class="collapse-icon">▼</span>
+          </button>
+        </div>
+        <div id="branding-section" class="branding-section" style="display: none;">
+          <div class="full">
+            <label class="branding-toggle-label">
+              <input type="checkbox" id="includeBranding" data-testid="input-include-branding"/>
+              Include branding on PDF
+            </label>
+            <div id="branding-warning" class="branding-warning" style="display:none;">
+              ⚠️ Add a logo or letterhead details to enable branding.
+            </div>
+          </div>
+
+          <!-- Logo Upload -->
+          <div class="full branding-logo-section">
+            <label>Logo (PNG/SVG/JPG, ≤300KB)</label>
+            <div class="logo-upload-container">
+              <input type="file" id="logoUpload" accept="image/png,image/svg+xml,image/jpeg" style="display:none;" data-testid="input-logo-upload"/>
+              <button class="btn btn-quiet" id="btn-upload-logo" type="button" data-testid="button-upload-logo">Upload Logo</button>
+              <div id="logo-preview-container" class="logo-preview-container" style="display:none;">
+                <img id="logo-preview" class="logo-preview" alt="Logo preview" data-testid="img-logo-preview"/>
+                <div class="logo-actions">
+                  <button class="btn btn-quiet btn-sm" id="btn-replace-logo" type="button" data-testid="button-replace-logo">Replace</button>
+                  <button class="btn btn-quiet btn-sm" id="btn-remove-logo" type="button" data-testid="button-remove-logo">Remove</button>
+                </div>
+              </div>
+              <div id="logo-error" class="field-error" style="display:none;"></div>
+            </div>
+          </div>
+
+          <!-- Letterhead Fields -->
+          <div class="full">
+            <label>Company / Organization</label>
+            <input id="lhCompany" placeholder="e.g., Acme Corporation" data-testid="input-lh-company"/>
+          </div>
+          <div class="full">
+            <label>Address (optional)</label>
+            <textarea id="lhAddress" placeholder="e.g., 123 Main St&#10;San Francisco, CA 94105" style="min-height:80px;" data-testid="input-lh-address"></textarea>
+          </div>
+          <div class="full">
+            <label>Contact Line (optional)</label>
+            <input id="lhContact" placeholder="e.g., info@acme.com | (555) 123-4567 | www.acme.com" data-testid="input-lh-contact"/>
+          </div>
+
+          <!-- Position Options -->
+          <div>
+            <label>Position</label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" name="lhPosition" value="left" checked data-testid="input-position-left"/>
+                Top-left
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="lhPosition" value="center" data-testid="input-position-center"/>
+                Top-center
+              </label>
+            </div>
+          </div>
+
+          <!-- Pages Options -->
+          <div>
+            <label>Pages</label>
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" name="lhPages" value="first" checked data-testid="input-pages-first"/>
+                First page only
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="lhPages" value="all" data-testid="input-pages-all"/>
+                All pages
+              </label>
+            </div>
+          </div>
+
+          <!-- Legal Footer Toggle -->
+          <div class="full">
+            <label class="branding-toggle-label">
+              <input type="checkbox" id="addLegalFooter" data-testid="input-add-legal-footer"/>
+              Add neutral legal footer on last page only
+            </label>
+          </div>
+
+          <!-- Reset Branding Button -->
+          <div class="full" style="margin-top:8px;">
+            <button class="btn btn-ghost btn-sm" id="btn-reset-branding" type="button" data-testid="button-reset-branding">Reset Branding</button>
+          </div>
+        </div>
+
         <div class="full">
           <button class="btn btn-primary btn-generate-inline" id="btn-generate" data-testid="button-generate" title="Generate contract">Generate Contract</button>
         </div>
