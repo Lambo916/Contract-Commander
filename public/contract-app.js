@@ -1131,131 +1131,67 @@ async function handleExportWord() {
       return;
     }
     
-    // Check if html-docx-js is loaded
-    if (typeof htmlDocx === 'undefined' || typeof htmlDocx.asBlob !== 'function') {
-      showToast('Word export module not loaded. Please refresh the page.', 'error');
-      return;
-    }
-    
     // Auto-save before export
     saveCurrentReport();
     
     // Get contract HTML content
     const contractHtml = reportView.innerHTML;
-    console.log('📄 Word Export: Contract HTML length:', contractHtml.length);
-    
-    // Create a complete HTML document for better Word formatting
-    const fullHtml = `
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>${currentReportData.title || 'Contract'}</title>
-        <style>
-          body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.6; margin: 1in; }
-          h1 { font-size: 16pt; font-weight: bold; text-align: center; margin-bottom: 1em; }
-          h2 { font-size: 14pt; font-weight: bold; margin-top: 1em; margin-bottom: 0.5em; }
-          h3 { font-size: 12pt; font-weight: bold; margin-top: 0.8em; margin-bottom: 0.4em; }
-          p { margin: 0.5em 0; }
-          ul, ol { margin: 0.5em 0; padding-left: 1.5em; }
-          .signature-section { margin-top: 3em; page-break-inside: avoid; }
-          .signature-line { margin-top: 3em; border-top: 1px solid black; width: 300px; }
-        </style>
-      </head>
-      <body>
-        ${contractHtml}
-      </body>
-      </html>
-    `;
-    
-    console.log('📄 Word Export: Full HTML length:', fullHtml.length);
-    
-    // Convert HTML to Word document
-    const converted = htmlDocx.asBlob(fullHtml);
-    console.log('📄 Word Export: Blob created, size:', converted.size, 'bytes');
+    console.log('📄 Word Export: Sending HTML to server, length:', contractHtml.length);
     
     // Generate filename
     const filename = currentFileName 
-      ? `${currentFileName}.docx` 
-      : `${currentReportData.contractType || 'Contract'}_${Date.now()}.docx`;
+      ? currentFileName 
+      : `${currentReportData.contractType || 'Contract'}_${Date.now()}`;
     
-    console.log('📄 Word Export: Downloading as:', filename);
+    // Show loading toast
+    showToast('Generating Word document...', 'success');
+    
+    // Send HTML to server for conversion
+    const response = await fetch('/api/export/word', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-Client-Id': getClientId()
+      },
+      body: JSON.stringify({
+        html: contractHtml,
+        filename: filename
+      })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to generate Word document');
+    }
+    
+    // Get the blob from the response
+    const blob = await response.blob();
+    console.log('📄 Word Export: Received DOCX from server, size:', blob.size, 'bytes');
     
     // Create download URL
-    const url = URL.createObjectURL(converted);
+    const url = URL.createObjectURL(blob);
     
-    // Show modal with download button (user must click to download - browsers require direct user action)
-    showWordExportModal(url, filename);
+    // Trigger download directly (server-generated file, no browser restrictions)
+    const downloadLink = document.createElement('a');
+    downloadLink.href = url;
+    downloadLink.download = `${filename}.docx`;
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
     
-    // Clean up URL after 30 seconds
+    // Clean up URL after 5 seconds
     setTimeout(() => {
       URL.revokeObjectURL(url);
-    }, 30000);
+    }, 5000);
     
-    console.log('✓ Word export completed successfully');
+    console.log('✓ Word export completed successfully:', `${filename}.docx`);
+    showToast('Word document downloaded successfully!', 'success');
     
   } catch (e) {
     console.error('Word export error:', e);
     showToast(`Word export failed: ${e.message}`, 'error');
   }
 }
-
-function showWordExportModal(url, filename) {
-  // Create modal overlay
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 10000; display: flex; align-items: center; justify-content: center;';
-  
-  // Create modal content
-  const modal = document.createElement('div');
-  modal.style.cssText = 'background: white; padding: 30px; border-radius: 8px; max-width: 500px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3);';
-  
-  // Build DOM safely to prevent XSS
-  const heading = document.createElement('h2');
-  heading.style.cssText = 'color: #111; margin: 0 0 20px 0; font-family: Montserrat, sans-serif;';
-  heading.textContent = 'Your Contract is Ready';
-  
-  const instructions = document.createElement('p');
-  instructions.style.cssText = 'color: #333; margin: 0 0 25px 0; line-height: 1.6;';
-  instructions.textContent = 'Click the button below to download your Word document:';
-  
-  const downloadLink = document.createElement('a');
-  downloadLink.href = url;
-  downloadLink.download = filename; // Browser handles escaping
-  downloadLink.id = 'word-download-link';
-  downloadLink.style.cssText = 'display: inline-block; background: #F5C543; color: #111; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px; margin: 0 0 20px 0;';
-  downloadLink.textContent = 'Download ' + filename; // Safe: textContent escapes HTML
-  
-  const helpText = document.createElement('p');
-  helpText.style.cssText = 'color: #666; font-size: 14px; margin: 0 0 15px 0;';
-  helpText.innerHTML = 'After downloading, go to your <strong>Downloads folder</strong> and double-click the .docx file to open it in Microsoft Word.';
-  
-  const closeButton = document.createElement('button');
-  closeButton.id = 'close-word-modal';
-  closeButton.style.cssText = 'background: #ddd; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; font-size: 14px;';
-  closeButton.textContent = 'Close';
-  
-  modal.appendChild(heading);
-  modal.appendChild(instructions);
-  modal.appendChild(downloadLink);
-  modal.appendChild(helpText);
-  modal.appendChild(closeButton);
-  
-  overlay.appendChild(modal);
-  document.body.appendChild(overlay);
-  
-  // Close on button click
-  closeButton.onclick = () => {
-    document.body.removeChild(overlay);
-  };
-  
-  // Close on overlay click
-  overlay.onclick = (e) => {
-    if (e.target === overlay) {
-      document.body.removeChild(overlay);
-    }
-  };
-}
-
 
 async function handleCopyMarkdown() {
   if (!currentReportData || !currentReportData.markdown) {

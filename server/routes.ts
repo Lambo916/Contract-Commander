@@ -10,6 +10,8 @@ import { db } from "./db";
 import { complianceReports, insertComplianceReportSchema, type ComplianceReport, usageTracking, bizPlanRequestSchema, contractRequestSchema, bizplanReports, contracts, insertBizplanReportSchema, insertContractSchema, type BizplanReport, type Contract } from "@shared/schema";
 import { eq, desc, or, and, sql } from "drizzle-orm";
 import { getUserId, hasAccess, requireAuth } from "./auth";
+// @ts-ignore - html-to-docx has no type definitions
+import HTMLtoDOCX from "html-to-docx";
 
 // Get anonymous user ID from browser-provided client ID
 function getAnonymousUserId(req: Request): string {
@@ -916,6 +918,109 @@ Make suggestions concrete and tailored to this specific contract. Avoid generic 
       console.error("Error in /api/bizplan/suggestions:", error);
       res.status(500).json({
         error: "Failed to generate suggestions."
+      });
+    }
+  });
+
+  // Contract Commander - Export contract to Word (DOCX)
+  app.post("/api/export/word", async (req, res) => {
+    try {
+      const { html, filename } = req.body;
+
+      if (!html || typeof html !== 'string') {
+        return res.status(400).json({ error: 'HTML content is required' });
+      }
+
+      console.log('[ContractCommander] Word export requested, HTML length:', html.length);
+
+      // Create a complete HTML document for better Word formatting
+      const fullHtml = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <meta charset="UTF-8">
+          <title>${filename || 'Contract'}</title>
+          <style>
+            body { 
+              font-family: 'Times New Roman', Times, serif; 
+              font-size: 12pt; 
+              line-height: 1.6; 
+              margin: 1in; 
+            }
+            h1 { 
+              font-size: 16pt; 
+              font-weight: bold; 
+              text-align: center; 
+              margin-bottom: 1em; 
+            }
+            h2 { 
+              font-size: 14pt; 
+              font-weight: bold; 
+              margin-top: 1em; 
+              margin-bottom: 0.5em; 
+            }
+            h3 { 
+              font-size: 12pt; 
+              font-weight: bold; 
+              margin-top: 0.8em; 
+              margin-bottom: 0.4em; 
+            }
+            p { 
+              margin: 0.5em 0; 
+            }
+            ul, ol { 
+              margin: 0.5em 0; 
+              padding-left: 1.5em; 
+            }
+            .signature-section { 
+              margin-top: 3em; 
+              page-break-inside: avoid; 
+            }
+            .signature-line { 
+              margin-top: 3em; 
+              border-top: 1px solid black; 
+              width: 300px; 
+            }
+          </style>
+        </head>
+        <body>
+          ${html}
+        </body>
+        </html>
+      `;
+
+      // Convert HTML to DOCX using html-to-docx
+      const docxBuffer = await HTMLtoDOCX(fullHtml, null, {
+        orientation: 'portrait',
+        margins: {
+          top: 1440,    // 1 inch = 1440 twips
+          right: 1440,
+          bottom: 1440,
+          left: 1440
+        }
+      });
+
+      console.log('[ContractCommander] DOCX generated, size:', docxBuffer.length, 'bytes');
+
+      // Set headers for file download
+      const downloadFilename = filename 
+        ? `${filename}.docx` 
+        : `Contract_${Date.now()}.docx`;
+
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+      res.setHeader('Content-Disposition', `attachment; filename="${downloadFilename}"`);
+      res.setHeader('Content-Length', docxBuffer.length.toString());
+
+      // Send the buffer
+      res.send(docxBuffer);
+
+      console.log('[ContractCommander] Word export completed:', downloadFilename);
+
+    } catch (error: any) {
+      console.error('[ContractCommander] Word export error:', error);
+      res.status(500).json({
+        error: 'Failed to generate Word document',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
   });
