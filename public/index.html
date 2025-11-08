@@ -64,6 +64,22 @@
           <label>Effective Date *</label>
           <input type="date" id="effectiveDate" data-testid="input-effective-date"/>
         </div>
+        <div>
+          <label>Tone</label>
+          <select id="tone" data-testid="select-tone">
+            <option value="Professional">Professional</option>
+            <option value="Friendly">Friendly</option>
+            <option value="Legal">Legal</option>
+          </select>
+        </div>
+        <div>
+          <label>Detail Level</label>
+          <select id="detailLevel" data-testid="select-detail-level">
+            <option value="Summary">Summary</option>
+            <option value="Standard" selected>Standard</option>
+            <option value="Comprehensive">Comprehensive</option>
+          </select>
+        </div>
 
         <!-- Parties -->
         <div class="full ybg-subsection-title">Parties</div>
@@ -146,8 +162,8 @@
           <input id="partyFRole" placeholder="e.g., Guarantor" data-testid="input-party-f-role"/>
         </div>
 
-        <!-- Key Terms -->
-        <div class="full ybg-subsection-title">Key Terms</div>
+        <!-- Contract Terms -->
+        <div class="full ybg-subsection-title">Contract Terms</div>
         <div class="full">
           <label>Scope of Work / Purpose</label>
           <textarea id="scope" placeholder="Describe the services, work, or purpose..." data-testid="input-scope"></textarea>
@@ -163,12 +179,6 @@
         <div class="full">
           <label>Termination Terms</label>
           <textarea id="termination" placeholder="e.g., Either party may terminate with 30 days notice." data-testid="input-termination"></textarea>
-        </div>
-        <div class="full">
-          <label>
-            <input type="checkbox" id="confidentiality" checked data-testid="input-confidentiality"/>
-            Include Confidentiality / NDA Clause
-          </label>
         </div>
 
         <!-- Legal Options -->
@@ -186,28 +196,18 @@
           </select>
         </div>
         <div class="full">
+          <label>
+            <input type="checkbox" id="confidentiality" checked data-testid="input-confidentiality"/>
+            Include Confidentiality / NDA Clause
+          </label>
+        </div>
+        <div class="full">
           <label>Additional Clauses</label>
           <textarea id="extraClauses" placeholder="Add any additional terms or special clauses..." data-testid="input-extra-clauses"></textarea>
         </div>
 
-        <!-- Output & Signature -->
-        <div class="full ybg-subsection-title">Output & Signature</div>
-        <div>
-          <label>Tone</label>
-          <select id="tone" data-testid="select-tone">
-            <option value="Professional">Professional</option>
-            <option value="Friendly">Friendly</option>
-            <option value="Legal">Legal</option>
-          </select>
-        </div>
-        <div>
-          <label>Detail Level</label>
-          <select id="detailLevel" data-testid="select-detail-level">
-            <option value="Summary">Summary</option>
-            <option value="Standard" selected>Standard</option>
-            <option value="Comprehensive">Comprehensive</option>
-          </select>
-        </div>
+        <!-- Signatures -->
+        <div class="full ybg-subsection-title">Signatures</div>
         <div>
           <label>Signatory 1 Name</label>
           <input id="signatory1Name" placeholder="e.g., John Smith" data-testid="input-signatory1-name"/>
