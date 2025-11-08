@@ -25,7 +25,7 @@
     companyLegalName: "Big Stake Consulting LLC",
     // PDF look-and-feel
     pdf: {
-      margin: { top: 28, right: 22, bottom: 20, left: 22 },
+      margin: { top: 72, right: 72, bottom: 72, left: 72 },
       header: { show: true, showLogo: false, logoDataUrl: "", logoWidth: 28 },
       footer: { show: true },
       // Keep disclaimers subtle: appended once at the END (not on every page).
@@ -109,7 +109,7 @@ No attorney-client relationship is formed. Review and adapt before execution.
   function addHeader(doc, contractTitle = "") {
     if (!CC_CONFIG.pdf.header.show) return;
     const pageWidth = doc.internal.pageSize.getWidth();
-    const y = 18;
+    const y = 50;  // Moved down to respect 72pt top margin
     
     // Left: Contract title
     doc.setFont("helvetica", "normal");
@@ -127,20 +127,20 @@ No attorney-client relationship is formed. Review and adapt before execution.
     if (!CC_CONFIG.pdf.footer.show) return;
     const pageHeight = doc.internal.pageSize.getHeight();
     const pageWidth = doc.internal.pageSize.getWidth();
-    const footerY = pageHeight - 30;
+    const footerY = pageHeight - 50;  // Respects 72pt bottom margin
     
     if (isLastPage) {
-      // Last page: divider + copyright + legal notice
-      const legalY = pageHeight - 70;
+      // Last page: divider + copyright + legal notice (positioned higher for better spacing)
+      const legalY = pageHeight - 120;  // More space from bottom to prevent cramping
       
       // Divider line
       doc.setDrawColor(200);
       doc.setLineWidth(0.5);
       doc.line(
         CC_CONFIG.pdf.margin.left,
-        legalY - 6,
+        legalY - 8,
         pageWidth - CC_CONFIG.pdf.margin.right,
-        legalY - 6
+        legalY - 8
       );
       
       // Copyright
@@ -150,16 +150,16 @@ No attorney-client relationship is formed. Review and adapt before execution.
       const year = new Date().getFullYear();
       doc.text(`© ${year} YourBizGuru LLC. All rights reserved.`, CC_CONFIG.pdf.margin.left, legalY);
       
-      // Legal notice (multi-line)
+      // Legal notice (multi-line with better spacing)
       doc.setFontSize(9);
       doc.setTextColor(140);
       const legalText = "Legal Notice: Contract Commander is an AI-assisted document generator. Content is for informational and drafting purposes only and does not constitute legal, tax, or financial advice. No attorney-client relationship is created. Review with a qualified professional before use.";
       const maxWidth = pageWidth - CC_CONFIG.pdf.margin.left - CC_CONFIG.pdf.margin.right;
       const legalLines = doc.splitTextToSize(legalText, maxWidth);
-      let legalLineY = legalY + 12;
+      let legalLineY = legalY + 14;
       for (const line of legalLines) {
         doc.text(line, CC_CONFIG.pdf.margin.left, legalLineY);
-        legalLineY += 11;
+        legalLineY += 13;  // Increased line spacing for readability
       }
     } else {
       // Pages 1..N-1: simple page number + site
@@ -261,15 +261,15 @@ No attorney-client relationship is formed. Review and adapt before execution.
       addHeader(doc, contractType);
       addWatermark(doc);
 
-      // Cursor start (respect margins)
-      let cursorY = CC_CONFIG.pdf.margin.top + 18;
+      // Cursor start (respect margins + header)
+      let cursorY = CC_CONFIG.pdf.margin.top + 35;
 
       // Title block
       doc.setFont("helvetica", "bold");
       doc.setFontSize(16);
       doc.setTextColor(20);
       doc.text(visibleTitle, CC_CONFIG.pdf.margin.left, cursorY);
-      cursorY += 18;
+      cursorY += 20;
 
       // Meta line
       doc.setFont("helvetica", "normal");
@@ -285,7 +285,7 @@ No attorney-client relationship is formed. Review and adapt before execution.
 
       if (metaLine) {
         doc.text(metaLine, CC_CONFIG.pdf.margin.left, cursorY);
-        cursorY += 14;
+        cursorY += 16;
       }
 
       // Divider
@@ -297,7 +297,7 @@ No attorney-client relationship is formed. Review and adapt before execution.
         doc.internal.pageSize.getWidth() - CC_CONFIG.pdf.margin.right,
         cursorY
       );
-      cursorY += 16;
+      cursorY += 20;
 
       // Main body (convert minimal HTML to text)
       const plain = htmlToPlainText(bodyHtml).split("\n");
@@ -313,17 +313,18 @@ No attorney-client relationship is formed. Review and adapt before execution.
       for (const para of plain) {
         const lines = doc.splitTextToSize(para || " ", maxWidth);
         for (const ln of lines) {
-          if (cursorY > doc.internal.pageSize.getHeight() - 60) {
+          // Check if we need a new page (leave 150pt for footer on last page)
+          if (cursorY > doc.internal.pageSize.getHeight() - 150) {
             // Add new page
             doc.addPage();
             addHeader(doc, contractType);
             addWatermark(doc);
-            cursorY = CC_CONFIG.pdf.margin.top;
+            cursorY = CC_CONFIG.pdf.margin.top + 20;
           }
           doc.text(ln, CC_CONFIG.pdf.margin.left, cursorY);
-          cursorY += 14;
+          cursorY += 15;  // Increased line spacing
         }
-        cursorY += 6;
+        cursorY += 10;  // Increased paragraph spacing
       }
 
       // Remove old disclaimer logic (legal notice now only on last page footer)
@@ -402,13 +403,6 @@ No attorney-client relationship is formed. Review and adapt before execution.
   // Export to global scope (for compatibility with existing code)
   window.exportBizPlanToPDF = exportToPDF;
   window.generateContractPDF = generateContractPDF;
-  
-  // Mount legal footer on page load
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', mountAppLegalFooterOnce);
-  } else {
-    mountAppLegalFooterOnce();
-  }
   
   // Version tag
   console.info('✅ Contract Commander polished version v1.0 loaded successfully.');
