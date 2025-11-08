@@ -1659,6 +1659,29 @@
   color: #6495ED;
 }
 
+/* Fix KPI add button */
+:root.light .kpi-btn.kpi-add {
+  color: #6495ED;
+  border-color: #6495ED;
+}
+
+:root.light .kpi-btn.kpi-add:hover {
+  background: #6495ED;
+  color: white;
+}
+
+/* Fix theme toggle hover */
+:root.light .theme-toggle:hover {
+  background: rgba(100,149,237,0.1);
+  border-color: #6495ED;
+}
+
+/* Fix template card hover */
+:root.light .template-card:hover {
+  background: rgba(100,149,237,0.08);
+  border-color: #6495ED;
+}
+
 @media print {
   body {
     background: white;
