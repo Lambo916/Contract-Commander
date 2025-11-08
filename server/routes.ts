@@ -722,17 +722,16 @@ Include entire agreement, amendments, severability, waiver, notices, and assignm
 
 ## SIGNATURES
 
-
 IN WITNESS WHEREOF, the parties have executed this Agreement as of ${effectiveDate}.
 
 ${parties.map((p, idx) => {
   const hasSignatoryInfo = idx === 0 && signatory1Name || idx === 1 && signatory2Name;
   if (hasSignatoryInfo) {
-    return `**${p.name}**\nBy: ${idx === 0 ? signatory1Name : signatory2Name}\nTitle: ${idx === 0 ? signatory1Title : signatory2Title}\nDate: _________________`;
+    return `**${p.name}**\nBy: ______________________________  Date: ______________\n${idx === 0 ? signatory1Name : signatory2Name}, ${idx === 0 ? signatory1Title : signatory2Title}`;
   } else {
-    return `**${p.name}** (${p.role})\nSignature: _________________\nName: _________________\nTitle: _________________\nDate: _________________`;
+    return `**${p.name}** (${p.role})\nSignature: ______________________________  Date: ______________\nName/Title: ______________________________`;
   }
-}).join('\n')}
+}).join('\n\n')}
 
 ${extraClauses ? `\nADDITIONAL CLAUSES TO INCLUDE:\n${extraClauses}` : ''}
 

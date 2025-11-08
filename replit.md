@@ -13,10 +13,12 @@ Preferred communication style: Simple, everyday language.
   - Added preconnect links for optimal font loading performance
   - Updated body font-family to prioritize Inter with system fallbacks
   - Ensures consistent, professional typography across all devices
-- **Signature Block Spacing Optimization**: Tightened signature section for professional appearance
-  - Reduced inter-signatory spacing from ~25px to ~10px (changed '\n\n' to '\n' in template)
-  - Added 20-30px margin before "IN WITNESS WHEREOF" section for visual separation
-  - Signature blocks now compact and professionally grouped
+- **Signature Block Optimization**: Compact, professional 3-line format per signer
+  - Party name on first line
+  - Signature line and Date on same line (instead of separate lines)
+  - Name and Title combined on third line
+  - Moderate spacing between signers for visual separation
+  - Reduced from 4-5 lines to 3 lines per signature block
 - **Contract Structure Improvements**: Enhanced readability and legal document standards
   - Line height: 1.4-1.5em for optimal readability
   - Body text: 11-12pt professional legal standard
