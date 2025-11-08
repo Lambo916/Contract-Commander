@@ -8,6 +8,21 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes (November 2025)
 
+## Form UI Reorganization & Consistent Field Heights
+- **Unified CSS Styling**: Created `.ybg-grid input/select/textarea` CSS selectors for consistent form field heights
+  - All inputs and selects: 48px min-height with 12px 14px padding
+  - All textareas: 120px min-height with proper line-height
+  - Consistent borders (1.5px solid), border-radius (8px), and focus states with gold outline
+  - Custom select dropdown arrow matching design system
+- **Logical Form Sections**: Reorganized form into chronological workflow order
+  - Contract Setup: Contract Type, Title, Effective Date, Tone, Detail Level (moved Tone/Detail from old Output section)
+  - Parties: Number of Parties + dynamic party fields (unchanged)
+  - Contract Terms: Scope, Compensation, Term/Duration, Termination (renamed from "Key Terms")
+  - Legal Options: Governing Law, IP Ownership, Confidentiality checkbox (moved from Contract Terms), Additional Clauses
+  - Signatures: Signatory 1 & 2 Name/Title (renamed from "Output & Signature")
+- **Section Naming**: Clearer section labels that match user intent (e.g., "Contract Terms" instead of "Key Terms", "Signatures" instead of "Output & Signature")
+- **CSS Specificity**: Higher specificity selectors (`.ybg-grid input`) override base `ybg.css` styles without breaking existing functionality
+
 ## UI Cleanup & Word Export Fix
 - **Tooltip Removal**: Removed all tooltip "i" icons from form field labels (redundant with placeholder text)
 - **Word Export**: Fixed Word export by correcting CDN URL from `html-docx.min.js` to `html-docx.js`
