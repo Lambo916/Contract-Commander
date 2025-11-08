@@ -54,6 +54,18 @@ Preferred communication style: Simple, everyday language.
   - Modal still displays correctly with blob URL download link
   - .docx file downloads to Downloads folder on user click
 
+## Complete Contract Commander Rebrand
+- **Removed BizPlan Builder Remnants**: Cleaned up all leftover template files and updated branding
+  - Deleted: `BizPlan-Builder/` folder (old template)
+  - Deleted: Unused `public/bizplan.html`, `public/bizplan.js`, `public/bizplan-app.html`
+  - Renamed: `bizplan-app.js` → `contract-app.js` (main application logic)
+  - Renamed: `bizplan-styles.css` → `contract-styles.css` (application styles)
+  - Updated: `public/index.html` to reference `contract-app.js` and `contract-styles.css`
+  - Updated: All backend comments in `server/routes.ts` from "BizPlan Builder" to "Contract Commander"
+  - Updated: Console.log messages from `[BizPlan]` to `[ContractCommander]`
+  - Preserved: API endpoints (`/api/bizplan/*`) and database table names for backward compatibility
+  - Preserved: LocalStorage key `ybg-bizplan-autosave` for backward compatibility
+
 # Previous Changes (Phase 3 - v1.1.0)
 
 ## Core Framework Extraction (November 2025)
