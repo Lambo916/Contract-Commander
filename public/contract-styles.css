@@ -1489,6 +1489,20 @@
   box-shadow: 0 4px 12px rgba(255,165,0,0.4);
 }
 
+/* Dark theme - Lighter champagne gold for command buttons (Save, New, etc.) */
+:root.dark .btn-command {
+  background: linear-gradient(135deg, #F4D03F 0%, #F7DC6F 50%, #F9E79F 100%);
+  border-color: #D4AF37;
+  color: #1a1a1a;
+  font-weight: 600;
+}
+
+:root.dark .btn-command:hover {
+  background: linear-gradient(135deg, #D4AF37 0%, #F4D03F 50%, #F7DC6F 100%);
+  border-color: #B8941E;
+  box-shadow: 0 4px 12px rgba(244,208,63,0.35);
+}
+
 :root.light .btn-primary,
 :root.light .btn-generate-inline {
   background: linear-gradient(90deg, #87CEEB 0%, #A0D8F1 50%, #B8E2F7 100%);
