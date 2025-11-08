@@ -84,13 +84,16 @@
         <!-- Parties -->
         <div class="ybg-subsection-header">
           <div class="ybg-subsection-title">Parties</div>
-          <select id="numberOfParties" data-testid="select-number-of-parties">
-            <option value="2" selected>2 Parties</option>
-            <option value="3">3 Parties</option>
-            <option value="4">4 Parties</option>
-            <option value="5">5 Parties</option>
-            <option value="6">6 Parties</option>
-          </select>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label for="numberOfParties" style="margin: 0; font-size: 13px; font-weight: 600;">Number of Parties:</label>
+            <select id="numberOfParties" data-testid="select-number-of-parties">
+              <option value="2" selected>2 Parties</option>
+              <option value="3">3 Parties</option>
+              <option value="4">4 Parties</option>
+              <option value="5">5 Parties</option>
+              <option value="6">6 Parties</option>
+            </select>
+          </div>
         </div>
         <div>
           <label>Your Organization Name *</label>
