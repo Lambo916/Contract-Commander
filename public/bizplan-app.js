@@ -623,31 +623,48 @@ function generatePDFContent(data) {
   return (data.mainPlan || data.markdown || '');
 }
 
-// Template loading functions
+// Template loading functions (deprecated - keeping for backward compatibility)
 function loadTemplate(templateKey) {
-  const template = BIZPLAN_TEMPLATES[templateKey];
-  if (!template) return;
-  
-  $('company').value = template.company;
-  $('industry').value = template.industry;
-  $('target').value = template.target || '';
-  $('product').value = template.product || '';
-  $('revenue').value = template.revenue || '';
-  $('stage').value = template.stage || '';
-  $('goals').value = template.goals || '';
-  $('tone').value = template.tone || 'Professional';
+  // Templates not used in Contract Commander - this function is deprecated
+  console.log('Template loading is deprecated in Contract Commander');
 }
 
 function clearAllInputs() {
   if (confirm('Clear all input fields?')) {
-    $('company').value = '';
-    $('industry').value = '';
-    $('target').value = '';
-    $('product').value = '';
-    $('revenue').value = '';
-    $('stage').value = '';
-    $('goals').value = '';
+    // Clear Contract Commander inputs
+    $('contractType').value = 'Service Agreement';
+    $('title').value = '';
+    $('effectiveDate').value = '';
+    $('numberOfParties').value = '2';
+    $('partyAName').value = '';
+    $('partyARole').value = 'Company';
+    $('partyBName').value = '';
+    $('partyBRole').value = 'Contractor';
+    if ($('partyCName')) $('partyCName').value = '';
+    if ($('partyCRole')) $('partyCRole').value = '';
+    if ($('partyDName')) $('partyDName').value = '';
+    if ($('partyDRole')) $('partyDRole').value = '';
+    if ($('partyEName')) $('partyEName').value = '';
+    if ($('partyERole')) $('partyERole').value = '';
+    if ($('partyFName')) $('partyFName').value = '';
+    if ($('partyFRole')) $('partyFRole').value = '';
+    $('scope').value = '';
+    $('compensation').value = '';
+    $('term').value = '';
+    $('termination').value = '';
+    $('confidentiality').checked = true;
+    $('governingLaw').value = 'California, USA';
+    $('ipOwnership').value = 'Company owns';
+    $('extraClauses').value = '';
     $('tone').value = 'Professional';
+    $('detailLevel').value = 'Standard';
+    $('signatory1Name').value = '';
+    $('signatory1Title').value = '';
+    $('signatory2Name').value = '';
+    $('signatory2Title').value = '';
+    
+    // Trigger party field visibility update
+    handleNumberOfPartiesChange();
   }
 }
 
@@ -817,15 +834,40 @@ $('btn-new-plan').addEventListener('click', () => {
     }
   }
   
-  // Clear inputs
-  $('company').value = '';
-  $('industry').value = '';
-  $('target').value = '';
-  $('product').value = '';
-  $('revenue').value = '';
-  $('stage').value = '';
-  $('goals').value = '';
+  // Clear Contract Commander inputs
+  $('contractType').value = 'Service Agreement';
+  $('title').value = '';
+  $('effectiveDate').value = '';
+  $('numberOfParties').value = '2';
+  $('partyAName').value = '';
+  $('partyARole').value = 'Company';
+  $('partyBName').value = '';
+  $('partyBRole').value = 'Contractor';
+  if ($('partyCName')) $('partyCName').value = '';
+  if ($('partyCRole')) $('partyCRole').value = '';
+  if ($('partyDName')) $('partyDName').value = '';
+  if ($('partyDRole')) $('partyDRole').value = '';
+  if ($('partyEName')) $('partyEName').value = '';
+  if ($('partyERole')) $('partyERole').value = '';
+  if ($('partyFName')) $('partyFName').value = '';
+  if ($('partyFRole')) $('partyFRole').value = '';
+  $('scope').value = '';
+  $('compensation').value = '';
+  $('term').value = '';
+  $('termination').value = '';
+  $('confidentiality').checked = true;
+  $('governingLaw').value = 'California, USA';
+  $('ipOwnership').value = 'Company owns';
+  $('extraClauses').value = '';
   $('tone').value = 'Professional';
+  $('detailLevel').value = 'Standard';
+  $('signatory1Name').value = '';
+  $('signatory1Title').value = '';
+  $('signatory2Name').value = '';
+  $('signatory2Title').value = '';
+  
+  // Trigger party field visibility update
+  handleNumberOfPartiesChange();
   
   // Clear results
   $('report-view').innerHTML = '';
@@ -893,11 +935,6 @@ $('btn-export-pdf').addEventListener('click', () => {
 
 // ==== TOOLS MENU HANDLERS ====
 
-$('btn-load-template').addEventListener('click', () => {
-  openModal('template-modal');
-  $('tools-menu').classList.remove('active');
-});
-
 $('btn-clear-all').addEventListener('click', () => {
   if (hasUnsavedChanges) {
     if (!confirm('You have unsaved changes. Clear all inputs and results?')) {
@@ -909,15 +946,40 @@ $('btn-clear-all').addEventListener('click', () => {
     }
   }
   
-  // Clear all inputs
-  $('company').value = '';
-  $('industry').value = '';
-  $('target').value = '';
-  $('product').value = '';
-  $('revenue').value = '';
-  $('stage').value = '';
-  $('goals').value = '';
+  // Clear all Contract Commander inputs
+  $('contractType').value = 'Service Agreement';
+  $('title').value = '';
+  $('effectiveDate').value = '';
+  $('numberOfParties').value = '2';
+  $('partyAName').value = '';
+  $('partyARole').value = 'Company';
+  $('partyBName').value = '';
+  $('partyBRole').value = 'Contractor';
+  if ($('partyCName')) $('partyCName').value = '';
+  if ($('partyCRole')) $('partyCRole').value = '';
+  if ($('partyDName')) $('partyDName').value = '';
+  if ($('partyDRole')) $('partyDRole').value = '';
+  if ($('partyEName')) $('partyEName').value = '';
+  if ($('partyERole')) $('partyERole').value = '';
+  if ($('partyFName')) $('partyFName').value = '';
+  if ($('partyFRole')) $('partyFRole').value = '';
+  $('scope').value = '';
+  $('compensation').value = '';
+  $('term').value = '';
+  $('termination').value = '';
+  $('confidentiality').checked = true;
+  $('governingLaw').value = 'California, USA';
+  $('ipOwnership').value = 'Company owns';
+  $('extraClauses').value = '';
   $('tone').value = 'Professional';
+  $('detailLevel').value = 'Standard';
+  $('signatory1Name').value = '';
+  $('signatory1Title').value = '';
+  $('signatory2Name').value = '';
+  $('signatory2Title').value = '';
+  
+  // Trigger party field visibility update
+  handleNumberOfPartiesChange();
   
   // Clear results
   $('report-view').innerHTML = '';
