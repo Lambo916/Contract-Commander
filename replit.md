@@ -11,6 +11,10 @@ Preferred communication style: Simple, everyday language.
 ## UI Cleanup & Word Export Fix
 - **Tooltip Removal**: Removed all tooltip "i" icons from form field labels (redundant with placeholder text)
 - **Word Export**: Fixed Word export by correcting CDN URL from `html-docx.min.js` to `html-docx.js`
+- **Sandbox Workaround**: Implemented modal-based download for Word export to work around Replit iframe sandbox restrictions
+  - Shows visible download button with clear instructions
+  - Tries multiple download methods (new window + direct download)
+  - XSS-safe DOM construction using createElement/textContent
 - **Export Verification**: Added console logging to verify both PDF and Word export modules load successfully
 - **Multi-party Support**: Maintained 2-6 party contract support with dynamic form fields
 - **Keyboard Shortcuts**: Ctrl+Enter to generate, Ctrl+S to save, Ctrl+N for new contract
