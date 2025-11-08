@@ -8,28 +8,41 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes (November 2025)
 
-## User Branding Feature v1.0 - Custom Logo & Letterhead (Phase 1 & 2)
+## User Branding Feature v1.0 - Custom Logo & Letterhead (Phase 1 & 2 ✅ Complete)
 - **Client Letterhead Customization**: Users can now add their own branding to exported PDFs
-  - Logo upload (PNG/SVG/JPG, max 300KB) with Base64 storage in localStorage
-  - Letterhead fields: Company name, address, contact line
+  - Logo upload (PNG/JPEG, max 300KB) with Base64 storage in localStorage
+  - SVG detection with user-friendly warning (not yet supported in PDF export)
+  - Letterhead fields: Company name, address (multi-line), contact line
   - Position options: Top-left or top-center alignment
   - Pages options: First page only or all pages (Phase 2)
   - Optional neutral legal footer on last page (user controlled)
-- **PDF Rendering Enhancements**: Professional header layout with automatic spacing
-  - Logo max width 160-180px with proper aspect ratio
-  - Letterhead text block: Company (bold) + Address + Contact (0.9× body size, gray #555)
-  - Hairline divider below header for clean separation
+- **PDF Rendering Enhancements**: Professional header layout with intelligent positioning
+  - Logo max width 180px with 3:1 aspect ratio
+  - Letterhead text block: Company (bold, 10pt) + Address + Contact (9pt, gray #555)
+  - **Center Alignment Logic**: Measures actual text widths using doc.getTextWidth()
+    - Logo-only: Centers logo alone on page
+    - Text-only: Centers text block on page
+    - Logo + text: Centers both as a unit with 15pt gap
+  - Left alignment: Standard positioning with logo first, text offset by logo width + 15pt
+  - Hairline divider (#ccc, 0.5pt) below header for clean separation
   - Automatic title offset (72pt/1in) when branding is active to prevent overlap
-- **Storage & Persistence**: Phase 1 uses client-side localStorage only
+- **Storage & Persistence**: Phase 1 & 2 use client-side localStorage only
   - Key: 'ybg.contractCommander.branding'
+  - Fields: enabled, logoDataUrl, company, address, contact, position, pages, addLegalFooter
   - All branding config persists across sessions
   - Reset Branding button to clear all settings (Phase 2)
 - **Validation & UX**: Smart error handling and user feedback
-  - File type validation (PNG/SVG/JPG only)
+  - File type validation (PNG/JPEG recommended, SVG shows warning)
   - File size validation (≤300KB)
+  - Image format detection from data URL MIME type
   - Inline warning when branding toggle is on but no content provided
   - Preview, replace, and remove logo functionality
   - Collapsible branding section for clean UI
+- **Implementation Quality**: Architect-reviewed and approved
+  - All center alignment scenarios tested and working correctly
+  - No regressions to existing white-label mode or left alignment
+  - Proper handling of edge cases (SVG, logo-only, text-only)
+  - Phase 3 (Supabase backend integration) remains pending
 
 ## Production Polish v1.3 - White-Label Mode Implementation
 - **Complete Branding Removal**: PDFs now export without visible YourBizGuru branding
