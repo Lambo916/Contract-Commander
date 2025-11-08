@@ -1785,4 +1785,9 @@
 /* Date input specific styling */
 .ybg-grid input[type="date"] {
   cursor: pointer;
+  width: 100% !important;
+  box-sizing: border-box;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
 }
