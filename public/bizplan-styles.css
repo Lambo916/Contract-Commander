@@ -1791,3 +1791,23 @@
   -moz-appearance: none;
   appearance: none;
 }
+
+/* Inline subsection header with dropdown */
+.ybg-subsection-header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 8px 0;
+}
+
+.ybg-subsection-header .ybg-subsection-title {
+  margin: 0;
+  flex-shrink: 0;
+}
+
+.ybg-subsection-header select {
+  max-width: 180px;
+  flex-shrink: 0;
+}
