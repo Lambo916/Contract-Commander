@@ -17,7 +17,7 @@ Preferred communication style: Simple, everyday language.
   - Date input: Fixed to fill container width (100%) with browser appearance removed for consistency
 - **Logical Form Sections**: Reorganized form into chronological workflow order
   - Contract Setup: Contract Type, Title, Effective Date, Tone, Detail Level (moved Tone/Detail from old Output section)
-  - Parties: Full-width vertical stacking - each label directly above its input field (fixed confusing left-right alignment)
+  - Parties: Compact inline header with "Number of Parties" dropdown on same line; 2-column name/role pairing (Your Organization Name | Your Role, Counterparty Name | Counterparty Role)
   - Contract Terms: Scope, Compensation, Term/Duration, Termination (renamed from "Key Terms")
   - Legal Options: Governing Law, IP Ownership, Confidentiality checkbox (moved from Contract Terms), Additional Clauses
   - Signatures: Signatory 1 & 2 Name/Title (renamed from "Output & Signature")
