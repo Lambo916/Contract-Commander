@@ -30,6 +30,7 @@ const allowedOrigins = isProduction
       'https://grant.yourbizguru.com',
       'https://bizplan.yourbizguru.com',
       /\.vercel\.app$/, // Allow Vercel preview deployments
+      /\.replit\.app$/, // Allow Replit deployed apps
     ]
   : [
       'http://localhost:5000', 
