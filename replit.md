@@ -1,12 +1,21 @@
 # Overview
 
-GrantGenie is a production-grade AI-powered platform for discovering and applying to grant opportunities. The system delivers professional compliance reports with database-backed report management, Panel=PDF WYSIWYG parity, and a responsive desktop-first UX where the results panel fills available screen space. Built with a blue and yellow theme for a professional, modern interface.
+Contract Commander is an AI-powered legal contract drafting tool that generates professional, print-ready contracts (NDAs, Service Agreements, Employment Agreements, MOUs, Partnership Agreements) using OpenAI GPT-4o. The application features a gold/dark/white theme (#F5C543, #111111, #FFFFFF, #C9C9D1) and produces clean legal documents with proper structure, formatting, and signature blocks. Users can export contracts as PDF or Word documents. Built with vanilla HTML/CSS/JS with database-backed report management.
 
 # User Preferences
 
 Preferred communication style: Simple, everyday language.
 
-# Recent Changes (Phase 3 - v1.1.0)
+# Recent Changes (November 2025)
+
+## UI Cleanup & Word Export Fix
+- **Tooltip Removal**: Removed all tooltip "i" icons from form field labels (redundant with placeholder text)
+- **Word Export**: Fixed Word export by correcting CDN URL from `html-docx.min.js` to `html-docx.js`
+- **Export Verification**: Added console logging to verify both PDF and Word export modules load successfully
+- **Multi-party Support**: Maintained 2-6 party contract support with dynamic form fields
+- **Keyboard Shortcuts**: Ctrl+Enter to generate, Ctrl+S to save, Ctrl+N for new contract
+
+# Previous Changes (Phase 3 - v1.1.0)
 
 ## Core Framework Extraction (November 2025)
 - **Centralized Clients**: All Supabase and OpenAI client initialization now lives in `/core/clients/`
@@ -26,9 +35,9 @@ Preferred communication style: Simple, everyday language.
 
 ## Frontend Architecture
 - **Technology Stack**: Pure vanilla HTML, CSS, and JavaScript with no frameworks for maximum compatibility and minimal dependencies
-- **Component Structure**: Single-page application with modular CSS variables for consistent GrantGenie branding (light blue primary, yellow accents)
+- **Component Structure**: Single-page application with modular CSS variables for Contract Commander branding (gold #F5C543, dark #111111, white #FFFFFF)
 - **UI Framework**: Uses shadcn/ui components with React for the client-side application, alongside Tailwind CSS for styling
-- **Design System**: Material Design principles with custom GrantGenie branding, featuring a two-panel layout (40% input, 60% results on desktop, stacked on mobile)
+- **Design System**: Two-panel layout (40% input form, 60% contract preview on desktop, stacked on mobile) with gold/dark/white color scheme
 - **Typography**: Montserrat for headings, Open Sans for body text with defined font weights and sizing hierarchy
 
 ## Backend Architecture
