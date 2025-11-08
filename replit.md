@@ -43,6 +43,17 @@ Preferred communication style: Simple, everyday language.
   - Production CORS now allows: grant.yourbizguru.com, bizplan.yourbizguru.com, contract.yourbizguru.com, *.vercel.app, and *.replit.app
   - OpenAI API key properly detected in production environment
 
+## Word Export Production Fix
+- **Browser Security Compliance**: Fixed Word export failing on live production site (contract.yourbizguru.com)
+  - Problem: Browsers block automated downloads (window.open, hidden link auto-click, setTimeout triggers) as security violations
+  - Solution: Removed ALL automated download attempts from `handleExportWord()` and `showWordExportModal()`
+  - Removed: `window.open(url, '_blank')` call (blocked by pop-up blockers)
+  - Removed: Hidden link creation and auto-click via setTimeout (blocked by browser security)
+  - Removed: 500ms auto-click on download button in modal
+  - Result: User sees modal, clicks visible gold download button themselves (direct user action = allowed by browsers)
+  - Modal still displays correctly with blob URL download link
+  - .docx file downloads to Downloads folder on user click
+
 # Previous Changes (Phase 3 - v1.1.0)
 
 ## Core Framework Extraction (November 2025)
