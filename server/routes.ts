@@ -31,7 +31,7 @@ function sanitizeHtmlContent(html: string): string {
   });
 }
 
-// Sanitize HTML content for BizPlan reports (allow premium component classes, XSS-safe)
+// Sanitize HTML content for Contract Commander reports (allow premium component classes, XSS-safe)
 function sanitizeBizPlanHtml(html: string): string {
   return sanitizeHtml(html, {
     allowedTags: ['p', 'h1', 'h2', 'h3', 'h4', 'ul', 'ol', 'li', 'strong', 'em', 'a', 'hr', 'div', 'span', 'small', 'br', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'button'],
@@ -920,7 +920,7 @@ Make suggestions concrete and tailored to this specific contract. Avoid generic 
     }
   });
 
-  // BizPlan Builder - Save report with 30-report limit and HTML sanitization
+  // Contract Commander - Save report with 30-report limit and HTML sanitization
   app.post("/api/bizplan/reports/save", async (req, res) => {
     try {
       // Get anonymous user ID from browser client ID
@@ -962,7 +962,7 @@ Make suggestions concrete and tailored to this specific contract. Avoid generic 
       const currentCount = reportCount[0]?.count || 0;
 
       if (currentCount >= 30) {
-        console.log(`[BizPlan] User ${userId} has reached 30-report limit: ${currentCount}/30`);
+        console.log(`[ContractCommander] User ${userId} has reached 30-report limit: ${currentCount}/30`);
         return res.status(400).json({
           error: 'You have reached the 30-report limit. Please delete old reports to save new ones.',
           count: currentCount,
@@ -1005,7 +1005,7 @@ Make suggestions concrete and tailored to this specific contract. Avoid generic 
         })
         .returning();
 
-      console.log(`[BizPlan] Report saved for user ${userId}: ${title} (${currentCount + 1}/30)`);
+      console.log(`[ContractCommander] Report saved for user ${userId}: ${title} (${currentCount + 1}/30)`);
 
       res.json({
         ...savedReport,
@@ -1014,7 +1014,7 @@ Make suggestions concrete and tailored to this specific contract. Avoid generic 
         limit: 30
       });
     } catch (error: any) {
-      console.error("Error saving BizPlan report:", error);
+      console.error("Error saving Contract Commander report:", error);
 
       if (process.env.NODE_ENV === 'production') {
         res.status(500).json({
@@ -1029,7 +1029,7 @@ Make suggestions concrete and tailored to this specific contract. Avoid generic 
     }
   });
 
-  // BizPlan Builder - List all reports for userId with pagination
+  // Contract Commander - List all reports for userId with pagination
   app.get("/api/bizplan/reports", async (req, res) => {
     try {
       // Get anonymous user ID from browser client ID
@@ -1081,7 +1081,7 @@ Make suggestions concrete and tailored to this specific contract. Avoid generic 
         }
       });
     } catch (error: any) {
-      console.error("Error listing BizPlan reports:", error);
+      console.error("Error listing Contract Commander reports:", error);
 
       if (process.env.NODE_ENV === 'production') {
         res.status(500).json({
@@ -1096,7 +1096,7 @@ Make suggestions concrete and tailored to this specific contract. Avoid generic 
     }
   });
 
-  // BizPlan Builder - Get single report by ID
+  // Contract Commander - Get single report by ID
   app.get("/api/bizplan/reports/:id", async (req, res) => {
     try {
       // Get anonymous user ID from browser client ID
@@ -1129,7 +1129,7 @@ Make suggestions concrete and tailored to this specific contract. Avoid generic 
 
       res.json(report);
     } catch (error: any) {
-      console.error("Error retrieving BizPlan report:", error);
+      console.error("Error retrieving Contract Commander report:", error);
 
       if (process.env.NODE_ENV === 'production') {
         res.status(500).json({
@@ -1144,7 +1144,7 @@ Make suggestions concrete and tailored to this specific contract. Avoid generic 
     }
   });
 
-  // BizPlan Builder - Delete report by ID
+  // Contract Commander - Delete report by ID
   app.delete("/api/bizplan/reports/:id", async (req, res) => {
     try {
       // Get anonymous user ID from browser client ID
@@ -1175,11 +1175,11 @@ Make suggestions concrete and tailored to this specific contract. Avoid generic 
         });
       }
 
-      console.log(`[BizPlan] Report deleted: ${id} (user: ${userId})`);
+      console.log(`[ContractCommander] Report deleted: ${id} (user: ${userId})`);
 
       res.json({ success: true, deletedId: result[0].id });
     } catch (error: any) {
-      console.error("Error deleting BizPlan report:", error);
+      console.error("Error deleting Contract Commander report:", error);
 
       if (process.env.NODE_ENV === 'production') {
         res.status(500).json({
