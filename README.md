@@ -1,45 +1,66 @@
 # Contract Commander
 
-> **AI-assisted contract drafting for NDAs, MOUs, Service Agreements, and more**
+> **AI-Powered Legal Contract Drafting in Minutes**
 
-Contract Commander is an AI-powered contract generation platform that helps businesses and professionals create comprehensive, lawyer-style contracts in minutes. Featuring intelligent content generation, customizable templates, and professional PDF exports with YourBizGuru branding.
+Contract Commander is a professional contract generation platform that creates legally-structured, print-ready contracts using OpenAI GPT-4o. Generate NDAs, Service Agreements, Employment Contracts, MOUs, and Partnership Agreements with proper formatting, signature blocks, and instant PDF/Word export.
 
 🌐 **Live Production**: [contract.yourbizguru.com](https://contract.yourbizguru.com)
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
-### Core Functionality
-- **🤖 AI-Powered Generation**: GPT-4o creates detailed, context-aware contract clauses
-- **📄 Professional PDF Export**: Generate lawyer-ready PDFs with automatic table of contents and proper pagination
-- **💾 Contract Management**: Save, load, and manage multiple contracts with Supabase PostgreSQL
-- **📚 Template Library**: Pre-built templates for common contract types
+### 🤖 AI-Powered Contract Generation
+- **GPT-4o Intelligence**: Creates comprehensive, legally-structured contracts with proper terminology and clause formatting
+- **5 Contract Types**: NDA, Service Agreement, Employment Agreement, MOU, Partnership Agreement
+- **Smart Customization**: 
+  - **Tone**: Professional, Friendly, or Legal
+  - **Detail Level**: Summary, Standard, or Comprehensive
+  - **Multi-Party Support**: 2-6 parties with dynamic role assignment
 
-### Customization Options
-- **Detail Levels**: Choose between Standard, Expanded, or Comprehensive detail depth
-  - Standard: 1500-2200 words
-  - Expanded: 2200-3200 words
-  - Comprehensive: 3200-4500 words
-- **Tone Selection**: Professional, Investor-ready, Concise, or Visionary
-- **Theme Toggle**: Professional light and dark themes with persistent preferences
+### 📄 Professional Document Export
+- **PDF Export**: Clean, print-ready PDFs with proper pagination
+- **Word Export**: Editable .docx files for further customization
+- **Instant Download**: No server processing delays
 
-### Contract Sections
-1. **Parties & Recitals**: Legal entities and background information
-2. **Scope of Work**: Detailed service or product descriptions
-3. **Terms & Conditions**: Key contract terms and obligations
-4. **Payment Terms**: Pricing, invoicing, and payment schedules
-5. **Confidentiality**: Protection of proprietary information
-6. **Termination Clauses**: Exit conditions and procedures
-7. **Dispute Resolution**: Mediation and arbitration processes
-8. **Governing Law**: Jurisdiction and applicable laws
+### 🎨 Modern Interface
+- **Gold/Dark/White Theme**: Professional branding (#F5C543, #111111, #FFFFFF)
+- **Compact Form Design**: Streamlined input with logical section organization
+- **Real-Time Preview**: See contract updates as you type
+- **Responsive Layout**: Works on desktop, tablet, and mobile
+
+### ⚡ Smart Features
+- **Keyboard Shortcuts**: 
+  - `Ctrl+Enter` - Generate contract
+  - `Ctrl+S` - Save to database
+  - `Ctrl+N` - New contract
+- **Auto-Save**: Prevents data loss with localStorage caching
+- **Database Storage**: Save and retrieve contracts with Supabase
+
+---
+
+## 📋 Contract Sections
+
+Every generated contract includes:
+
+1. **Title & Effective Date** - Contract identification
+2. **Parties** - Complete party information with names and roles
+3. **Scope of Work** - Detailed description of services/deliverables
+4. **Compensation** - Payment terms and amounts
+5. **Term & Duration** - Contract timeframe
+6. **Termination** - Exit conditions and procedures
+7. **Confidentiality** - (Optional) Protection of proprietary information
+8. **Intellectual Property** - (Optional) IP ownership and licensing
+9. **Governing Law** - Jurisdiction and applicable laws
+10. **Additional Clauses** - Custom terms specific to your needs
+11. **Signatures** - Signature blocks for all parties
 
 ---
 
 ## 🚀 Quick Start
 
 ### Prerequisites
-- Node.js 20+ or compatible runtime
+- Node.js 20+
 - OpenAI API key ([get one here](https://platform.openai.com/api-keys))
 - Supabase account ([create free account](https://supabase.com))
 
@@ -58,14 +79,9 @@ Contract Commander is an AI-powered contract generation platform that helps busi
 
 3. **Set up environment variables**
    
-   Copy `.env.example` to `.env` and fill in your credentials:
-   ```bash
-   cp .env.example .env
-   ```
-
-   Required variables:
+   Create a `.env` file in the root directory:
    ```env
-   OPENAI_API_KEY=sk-proj-your-key-here
+   OPENAI_API_KEY=sk-your-openai-key-here
    SUPABASE_URL=https://your-project.supabase.co
    SUPABASE_ANON_KEY=your-supabase-anon-key
    DATABASE_URL=postgresql://postgres.your-project:password@host:5432/postgres
@@ -76,13 +92,13 @@ Contract Commander is an AI-powered contract generation platform that helps busi
    npm run dev
    ```
    
-   Open [http://localhost:5000](http://localhost:5000) in your browser
+   Open [http://localhost:5000](http://localhost:5000)
 
 ---
 
 ## 🌐 Deployment
 
-### Deploy to Vercel
+### Deploy to Vercel (Recommended)
 
 1. **Push to GitHub**
    ```bash
@@ -94,53 +110,58 @@ Contract Commander is an AI-powered contract generation platform that helps busi
 2. **Import to Vercel**
    - Go to [vercel.com/new](https://vercel.com/new)
    - Import your GitHub repository
-   - Framework: **Other** (auto-detected)
+   - Framework preset: **Other**
 
 3. **Configure Environment Variables**
    
-   Add these in Vercel Project Settings → Environment Variables:
+   Add in Vercel Project Settings → Environment Variables:
    ```
    OPENAI_API_KEY=sk-proj-***
    DATABASE_URL=postgresql://***
    SUPABASE_URL=https://***
    SUPABASE_ANON_KEY=eyJhbGci***
-   TOOL_NAME=contractcommander
-   PUBLIC_SITE_URL=https://contract.yourbizguru.com
+   NODE_ENV=production
    ```
 
-4. **Set Custom Domain**
-   - Go to Project Settings → Domains
-   - Add: `contract.yourbizguru.com`
-   - Update DNS with CNAME record pointing to `cname.vercel-dns.com`
+4. **Set Custom Domain** (Optional)
+   - Project Settings → Domains
+   - Add your domain (e.g., `contract.yourbizguru.com`)
+   - Update DNS with CNAME: `cname.vercel-dns.com`
+   - **Important**: Add your custom domain to CORS allowed origins in `server/production.ts`
 
-5. **Deploy!**
-   - Click "Deploy"
-   - Wait 2-3 minutes for build
-   - Your app is live! 🎉
+5. **Deploy** 🎉
+
+### Deploy to Replit
+
+1. **Publish via Replit**
+   - Click "Publish" in your Replit workspace
+   - Your app gets a `.replit.app` domain automatically
+   - CORS is pre-configured for `.replit.app` domains
 
 ---
 
 ## 🏗️ Tech Stack
 
 ### Frontend
-- **Vanilla JavaScript**: Zero framework dependencies for maximum compatibility
-- **Chart.js**: Interactive visualizations
-- **jsPDF**: Professional PDF generation with custom formatting
-- **CSS3**: Custom property-based theming system
+- **Vanilla JavaScript** - Zero framework dependencies, maximum compatibility
+- **HTML/CSS** - Semantic markup with custom property theming
+- **jsPDF** - Client-side PDF generation
+- **html-docx-js** - Word document export
 
 ### Backend
-- **Express.js**: RESTful API server
-- **TypeScript**: Type-safe server code
-- **OpenAI API**: GPT-4o for content generation (SDK-free fetch for Vercel compatibility)
+- **Express.js** - RESTful API server
+- **TypeScript** - Type-safe server code
+- **OpenAI GPT-4o** - AI contract generation
+- **Drizzle ORM** - Type-safe database operations
 
 ### Database & Storage
-- **Supabase PostgreSQL**: Production-grade database with automatic backups
-- **Drizzle ORM**: Type-safe database operations
-- **Smart Environment System**: Flexible variable detection (VITE_*, NEXT_PUBLIC_*, SUPABASE_*)
+- **Supabase PostgreSQL** - Production database with automatic backups
+- **LocalStorage** - Client-side caching for autosave
 
 ### Deployment
-- **Vercel**: Serverless function hosting with global CDN
-- **GitHub**: Version control and CI/CD pipeline
+- **Vercel** - Serverless functions (primary)
+- **Replit Publishing** - Alternative deployment platform
+- **CORS** - Multi-domain support (yourbizguru.com, vercel.app, replit.app)
 
 ---
 
@@ -149,27 +170,31 @@ Contract Commander is an AI-powered contract generation platform that helps busi
 ```
 Contract-Commander/
 ├── public/                      # Frontend assets
-│   ├── index.html              # Main HTML entry point
-│   ├── ybg.css                 # Theme system and base styles
-│   ├── bizplan-styles.css      # Application-specific styles
+│   ├── index.html              # Main application
+│   ├── ybg.css                 # Base theme system
+│   ├── bizplan-styles.css      # Contract Commander styles
 │   ├── bizplan-app.js          # Main application logic
-│   ├── pdf-export.js           # PDF generation module
-│   └── assets/                 # Images and logos
+│   ├── pdf-export.js           # PDF generation
+│   └── assets/                 # Logos and images
 ├── server/                      # Backend API
-│   ├── index.ts                # Express server entry
+│   ├── index.ts                # Development server
+│   ├── production.ts           # Production server (Vercel)
 │   ├── routes.ts               # API endpoints
 │   ├── db.ts                   # Database connection
-│   └── vite.ts                 # Vite dev server integration
-├── shared/                      # Shared types and schemas
-│   └── schema.ts               # Drizzle database schema
-├── lib/                         # Utilities
-│   └── supabase.ts             # Supabase client initialization
-├── src/                         # Source files
+│   └── auth.ts                 # Authentication middleware
+├── core/                        # Core utilities
+│   ├── clients/
+│   │   ├── openai.ts           # OpenAI client
+│   │   └── supabase.ts         # Supabase client
 │   └── config/
-│       └── branding.ts         # Contract Commander branding constants
-├── .env.example                # Environment variables template
-├── vercel.json                 # Vercel deployment config
-└── package.json                # Dependencies and scripts
+│       └── index.ts            # App configuration
+├── shared/                      # Shared types
+│   └── schema.ts               # Drizzle schemas
+├── models/                      # Type definitions
+│   └── contracts.ts            # Contract types
+├── vercel.json                 # Vercel config
+├── build-vercel.sh             # Vercel build script
+└── package.json                # Dependencies
 ```
 
 ---
@@ -178,68 +203,97 @@ Contract-Commander/
 
 ### Contract Generation
 - **POST** `/api/bizplan`
-  - Generates AI-powered contract content
-  - Request: Company details, tone, detail level
-  - Response: Structured JSON with all contract sections
+  - Generates AI-powered contract
+  - Request body: Contract details (type, parties, terms, etc.)
+  - Response: Complete contract content in structured format
+  - Rate limit: 60 requests/minute
 
 ### Contract Management
-- **POST** `/api/bizplan/reports/save` - Save a contract
+- **POST** `/api/bizplan/reports/save` - Save contract to database
 - **GET** `/api/bizplan/reports` - List all saved contracts
-- **GET** `/api/bizplan/reports/:id` - Get specific contract by ID
-- **DELETE** `/api/bizplan/reports/:id` - Delete a contract
+- **GET** `/api/bizplan/reports/:id` - Get specific contract
+- **DELETE** `/api/bizplan/reports/:id` - Delete contract
 
-### Health Checks
+### Health & Status
 - **GET** `/api/health/db` - Database connection status
 - **GET** `/api/db/ping` - Supabase connectivity check
 
 ---
 
-## 🎨 Branding & Design
+## 🎨 Design System
 
 ### Color Palette
-- **Primary Gold**: `#F5C543` - Professional, premium
-- **Background (Dark)**: `#111111` - Clean, modern
-- **Text (Light)**: `#FFFFFF` - High contrast readability
-- **Accent Gray**: `#C9C9D1` - Subtle accents
+- **Primary Gold**: `#F5C543` - Professional, premium feel
+- **Dark Background**: `#111111` - Modern, clean
+- **White Text**: `#FFFFFF` - High contrast, readable
+- **Accent Gray**: `#C9C9D1` - Subtle UI elements
 
-### Typography
-- **Headings**: System UI font stack
-- **Body**: Sans-serif optimized for readability
-- **PDF**: Clean, professional formatting
+### Form Sections (In Order)
+1. **Contract Setup** - Type, Title, Date, Tone, Detail Level
+2. **Parties** - Compact header with party count selector, 2-column name/role pairing
+3. **Contract Terms** - Scope, Compensation, Term, Termination
+4. **Legal Options** - Governing Law, IP Ownership, Confidentiality
+5. **Signatures** - Signatory names and titles
 
-### Theme System
-- Persistent light/dark mode with localStorage
-- Respects system preferences
-- Smooth transitions between themes
-- Accessible color contrast (WCAG AA compliant)
+### UI Improvements (Nov 2025)
+- ✅ Unified 48px height for all inputs/selects
+- ✅ 120px height for textareas
+- ✅ Consistent 8px border radius
+- ✅ Gold focus outlines (#F5C543)
+- ✅ Ultra-compact party selector (70px dropdown)
+- ✅ 2-column name/role layout for better scanning
 
 ---
 
 ## 🔐 Environment Variables
 
-### Required
+### Required Variables
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `OPENAI_API_KEY` | OpenAI API key for GPT-4o | `sk-proj-***` |
 | `SUPABASE_URL` | Supabase project URL | `https://xxx.supabase.co` |
-| `SUPABASE_ANON_KEY` | Supabase anonymous key (public) | `eyJhbGci***` |
+| `SUPABASE_ANON_KEY` | Supabase public key | `eyJhbGci***` |
 | `DATABASE_URL` | PostgreSQL connection string | `postgresql://***` |
 
-### Optional
+### Optional Variables
 | Variable | Description | Default |
 |----------|-------------|---------|
-| `PUBLIC_SITE_URL` | Production URL | `https://contract.yourbizguru.com` |
-| `TOOL_NAME` | Application name | `contractcommander` |
-| `CORS_ALLOWED_ORIGINS` | Allowed CORS origins | `*` (dev), production domain |
-| `SESSION_SECRET` | Session encryption key | Auto-generated |
-| `REPORT_CAP` | Max contracts per user | `30` |
-| `RATE_LIMIT_WINDOW` | Rate limit window (seconds) | `86400` |
+| `NODE_ENV` | Environment mode | `development` |
+| `PORT` | Server port | `5000` |
 
 ---
 
-## 🤝 Contributing
+## 🔧 CORS Configuration
 
-This is a proprietary project for YourBizGuru. For bug reports or feature requests, contact the development team.
+Production CORS allows these origins:
+- `grant.yourbizguru.com`
+- `bizplan.yourbizguru.com`
+- `contract.yourbizguru.com`
+- `*.vercel.app` (Vercel deployments)
+- `*.replit.app` (Replit deployments)
+
+**Adding a new domain?** Edit `server/production.ts` and add to `allowedOrigins` array.
+
+---
+
+## 📊 Recent Updates
+
+### November 2025 - v1.0.0
+- ✅ **Form UI Overhaul**: Compact, logical section organization
+- ✅ **Multi-Party Support**: Dynamic 2-6 party contracts
+- ✅ **Export Options**: Both PDF and Word (.docx)
+- ✅ **CORS Fix**: Support for Replit and custom domains
+- ✅ **Keyboard Shortcuts**: Power user productivity features
+- ✅ **Consistent Styling**: Unified field heights and focus states
+
+---
+
+## 🤝 Support
+
+**YourBizGuru Contract Commander**
+- 📧 Email: support@yourbizguru.com
+- 🌐 Website: [yourbizguru.com](https://yourbizguru.com)
+- 📄 Live App: [contract.yourbizguru.com](https://contract.yourbizguru.com)
 
 ---
 
@@ -247,24 +301,17 @@ This is a proprietary project for YourBizGuru. For bug reports or feature reques
 
 © 2025 YourBizGuru - All Rights Reserved
 
-Unauthorized copying, modification, or distribution of this software is strictly prohibited.
+Proprietary software. Unauthorized copying, modification, or distribution is prohibited.
 
 ---
 
-## 🆘 Support
-
-- **Email**: support@yourbizguru.com
-- **Website**: [yourbizguru.com](https://yourbizguru.com)
-
----
-
-## 📊 Project Status
+## ✨ Project Status
 
 - ✅ **Version**: 1.0.0
 - ✅ **Status**: Production Ready
 - ✅ **Live URL**: [contract.yourbizguru.com](https://contract.yourbizguru.com)
 - ✅ **Last Updated**: November 2025
-- ✅ **Deployment**: Vercel (Serverless)
+- ✅ **Platforms**: Vercel (Primary), Replit (Alternative)
 
 ---
 
