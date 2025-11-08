@@ -917,6 +917,11 @@ $('btn-export-pdf').addEventListener('click', () => {
   $('export-menu').classList.remove('active');
 });
 
+$('btn-export-word').addEventListener('click', () => {
+  handleExportWord();
+  $('export-menu').classList.remove('active');
+});
+
 // ==== TOOLS MENU HANDLERS ====
 
 $('btn-clear-all').addEventListener('click', () => {
