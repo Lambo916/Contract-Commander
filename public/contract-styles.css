@@ -1603,7 +1603,7 @@
   background: rgba(100,149,237,0.15);
 }
 
-:root.light .progress-fill {
+:root.light .progress-bar-fill {
   background: linear-gradient(90deg, #6495ED, #7BA3F0);
 }
 
@@ -1646,6 +1646,17 @@
 :root.light .theme-toggle:hover,
 :root.light .report-item:focus {
   box-shadow: 0 0 0 3px rgba(100,149,237,0.15);
+}
+
+/* Fix tooltip gradient with hard-coded yellow stop */
+:root.light .tooltip-icon,
+:root.light .tooltip-icon:hover {
+  background: linear-gradient(135deg, #6495ED 0%, rgba(100,149,237,0.9) 100%);
+}
+
+/* Fix list markers */
+:root.light .insights-list li::marker {
+  color: #6495ED;
 }
 
 @media print {
