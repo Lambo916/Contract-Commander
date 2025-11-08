@@ -1,425 +1,360 @@
-/**
- * Contract Commander - Professional PDF Export System
- * Legal Document Formatting with Professional Typography
- * 
- * Features:
- * - Legal document formatting (serif font, proper margins)
- * - Repeating headers & footers with page numbers
- * - Professional legal typography & spacing
- * - Clean section rendering with proper hierarchy
- * - Signature block formatting
- */
+/* =========================================================
+   CONTRACT COMMANDER — Production PDF + Compliance Layer
+   Version: v2.2  •  Date: 2025-11-08
+   ---------------------------------------------------------
+   What you get:
+   - Clean PDF layout (no intrusive watermark)
+   - Small professional footer + page numbers
+   - Centralized in-app legal notice (one place)
+   - Optional end-of-doc disclaimer (subtle, not every page)
+   - Proper filename formatting to your standard
+   - Safe defaults that won't break existing UI
+   - Title sanitizer so quick test titles don't look odd
+   Dependencies: jsPDF (^2.x)
+   ========================================================= */
 
 (() => {
   'use strict';
 
-  // ---- Library Loaders ----
-  const loadJsPDF = (() => {
-    let cached;
-    return async () => {
-      if (cached) return cached;
-      if (window.jspdf?.jsPDF) {
-        cached = window.jspdf.jsPDF;
-        return cached;
-      }
-      const script = document.createElement("script");
-      script.src = "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js";
-      await new Promise((resolve, reject) => {
-        script.onload = resolve;
-        script.onerror = () => reject(new Error("Failed to load jsPDF"));
-        document.head.appendChild(script);
-      });
-      cached = window.jspdf.jsPDF;
-      return cached;
-    };
-  })();
-
-  const loadJsPDFAutoTable = (() => {
-    let cached;
-    return async () => {
-      if (cached) return cached;
-      if (window.jspdf?.jsPDF?.API?.autoTable) {
-        cached = true;
-        return cached;
-      }
-      const script = document.createElement("script");
-      script.src = "https://cdn.jsdelivr.net/npm/jspdf-autotable@3.5.31/dist/jspdf.plugin.autotable.min.js";
-      await new Promise((resolve, reject) => {
-        script.onload = resolve;
-        script.onerror = () => reject(new Error("Failed to load jsPDF-AutoTable"));
-        document.head.appendChild(script);
-      });
-      cached = true;
-      return cached;
-    };
-  })();
-
-  // ---- Constants ----
-  const PAGE = {
-    width: 210,  // mm (A4)
-    height: 297  // mm
+  //////////////////////////////
+  // 0) BRAND / LEGAL CONFIG
+  //////////////////////////////
+  const CC_CONFIG = {
+    productName: "Contract Commander",
+    siteUrl: "https://YourBizGuru.com",
+    companyLegalName: "Big Stake Consulting LLC",
+    // PDF look-and-feel
+    pdf: {
+      margin: { top: 28, right: 22, bottom: 20, left: 22 },
+      header: { show: true, showLogo: false, logoDataUrl: "", logoWidth: 28 },
+      footer: { show: true },
+      // Keep disclaimers subtle: appended once at the END (not on every page).
+      appendEndDisclaimer: true,
+      showWatermark: false, // keep OFF for professional look
+    },
+    // Centralized in-app notice (visible in the app footer)
+    appNotice: {
+      show: true,
+      html: `
+        <footer style="text-align:center; padding:12px 20px; font-size:12px; color:#aaa; margin-top: 40px; border-top: 1px solid rgba(150,150,150,0.2);">
+          ⚠️ <strong>Legal Notice:</strong> Contract Commander is an AI-assisted document generator.
+          Content is for <strong>informational and drafting purposes only</strong> and is not legal, tax, or financial advice.
+          No attorney-client relationship is created. Review with a qualified professional before use.
+        </footer>
+      `,
+    },
+    // Optional: auto-inject a light disclaimer paragraph at the very end
+    endDisclaimerText: `
+This document was generated using Contract Commander (YourBizGuru.com).
+It is provided for informational and drafting purposes only and does not constitute legal, tax, or financial advice.
+No attorney-client relationship is formed. Review and adapt before execution.
+    `.trim(),
+    // File naming (matches your YYYY-MM-DD_Acronym_Description.pdf convention)
+    fileAcronym: "YBG", // your platform acronym
   };
 
-  const MARGINS = {
-    top: 25.4,    // 1 inch
-    bottom: 25.4, // 1 inch
-    left: 25.4,   // 1 inch
-    right: 25.4   // 1 inch
-  };
-
-  const CONTENT = {
-    left: MARGINS.left,
-    right: PAGE.width - MARGINS.right,
-    top: MARGINS.top + 12, // Space for header
-    bottom: PAGE.height - MARGINS.bottom - 15, // Space for footer
-    get width() { return this.right - this.left; },
-    get height() { return this.bottom - this.top; }
-  };
-
-  const TYPOGRAPHY = {
-    fontFamily: "times",         // Serif font for legal documents
-    sectionHeader: { size: 12, weight: "bold" },
-    body: { size: 11, weight: "normal" },
-    footer: { size: 9, weight: "normal" },
-    lineHeight: 5.5,
-    paragraphSpacing: 4,
-    colorText: [0, 0, 0],        // Pure black for legal documents
-    colorHeader: [0, 0, 0],      // Pure black for headers
-    colorMeta: [102, 102, 102],
-    colorGold: [245, 197, 67],   // #F5C543 (Contract Commander gold)
-    colorAccent: [201, 201, 209]  // #C9C9D1 (light gray accent)
-  };
-
-  // ---- Helper Functions ----
-  function wrapText(doc, text, maxWidth, fontSize) {
-    doc.setFontSize(fontSize);
-    const words = text.split(' ');
-    const lines = [];
-    let currentLine = '';
-
-    for (const word of words) {
-      const testLine = currentLine ? `${currentLine} ${word}` : word;
-      const width = doc.getTextWidth(testLine);
-      
-      if (width > maxWidth && currentLine) {
-        lines.push(currentLine);
-        currentLine = word;
-      } else {
-        currentLine = testLine;
-      }
-    }
-    
-    if (currentLine) {
-      lines.push(currentLine);
-    }
-    
-    return lines;
+  //////////////////////////////
+  // 1) IN-APP FOOTER (once)
+  //////////////////////////////
+  function mountAppLegalFooterOnce() {
+    if (!CC_CONFIG.appNotice.show) return;
+    if (document.getElementById("__cc_legal_footer")) return;
+    const wrap = document.createElement("div");
+    wrap.id = "__cc_legal_footer";
+    wrap.innerHTML = CC_CONFIG.appNotice.html;
+    document.body.appendChild(wrap);
   }
 
-  function formatDate() {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const day = String(now.getDate()).padStart(2, '0');
-    return `${year}${month}${day}`;
+  //////////////////////////////
+  // 2) UTILS
+  //////////////////////////////
+  function titleCase(s = "") {
+    return s
+      .toLowerCase()
+      .replace(/\b\w/g, (c) => c.toUpperCase())
+      .replace(/\s+/g, " ")
+      .trim();
   }
 
-  function sanitizeFilename(name) {
-    return name.replace(/[^a-z0-9]/gi, '_').replace(/_+/g, '_');
+  function sanitizeTitleForFilename(s = "") {
+    return s.replace(/[^a-z0-9\-_\s]/gi, "").replace(/\s+/g, "_").slice(0, 80);
   }
 
-  // ---- PDF Writer Class ----
-  class PDFWriter {
-    constructor(doc) {
-      this.doc = doc;
-      this.yPosition = CONTENT.top;
-      this.pageNumber = 1;
-      this.sections = [];
+  function ymd() {
+    const d = new Date();
+    const pad = (n) => String(n).padStart(2, "0");
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  }
+
+  function safeDocTitle(inputTitle, fallback) {
+    const t = titleCase((inputTitle || "").trim());
+    if (!t || t.toLowerCase() === "considering") return fallback;
+    return t;
+  }
+
+  //////////////////////////////
+  // 3) PDF CORE
+  //////////////////////////////
+  async function loadJsPDF() {
+    if (window.jspdf?.jsPDF) {
+      return window.jspdf.jsPDF;
     }
-
-    addSection(title) {
-      this.sections.push({ title, page: this.pageNumber });
-    }
-
-    drawHeader() {
-      this.doc.setFont(TYPOGRAPHY.fontFamily, "normal");
-      this.doc.setFontSize(10);
-      this.doc.setTextColor(...TYPOGRAPHY.colorMeta);
-      this.doc.text("Contract Commander", MARGINS.left, MARGINS.top - 5);
-    }
-
-    drawFooter(totalPages) {
-      const y = PAGE.height - MARGINS.bottom + 10;
-      
-      // Footer text
-      this.doc.setFont(TYPOGRAPHY.fontFamily, "normal");
-      this.doc.setFontSize(TYPOGRAPHY.footer.size);
-      this.doc.setTextColor(...TYPOGRAPHY.colorMeta);
-      this.doc.text("Contract Commander    For informational purposes only. Not legal, tax, or financial advice.", 
-        MARGINS.left, y);
-      
-      // Page number (right-aligned)
-      const pageText = `Page ${this.pageNumber} of ${totalPages}`;
-      const pageWidth = this.doc.getTextWidth(pageText);
-      this.doc.text(pageText, CONTENT.right - pageWidth, y);
-    }
-
-    addNewPage() {
-      this.doc.addPage();
-      this.pageNumber++;
-      this.yPosition = CONTENT.top;
-      this.drawHeader();
-      // Note: Footer will be added in final pass with correct total page count
-    }
-
-    needsNewPage(requiredHeight) {
-      return this.yPosition + requiredHeight > CONTENT.bottom;
-    }
-
-    addDivider() {
-      // Slim yellow divider (15% thinner = 0.34mm instead of 0.4mm)
-      this.doc.setDrawColor(...TYPOGRAPHY.colorAccent);
-      this.doc.setLineWidth(0.34);
-      this.doc.line(CONTENT.left, this.yPosition, CONTENT.right, this.yPosition);
-      this.yPosition += 4; // 10px top + 15px bottom spacing
-    }
-
-    addSectionHeader(title) {
-      // Add spacing before section
-      if (this.yPosition > CONTENT.top + 10) {
-        this.yPosition += 10; // Top spacing
-      }
-
-      // Check if we need a new page
-      if (this.needsNewPage(20)) {
-        this.addNewPage();
-      }
-
-      // Section title
-      this.doc.setFont(TYPOGRAPHY.fontFamily, TYPOGRAPHY.sectionHeader.weight);
-      this.doc.setFontSize(TYPOGRAPHY.sectionHeader.size);
-      this.doc.setTextColor(...TYPOGRAPHY.colorHeader);
-      this.doc.text(title, CONTENT.left, this.yPosition);
-      this.yPosition += 6;
-
-      // Divider below title
-      this.addDivider();
-      this.yPosition += 5; // Bottom spacing
-      
-      // Record section for TOC
-      this.addSection(title);
-    }
-
-    addParagraph(text) {
-      this.doc.setFont(TYPOGRAPHY.fontFamily, TYPOGRAPHY.body.weight);
-      this.doc.setFontSize(TYPOGRAPHY.body.size);
-      this.doc.setTextColor(...TYPOGRAPHY.colorText);
-
-      const lines = wrapText(this.doc, text, CONTENT.width, TYPOGRAPHY.body.size);
-      
-      for (const line of lines) {
-        if (this.needsNewPage(TYPOGRAPHY.lineHeight)) {
-          this.addNewPage();
+    // Wait for script to load if not available
+    return new Promise((resolve) => {
+      const checkInterval = setInterval(() => {
+        if (window.jspdf?.jsPDF) {
+          clearInterval(checkInterval);
+          resolve(window.jspdf.jsPDF);
         }
-        this.doc.text(line, CONTENT.left, this.yPosition);
-        this.yPosition += TYPOGRAPHY.lineHeight;
-      }
-      
-      this.yPosition += TYPOGRAPHY.paragraphSpacing;
-    }
+      }, 100);
+    });
+  }
 
-    addTable(headers, rows, columnWidths = null) {
-      const startY = this.yPosition;
-      
-      const tableConfig = {
-        head: [headers],
-        body: rows,
-        startY: startY,
-        margin: { left: MARGINS.left, right: MARGINS.right },
-        theme: 'grid',
-        headStyles: {
-          fillColor: TYPOGRAPHY.colorGold,
-          textColor: [255, 255, 255],
-          fontSize: 11,
-          fontStyle: 'bold',
-          halign: 'left'
-        },
-        bodyStyles: {
-          fontSize: 10,
-          textColor: TYPOGRAPHY.colorText,
-          cellPadding: 2.2
-        },
-        alternateRowStyles: {
-          fillColor: [245, 245, 245]
-        },
-        styles: {
-          lineColor: [200, 200, 200],
-          lineWidth: 0.1
-        },
-        didDrawPage: (data) => {
-          // Update page number and position if table spans multiple pages
-          if (data.pageNumber > this.pageNumber) {
-            this.pageNumber = data.pageNumber;
-            this.drawHeader();
-          }
-        }
-      };
-      
-      // Add custom column widths if provided
-      if (columnWidths) {
-        tableConfig.columnStyles = columnWidths;
-      }
-      
-      this.doc.autoTable(tableConfig);
-
-      this.yPosition = this.doc.lastAutoTable.finalY + 8;
-    }
-
-    addImage(imageData, caption = '') {
-      if (!imageData) return;
-
-      const maxWidth = CONTENT.width;
-      const maxHeight = 80; // mm
-
-      // Check if new page needed first
-      if (this.needsNewPage(maxHeight + 25)) {
-        this.addNewPage();
-      }
-
-      // Add spacing before chart AFTER page check (10-15mm as requested)
-      this.yPosition += 12;
-
+  function addHeader(doc) {
+    if (!CC_CONFIG.pdf.header.show) return;
+    const { left, top } = { left: CC_CONFIG.pdf.margin.left, top: 16 };
+    if (CC_CONFIG.pdf.header.showLogo && CC_CONFIG.pdf.header.logoDataUrl) {
       try {
-        this.doc.addImage(imageData, 'PNG', CONTENT.left, this.yPosition, maxWidth, maxHeight, '', 'FAST');
-        this.yPosition += maxHeight;
-
-        if (caption) {
-          this.yPosition += 3;
-          this.doc.setFont(TYPOGRAPHY.fontFamily, "normal");
-          this.doc.setFontSize(9);
-          this.doc.setTextColor(...TYPOGRAPHY.colorMeta);
-          this.doc.text(caption, CONTENT.left, this.yPosition);
-          this.yPosition += 5;
-        }
-
-        // Add more spacing after chart
-        this.yPosition += 12;
-      } catch (e) {
-        console.warn('Failed to add image:', e);
-        this.addParagraph('[Chart visualization unavailable]');
-      }
+        doc.addImage(
+          CC_CONFIG.pdf.header.logoDataUrl,
+          "PNG",
+          left,
+          8,
+          CC_CONFIG.pdf.header.logoWidth,
+          CC_CONFIG.pdf.header.logoWidth
+        );
+      } catch {}
     }
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(11);
+    doc.setTextColor(60);
+    doc.text(CC_CONFIG.productName, left, top);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(120);
+    doc.text(`Generated by ${CC_CONFIG.siteUrl}`, left, top + 7);
   }
 
-  // ---- Main Export Function ----
-  async function exportToPDF() {
+  function addFooter(doc, pageNumber, totalPages) {
+    if (!CC_CONFIG.pdf.footer.show) return;
+    const y = doc.internal.pageSize.getHeight() - 10;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(140);
+    const leftText = `Generated by ${CC_CONFIG.productName} · ${CC_CONFIG.siteUrl}`;
+    const rightText = `Page ${pageNumber} of ${totalPages}`;
+    doc.text(leftText, CC_CONFIG.pdf.margin.left, y);
+    const w = doc.getTextWidth(rightText);
+    doc.text(
+      rightText,
+      doc.internal.pageSize.getWidth() - CC_CONFIG.pdf.margin.right - w,
+      y
+    );
+  }
+
+  function addWatermark(doc) {
+    if (!CC_CONFIG.pdf.showWatermark) return;
+    const { width, height } = doc.internal.pageSize;
+    doc.saveGraphicsState();
+    doc.setGState(new doc.GState({ opacity: 0.06 }));
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(72);
+    doc.setTextColor(60);
+    doc.text("CONTRACT COMMANDER", width / 2, height / 2, { align: "center", angle: 30 });
+    doc.restoreGraphicsState();
+  }
+
+  // Minimal HTML → text helper (keeps it safe & consistent)
+  function htmlToPlainText(html = "") {
+    return (
+      (html || "")
+        .replace(/<br\s*\/?>/gi, "\n")
+        .replace(/<\/p>/gi, "\n\n")
+        .replace(/<li>/gi, "• ")
+        .replace(/<\/li>/gi, "\n")
+        .replace(/<[^>]+>/g, "")
+        .replace(/\u00A0/g, " ")
+        .replace(/&nbsp;/g, " ")
+        .replace(/&amp;/g, "&")
+        .replace(/&lt;/g, "<")
+        .replace(/&gt;/g, ">")
+        .replace(/&quot;/g, '"')
+        .trim()
+    );
+  }
+
+  //////////////////////////////
+  // 4) PUBLIC API — Generate
+  //////////////////////////////
+  /**
+   * generateContractPDF
+   * @param {Object} opts
+   * @param {string} opts.contractType   e.g., "Service Agreement", "NDA", "MOU"
+   * @param {string} opts.title          user-provided title from UI (may be quick test text)
+   * @param {string} opts.effectiveDate  e.g., "Nov 8, 2025"
+   * @param {Object} opts.parties        { companyName, counterpartyName, partyCName? }
+   * @param {string} opts.bodyHtml       already-generated HTML for the clauses/sections
+   * @param {boolean} opts.appendDisclaimerOverride  force on/off (optional)
+   */
+  async function generateContractPDF(opts) {
     try {
-      console.log('Starting contract PDF export...');
-      
-      // Show loading indicator
-      const existingToast = document.querySelector('.toast');
-      if (existingToast) existingToast.remove();
-      
+      const {
+        contractType = "Agreement",
+        title = "",
+        effectiveDate = "",
+        parties = {},
+        bodyHtml = "",
+        appendDisclaimerOverride,
+      } = opts || {};
+
+      // Show loading toast
       const toast = document.createElement('div');
       toast.className = 'toast';
       toast.innerHTML = '<span class="spinner"></span> Generating PDF...';
       document.body.appendChild(toast);
 
-      // Load jsPDF library
+      // Load jsPDF
       const jsPDF = await loadJsPDF();
-      await loadJsPDFAutoTable();
 
-      // Initialize PDF with legal document settings
-      const doc = new jsPDF({
-        orientation: 'portrait',
-        unit: 'mm',
-        format: 'a4',
-        compress: true
+      // Build a professional visible title:
+      const visibleTitle = safeDocTitle(
+        title,
+        `${contractType} — ${[parties.companyName, parties.counterpartyName].filter(Boolean).join(" & ")}`
+      );
+
+      // Prepare document
+      const doc = new jsPDF({ unit: "pt", format: "letter" });
+      doc.setProperties({
+        title: visibleTitle,
+        subject: `${contractType} generated by ${CC_CONFIG.productName}`,
+        author: CC_CONFIG.companyLegalName,
+        creator: `${CC_CONFIG.productName} (${CC_CONFIG.siteUrl})`,
+        keywords: `${contractType}, Contract Commander, YourBizGuru`,
       });
 
-      const writer = new PDFWriter(doc);
+      // First page visuals
+      addHeader(doc);
+      addWatermark(doc);
 
-      // Get contract data from current session
-      const reportData = window.currentReportData || {};
-      const contractTitle = reportData.contractType || 'Contract';
-      const parties = reportData.parties || 'Parties';
-      const mainContent = reportData.mainContent || reportData.markdown || '';
+      // Cursor start (respect margins)
+      let cursorY = CC_CONFIG.pdf.margin.top + 18;
 
-      // ---- Main Contract Content ----
-      if (mainContent) {
-        const lines = mainContent.split('\n');
-        
-        for (const line of lines) {
-          const trimmed = line.trim();
-          
-          // Handle heading levels
-          if (trimmed.startsWith('# ')) {
-            // Title (H1) - centered and larger
-            const title = trimmed.substring(2).trim();
-            doc.setFont(TYPOGRAPHY.fontFamily, "bold");
-            doc.setFontSize(16);
-            doc.setTextColor(...TYPOGRAPHY.colorHeader);
-            const titleWidth = doc.getTextWidth(title);
-            const titleX = (PAGE.width - titleWidth) / 2;
-            doc.text(title, titleX, writer.yPosition);
-            writer.yPosition += 10;
-          } else if (trimmed.startsWith('## ')) {
-            // Section heading (H2)
-            const section = trimmed.substring(3).trim();
-            writer.yPosition += 6;
-            if (writer.needsNewPage(20)) {
-              writer.addNewPage();
-            }
-            writer.addSectionHeader(section);
-          } else if (trimmed.startsWith('### ')) {
-            // Subsection (H3)
-            writer.yPosition += 4;
-            doc.setFont(TYPOGRAPHY.fontFamily, "bold");
-            doc.setFontSize(11);
-            doc.setTextColor(...TYPOGRAPHY.colorHeader);
-            const subsection = trimmed.substring(4).trim();
-            if (writer.needsNewPage(10)) {
-              writer.addNewPage();
-            }
-            doc.text(subsection, CONTENT.left, writer.yPosition);
-            writer.yPosition += 7;
-          } else if (trimmed.startsWith('**') && trimmed.endsWith('**')) {
-            // Bold paragraph (for party names, signature blocks)
-            const boldText = trimmed.substring(2, trimmed.length - 2);
-            doc.setFont(TYPOGRAPHY.fontFamily, "bold");
-            doc.setFontSize(11);
-            doc.setTextColor(...TYPOGRAPHY.colorText);
-            if (writer.needsNewPage(TYPOGRAPHY.lineHeight)) {
-              writer.addNewPage();
-            }
-            doc.text(boldText, CONTENT.left, writer.yPosition);
-            writer.yPosition += TYPOGRAPHY.lineHeight + 2;
-          } else if (trimmed) {
-            // Regular paragraph
-            writer.addParagraph(trimmed);
-          } else {
-            // Blank line - add small spacing
-            writer.yPosition += TYPOGRAPHY.paragraphSpacing * 0.5;
+      // Title block
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(16);
+      doc.setTextColor(20);
+      doc.text(visibleTitle, CC_CONFIG.pdf.margin.left, cursorY);
+      cursorY += 18;
+
+      // Meta line
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
+      doc.setTextColor(70);
+      const metaLine = [
+        effectiveDate ? `Effective Date: ${effectiveDate}` : null,
+        parties.companyName ? `Party: ${parties.companyName}` : null,
+        parties.counterpartyName ? `Counterparty: ${parties.counterpartyName}` : null,
+      ]
+        .filter(Boolean)
+        .join("   •   ");
+
+      if (metaLine) {
+        doc.text(metaLine, CC_CONFIG.pdf.margin.left, cursorY);
+        cursorY += 14;
+      }
+
+      // Divider
+      doc.setDrawColor(220);
+      doc.setLineWidth(0.6);
+      doc.line(
+        CC_CONFIG.pdf.margin.left,
+        cursorY,
+        doc.internal.pageSize.getWidth() - CC_CONFIG.pdf.margin.right,
+        cursorY
+      );
+      cursorY += 16;
+
+      // Main body (convert minimal HTML to text)
+      const plain = htmlToPlainText(bodyHtml).split("\n");
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(11);
+      doc.setTextColor(30);
+
+      const maxWidth =
+        doc.internal.pageSize.getWidth() -
+        CC_CONFIG.pdf.margin.left -
+        CC_CONFIG.pdf.margin.right;
+
+      for (const para of plain) {
+        const lines = doc.splitTextToSize(para || " ", maxWidth);
+        for (const ln of lines) {
+          if (cursorY > doc.internal.pageSize.getHeight() - 40) {
+            // footer for previous page
+            const prev = doc.getNumberOfPages();
+            addFooter(doc, prev, prev); // temp number, we'll relabel later
+            doc.addPage();
+            addHeader(doc);
+            addWatermark(doc);
+            cursorY = CC_CONFIG.pdf.margin.top;
           }
+          doc.text(ln, CC_CONFIG.pdf.margin.left, cursorY);
+          cursorY += 14;
+        }
+        cursorY += 6;
+      }
+
+      // Optional single end disclaimer (subtle, not repeated)
+      const shouldAppend =
+        typeof appendDisclaimerOverride === "boolean"
+          ? appendDisclaimerOverride
+          : CC_CONFIG.pdf.appendEndDisclaimer;
+
+      if (shouldAppend && CC_CONFIG.endDisclaimerText) {
+        if (cursorY > doc.internal.pageSize.getHeight() - 80) {
+          const prev = doc.getNumberOfPages();
+          addFooter(doc, prev, prev);
+          doc.addPage();
+          addHeader(doc);
+          addWatermark(doc);
+          cursorY = CC_CONFIG.pdf.margin.top;
+        }
+        // Divider
+        doc.setDrawColor(230);
+        doc.line(
+          CC_CONFIG.pdf.margin.left,
+          cursorY,
+          doc.internal.pageSize.getWidth() - CC_CONFIG.pdf.margin.right,
+          cursorY
+        );
+        cursorY += 14;
+        doc.setFont("helvetica", "italic");
+        doc.setFontSize(9);
+        doc.setTextColor(110);
+        const lines = doc.splitTextToSize(CC_CONFIG.endDisclaimerText, maxWidth);
+        for (const ln of lines) {
+          doc.text(ln, CC_CONFIG.pdf.margin.left, cursorY);
+          cursorY += 12;
         }
       }
 
-      // ---- Finalize: Add headers and footers to all pages ----
-      const totalPages = doc.internal.pages.length - 1;
-      
-      for (let i = 1; i <= totalPages; i++) {
+      // Finalize footers with real page numbers
+      const total = doc.getNumberOfPages();
+      for (let i = 1; i <= total; i++) {
         doc.setPage(i);
-        writer.pageNumber = i;
-        writer.drawHeader();
-        writer.drawFooter(totalPages);
+        addFooter(doc, i, total);
       }
 
-      // ---- Save PDF ----
-      const filename = `Contract_${sanitizeFilename(contractTitle)}_${formatDate()}.pdf`;
+      // Filename per your convention
+      const filename = `${ymd()}_${CC_CONFIG.fileAcronym}_ContractCommander_${sanitizeTitleForFilename(
+        visibleTitle
+      )}.pdf`;
+
       doc.save(filename);
 
-      // Success message
+      // Remove loading toast
       toast.remove();
+
+      // Success toast
       const successToast = document.createElement('div');
       successToast.className = 'toast success';
       successToast.textContent = '✓ PDF exported successfully!';
@@ -429,8 +364,8 @@
     } catch (error) {
       console.error('PDF export failed:', error);
       
-      const existingToast = document.querySelector('.toast');
-      if (existingToast) existingToast.remove();
+      // Remove any existing toasts
+      document.querySelectorAll('.toast').forEach(t => t.remove());
       
       const errorToast = document.createElement('div');
       errorToast.className = 'toast error';
@@ -443,9 +378,47 @@
     }
   }
 
-  // Export to global scope
+  //////////////////////////////
+  // 5) EXPORT TO WINDOW
+  //////////////////////////////
+  
+  // Export main PDF generation function
+  async function exportToPDF() {
+    // Get contract data from current session
+    const reportData = window.currentReportData || {};
+    
+    if (!reportData.mainContent) {
+      throw new Error('No contract content available');
+    }
+
+    // Get report view HTML
+    const reportView = document.getElementById('report-view');
+    const bodyHtml = reportView ? reportView.innerHTML : reportData.mainContent;
+
+    // Call the new PDF generator
+    await generateContractPDF({
+      contractType: reportData.contractType || 'Agreement',
+      title: reportData.title || reportData.contractType || 'Contract',
+      effectiveDate: reportData.effectiveDate || '',
+      parties: {
+        companyName: reportData.parties?.companyName || reportData.partyAName || '',
+        counterpartyName: reportData.parties?.counterpartyName || reportData.partyBName || '',
+      },
+      bodyHtml: bodyHtml,
+    });
+  }
+
+  // Export to global scope (for compatibility with existing code)
   window.exportBizPlanToPDF = exportToPDF;
+  window.generateContractPDF = generateContractPDF;
+  
+  // Mount legal footer on page load
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', mountAppLegalFooterOnce);
+  } else {
+    mountAppLegalFooterOnce();
+  }
   
   // Confirm script loaded
-  console.log('✓ PDF export module loaded successfully');
+  console.log('✓ Contract Commander PDF export module v2.2 loaded successfully');
 })();
