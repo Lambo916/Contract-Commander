@@ -35,6 +35,13 @@ Preferred communication style: Simple, everyday language.
 - **Multi-party Support**: Maintained 2-6 party contract support with dynamic form fields
 - **Keyboard Shortcuts**: Ctrl+Enter to generate, Ctrl+S to save, Ctrl+N for new contract
 
+## Deployment Fix - Replit Publishing Support
+- **CORS Configuration**: Fixed HTTP 500 error when app is deployed via Replit Publishing
+  - Added `/\.replit\.app$/` regex pattern to production allowedOrigins in `server/production.ts`
+  - Deployment logs showed CORS middleware blocking requests from .replit.app domains
+  - Production CORS now allows: grant.yourbizguru.com, bizplan.yourbizguru.com, *.vercel.app, and *.replit.app
+  - OpenAI API key properly detected in production environment
+
 # Previous Changes (Phase 3 - v1.1.0)
 
 ## Core Framework Extraction (November 2025)
