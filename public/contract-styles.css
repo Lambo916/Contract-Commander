@@ -1702,6 +1702,20 @@
   color: #6495ED;
 }
 
+/* Fix KPI table hover and focus states */
+:root.light .kpi-table tbody tr:hover {
+  background: rgba(100,149,237,0.05);
+}
+
+:root.light .kpi-table td.kpi-editable:hover {
+  background: rgba(100,149,237,0.1);
+}
+
+:root.light .kpi-table td.kpi-editable:focus {
+  outline: 2px solid #6495ED;
+  outline-offset: -2px;
+}
+
 @media print {
   body {
     background: white;
