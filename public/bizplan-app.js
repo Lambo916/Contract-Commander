@@ -1142,6 +1142,7 @@ async function handleExportWord() {
     
     // Get contract HTML content
     const contractHtml = reportView.innerHTML;
+    console.log('📄 Word Export: Contract HTML length:', contractHtml.length);
     
     // Create a complete HTML document for better Word formatting
     const fullHtml = `
@@ -1167,23 +1168,35 @@ async function handleExportWord() {
       </html>
     `;
     
+    console.log('📄 Word Export: Full HTML length:', fullHtml.length);
+    
     // Convert HTML to Word document
     const converted = htmlDocx.asBlob(fullHtml);
+    console.log('📄 Word Export: Blob created, size:', converted.size, 'bytes');
     
     // Generate filename
     const filename = currentFileName 
       ? `${currentFileName}.docx` 
       : `${currentReportData.contractType || 'Contract'}_${Date.now()}.docx`;
     
+    console.log('📄 Word Export: Downloading as:', filename);
+    
     // Download the file
     const url = URL.createObjectURL(converted);
     const link = document.createElement('a');
     link.href = url;
     link.download = filename;
+    document.body.appendChild(link);
     link.click();
-    URL.revokeObjectURL(url);
+    document.body.removeChild(link);
     
-    showToast('Contract exported to Word', 'success');
+    // Clean up after a delay to ensure download starts
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 100);
+    
+    showToast(`✓ ${filename} downloaded! Check your Downloads folder and double-click the file to open it in Word.`, 'success');
+    console.log('✓ Word export completed successfully');
     
   } catch (e) {
     console.error('Word export error:', e);
