@@ -1682,6 +1682,26 @@
   border-color: #6495ED;
 }
 
+/* Fix tooltip bubble gradient */
+:root.light .tooltip-bubble,
+:root.light .tooltip-bubble-menu {
+  background: linear-gradient(135deg, #6495ED 0%, rgba(100,149,237,0.9) 100%);
+  border-color: #6495ED;
+}
+
+/* Fix data-tooltip desktop gradient */
+@media (min-width: 769px) {
+  :root.light [data-tooltip]::after {
+    background: linear-gradient(135deg, #6495ED 0%, rgba(100,149,237,0.9) 100%);
+    border-color: #6495ED;
+  }
+}
+
+/* Fix AI suggestions list arrow color */
+:root.light .ai-suggestions-card li::before {
+  color: #6495ED;
+}
+
 @media print {
   body {
     background: white;
