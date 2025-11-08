@@ -1181,27 +1181,101 @@ async function handleExportWord() {
     
     console.log('📄 Word Export: Downloading as:', filename);
     
-    // Download the file
+    // Create download URL
     const url = URL.createObjectURL(converted);
+    
+    // Method 1: Try opening in new window (works around iframe sandbox)
+    const newWindow = window.open(url, '_blank');
+    
+    // Method 2: Also try direct download as fallback
     const link = document.createElement('a');
     link.href = url;
     link.download = filename;
+    link.target = '_blank';
+    link.style.display = 'none';
     document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
     
-    // Clean up after a delay to ensure download starts
+    // Try both approaches
     setTimeout(() => {
-      URL.revokeObjectURL(url);
+      link.click();
+      document.body.removeChild(link);
     }, 100);
     
-    showToast(`✓ ${filename} downloaded! Check your Downloads folder and double-click the file to open it in Word.`, 'success');
+    // Show modal with download instructions
+    showWordExportModal(url, filename);
+    
+    // Clean up URL after 30 seconds
+    setTimeout(() => {
+      URL.revokeObjectURL(url);
+    }, 30000);
+    
     console.log('✓ Word export completed successfully');
     
   } catch (e) {
     console.error('Word export error:', e);
     showToast(`Word export failed: ${e.message}`, 'error');
   }
+}
+
+function showWordExportModal(url, filename) {
+  // Create modal overlay
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 10000; display: flex; align-items: center; justify-content: center;';
+  
+  // Create modal content
+  const modal = document.createElement('div');
+  modal.style.cssText = 'background: white; padding: 30px; border-radius: 8px; max-width: 500px; text-align: center; box-shadow: 0 4px 20px rgba(0,0,0,0.3);';
+  
+  // Build DOM safely to prevent XSS
+  const heading = document.createElement('h2');
+  heading.style.cssText = 'color: #111; margin: 0 0 20px 0; font-family: Montserrat, sans-serif;';
+  heading.textContent = 'Your Contract is Ready';
+  
+  const instructions = document.createElement('p');
+  instructions.style.cssText = 'color: #333; margin: 0 0 25px 0; line-height: 1.6;';
+  instructions.textContent = 'Click the button below to download your Word document:';
+  
+  const downloadLink = document.createElement('a');
+  downloadLink.href = url;
+  downloadLink.download = filename; // Browser handles escaping
+  downloadLink.id = 'word-download-link';
+  downloadLink.style.cssText = 'display: inline-block; background: #F5C543; color: #111; padding: 12px 30px; text-decoration: none; border-radius: 4px; font-weight: bold; font-size: 16px; margin: 0 0 20px 0;';
+  downloadLink.textContent = 'Download ' + filename; // Safe: textContent escapes HTML
+  
+  const helpText = document.createElement('p');
+  helpText.style.cssText = 'color: #666; font-size: 14px; margin: 0 0 15px 0;';
+  helpText.innerHTML = 'After downloading, go to your <strong>Downloads folder</strong> and double-click the .docx file to open it in Microsoft Word.';
+  
+  const closeButton = document.createElement('button');
+  closeButton.id = 'close-word-modal';
+  closeButton.style.cssText = 'background: #ddd; border: none; padding: 8px 20px; border-radius: 4px; cursor: pointer; font-size: 14px;';
+  closeButton.textContent = 'Close';
+  
+  modal.appendChild(heading);
+  modal.appendChild(instructions);
+  modal.appendChild(downloadLink);
+  modal.appendChild(helpText);
+  modal.appendChild(closeButton);
+  
+  overlay.appendChild(modal);
+  document.body.appendChild(overlay);
+  
+  // Close on button click
+  closeButton.onclick = () => {
+    document.body.removeChild(overlay);
+  };
+  
+  // Close on overlay click
+  overlay.onclick = (e) => {
+    if (e.target === overlay) {
+      document.body.removeChild(overlay);
+    }
+  };
+  
+  // Auto-trigger download after showing modal
+  setTimeout(() => {
+    downloadLink.click();
+  }, 500);
 }
 
 
