@@ -1184,24 +1184,7 @@ async function handleExportWord() {
     // Create download URL
     const url = URL.createObjectURL(converted);
     
-    // Method 1: Try opening in new window (works around iframe sandbox)
-    const newWindow = window.open(url, '_blank');
-    
-    // Method 2: Also try direct download as fallback
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    link.target = '_blank';
-    link.style.display = 'none';
-    document.body.appendChild(link);
-    
-    // Try both approaches
-    setTimeout(() => {
-      link.click();
-      document.body.removeChild(link);
-    }, 100);
-    
-    // Show modal with download instructions
+    // Show modal with download button (user must click to download - browsers require direct user action)
     showWordExportModal(url, filename);
     
     // Clean up URL after 30 seconds
@@ -1271,11 +1254,6 @@ function showWordExportModal(url, filename) {
       document.body.removeChild(overlay);
     }
   };
-  
-  // Auto-trigger download after showing modal
-  setTimeout(() => {
-    downloadLink.click();
-  }, 500);
 }
 
 
