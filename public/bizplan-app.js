@@ -1118,6 +1118,74 @@ async function handleExportPDF() {
   }
 }
 
+async function handleExportWord() {
+  try {
+    const reportView = $('report-view');
+    if (!reportView.innerHTML.trim() || !currentReportData) {
+      showToast('No contract to export', 'error');
+      return;
+    }
+    
+    // Check if html-docx-js is loaded
+    if (typeof htmlDocx === 'undefined' || typeof htmlDocx.asBlob !== 'function') {
+      showToast('Word export module not loaded. Please refresh the page.', 'error');
+      return;
+    }
+    
+    // Auto-save before export
+    saveCurrentReport();
+    
+    // Get contract HTML content
+    const contractHtml = reportView.innerHTML;
+    
+    // Create a complete HTML document for better Word formatting
+    const fullHtml = `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>${currentReportData.title || 'Contract'}</title>
+        <style>
+          body { font-family: 'Times New Roman', Times, serif; font-size: 12pt; line-height: 1.6; margin: 1in; }
+          h1 { font-size: 16pt; font-weight: bold; text-align: center; margin-bottom: 1em; }
+          h2 { font-size: 14pt; font-weight: bold; margin-top: 1em; margin-bottom: 0.5em; }
+          h3 { font-size: 12pt; font-weight: bold; margin-top: 0.8em; margin-bottom: 0.4em; }
+          p { margin: 0.5em 0; }
+          ul, ol { margin: 0.5em 0; padding-left: 1.5em; }
+          .signature-section { margin-top: 3em; page-break-inside: avoid; }
+          .signature-line { margin-top: 3em; border-top: 1px solid black; width: 300px; }
+        </style>
+      </head>
+      <body>
+        ${contractHtml}
+      </body>
+      </html>
+    `;
+    
+    // Convert HTML to Word document
+    const converted = htmlDocx.asBlob(fullHtml);
+    
+    // Generate filename
+    const filename = currentFileName 
+      ? `${currentFileName}.docx` 
+      : `${currentReportData.contractType || 'Contract'}_${Date.now()}.docx`;
+    
+    // Download the file
+    const url = URL.createObjectURL(converted);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(url);
+    
+    showToast('Contract exported to Word', 'success');
+    
+  } catch (e) {
+    console.error('Word export error:', e);
+    showToast(`Word export failed: ${e.message}`, 'error');
+  }
+}
+
 
 async function handleCopyMarkdown() {
   if (!currentReportData || !currentReportData.markdown) {
