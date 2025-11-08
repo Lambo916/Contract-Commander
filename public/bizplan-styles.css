@@ -1736,12 +1736,11 @@
 .ybg-grid select {
   min-height: 48px;
   width: 100%;
-  padding: 0 14px;
+  padding: 12px 14px;
   border: 1.5px solid var(--ybg-input-border);
   border-radius: 8px;
   background: var(--ybg-input-bg);
   color: var(--ybg-text);
-  font-family: var(--font-body);
   font-size: 14px;
   transition: all 0.2s ease;
 }
@@ -1754,7 +1753,6 @@
   border-radius: 8px;
   background: var(--ybg-input-bg);
   color: var(--ybg-text);
-  font-family: var(--font-body);
   font-size: 14px;
   line-height: 1.6;
   resize: vertical;
