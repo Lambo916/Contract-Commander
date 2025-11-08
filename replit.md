@@ -14,9 +14,10 @@ Preferred communication style: Simple, everyday language.
   - All textareas: 120px min-height with proper line-height
   - Consistent borders (1.5px solid), border-radius (8px), and focus states with gold outline
   - Custom select dropdown arrow matching design system
+  - Date input: Fixed to fill container width (100%) with browser appearance removed for consistency
 - **Logical Form Sections**: Reorganized form into chronological workflow order
   - Contract Setup: Contract Type, Title, Effective Date, Tone, Detail Level (moved Tone/Detail from old Output section)
-  - Parties: Number of Parties + dynamic party fields (unchanged)
+  - Parties: Full-width vertical stacking - each label directly above its input field (fixed confusing left-right alignment)
   - Contract Terms: Scope, Compensation, Term/Duration, Termination (renamed from "Key Terms")
   - Legal Options: Governing Law, IP Ownership, Confidentiality checkbox (moved from Contract Terms), Additional Clauses
   - Signatures: Signatory 1 & 2 Name/Title (renamed from "Output & Signature")
