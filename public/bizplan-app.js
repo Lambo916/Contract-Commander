@@ -668,22 +668,6 @@ function clearAllInputs() {
   }
 }
 
-// Template modal handlers
-document.querySelectorAll('.template-card').forEach(card => {
-  card.addEventListener('click', (e) => {
-    const templateKey = card.dataset.template;
-    if (templateKey) {
-      loadTemplate(templateKey);
-      closeModal('template-modal');
-      showToast('Template loaded', 'success');
-    }
-  });
-});
-
-$('template-cancel').addEventListener('click', () => {
-  closeModal('template-modal');
-});
-
 $('btn-generate').addEventListener('click', async () => {
   setGeneratingState(true);
   
@@ -1050,6 +1034,10 @@ $('saveas-confirm').addEventListener('click', async () => {
 
 $('saveas-cancel').addEventListener('click', () => {
   closeModal('saveas-modal');
+});
+
+$('load-cancel').addEventListener('click', () => {
+  closeModal('load-modal');
 });
 
 // ==== SAVE/EXPORT HANDLER FUNCTIONS ====
