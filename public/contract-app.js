@@ -957,7 +957,6 @@ function generatePDFContent(data) {
 // Template loading functions (deprecated - keeping for backward compatibility)
 function loadTemplate(templateKey) {
   // Templates not used in Contract Commander - this function is deprecated
-  console.log('Template loading is deprecated in Contract Commander');
 }
 
 function clearAllInputs() {
@@ -1470,7 +1469,6 @@ async function handleExportWord() {
     
     // Get contract HTML content
     const contractHtml = reportView.innerHTML;
-    console.log('📄 Word Export: Sending HTML to server, length:', contractHtml.length);
     
     // Generate filename
     const filename = currentFileName 
@@ -1500,7 +1498,6 @@ async function handleExportWord() {
     
     // Get the blob from the response
     const blob = await response.blob();
-    console.log('📄 Word Export: Received DOCX from server, size:', blob.size, 'bytes');
     
     // Create download URL
     const url = URL.createObjectURL(blob);
@@ -1518,7 +1515,6 @@ async function handleExportWord() {
       URL.revokeObjectURL(url);
     }, 5000);
     
-    console.log('✓ Word export completed successfully:', `${filename}.docx`);
     showToast('Word document downloaded successfully!', 'success');
     
   } catch (e) {
