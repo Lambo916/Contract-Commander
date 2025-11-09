@@ -237,11 +237,24 @@ No attorney-client relationship is formed. Review and adapt before execution.
       }
     }
     
-    // Render letterhead text - DocuSign-grade professional
+    // Render letterhead text - DocuSign-grade professional with proper vertical centering
     if (hasLetterhead) {
       const textAlign = (brandingConfig.position === 'center' && !hasLogo) ? 'center' : 'left';
-      let textY = cursorY + 2; // Slight offset for better vertical alignment
       const lineHeight = 10; // Tighter line spacing
+      
+      // Calculate total text block height to center it with logo
+      let lineCount = 0;
+      if (brandingConfig.company) lineCount++;
+      if (brandingConfig.address) {
+        const addressLines = brandingConfig.address.split('\n').filter(line => line.trim());
+        lineCount += addressLines.length;
+      }
+      if (brandingConfig.contact) lineCount++;
+      
+      const totalTextHeight = lineCount * lineHeight;
+      
+      // Center text block vertically with logo
+      let textY = cursorY + (logoHeight / 2) - (totalTextHeight / 2);
       
       if (brandingConfig.company) {
         doc.setFont("helvetica", "bold");
