@@ -160,8 +160,8 @@ No attorney-client relationship is formed. Review and adapt before execution.
         const actualDimensions = await getImageDimensions(brandingConfig.logoDataUrl);
         const actualAspectRatio = actualDimensions.width / actualDimensions.height;
         
-        // Professional sizing: max 55px height (DocuSign-grade)
-        const maxLogoHeight = 55;
+        // Professional sizing: 80-100px height for better visibility
+        const maxLogoHeight = 85;
         logoHeight = maxLogoHeight;
         logoWidth = logoHeight * actualAspectRatio; // Preserve actual aspect ratio
         hasLogo = true;
@@ -303,7 +303,7 @@ No attorney-client relationship is formed. Review and adapt before execution.
       
       // Neutral disclaimer (exact text from brief)
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(8.5);
+      doc.setFontSize(9);
       doc.setTextColor(119, 119, 119);  // #777777
       const disclaimerText = "This document was generated with an AI-assisted drafting tool. It is provided for informational and drafting purposes only and is not legal, tax, or financial advice. No attorney-client relationship is created.";
       const maxWidth = pageWidth - CC_CONFIG.pdf.margin.left - CC_CONFIG.pdf.margin.right;
@@ -470,9 +470,45 @@ No attorney-client relationship is formed. Review and adapt before execution.
         CC_CONFIG.pdf.margin.left -
         CC_CONFIG.pdf.margin.right;
 
+      // Helper: Detect if a line is a section heading
+      function isHeading(text) {
+        const trimmed = text.trim();
+        // Match patterns like: "1. PARTIES", "ARTICLE 1.", "2. SCOPE", etc.
+        return /^(\d+\.|ARTICLE\s+\d+|[IVX]+\.)\s+[A-Z]/.test(trimmed) ||
+               /^[A-Z][A-Z\s]{3,}:?\s*$/.test(trimmed);  // All caps headings
+      }
+
       let currentPage = 1;
-      for (const para of plain) {
+      for (let i = 0; i < plain.length; i++) {
+        const para = plain[i];
+        const isCurrentHeading = isHeading(para);
+        
+        // Add extra spacing before headings (except at very start)
+        if (isCurrentHeading && cursorY > CC_CONFIG.pdf.margin.top + 50) {
+          cursorY += 10;
+        }
+        
+        // Set font for heading vs body
+        if (isCurrentHeading) {
+          doc.setFont("helvetica", "bold");
+          doc.setFontSize(12);
+        } else {
+          doc.setFont("helvetica", "normal");
+          doc.setFontSize(11);
+        }
+        
         const lines = doc.splitTextToSize(para || " ", maxWidth);
+        
+        // Prevent orphaned headings: if heading + 2 lines won't fit, start new page
+        const neededSpace = isCurrentHeading ? 45 : 20;  // ~3 lines for heading
+        if (cursorY + neededSpace > doc.internal.pageSize.getHeight() - 120) {
+          doc.addPage();
+          currentPage++;
+          await addHeader(doc, contractType, brandingConfig, currentPage);
+          addWatermark(doc);
+          cursorY = CC_CONFIG.pdf.margin.top + 16;
+        }
+        
         for (const ln of lines) {
           // Check if we need a new page (leave 120pt for footer on last page)
           if (cursorY > doc.internal.pageSize.getHeight() - 120) {
@@ -484,9 +520,9 @@ No attorney-client relationship is formed. Review and adapt before execution.
             cursorY = CC_CONFIG.pdf.margin.top + 16;
           }
           doc.text(ln, CC_CONFIG.pdf.margin.left, cursorY);
-          cursorY += 14.5;  // Line height ~1.32 for 11pt font
+          cursorY += 15;  // Line height 1.36 for 11pt font
         }
-        cursorY += 6;  // Compact paragraph spacing
+        cursorY += 10;  // Section spacing 10-12px
       }
 
       // Remove old disclaimer logic (legal notice now only on last page footer via branding config)

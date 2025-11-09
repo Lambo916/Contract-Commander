@@ -1,0 +1,84 @@
+AGENT INSTRUCTION — FINAL POLISH PASS (PDF EXPORT + PRESENTATION QA)
+
+🎯 OBJECTIVE:
+Apply final layout and spacing polish for Contract Commander’s PDF export to make it professional-grade and client-ready.
+
+---
+
+✅ REQUIRED POLISH UPDATES:
+
+1. **Header / Letterhead**
+   - Keep logo aspect ratio 100% (no stretch).
+   - Align logo and company info either:
+     a) Side-by-side with even vertical alignment, OR  
+     b) Stacked with 10–15px spacing between logo and text.
+   - Reduce logo size to ~80–100px height.
+   - Add subtle divider line below header (#DDDDDD, 1px solid).
+   - Slightly increase top padding (20–25px) for balance.
+
+2. **Body Layout**
+   - Reduce line height to 1.35–1.4 for compact readability.
+   - Reduce section spacing: no more than 10–12px before/after headings.
+   - Adjust page margins to approx. 0.6–0.75 inches all around.
+   - Ensure headings (e.g., “1. PARTIES”) are bold + 1pt larger than body.
+
+3. **Page Break Logic**
+   - Prevent section titles from being orphaned at the bottom of a page.
+   - Allow small content shifts to keep logical groupings together.
+
+4. **Signature Section**
+   - Tighten spacing so full signature block fits in half a page.
+   - Example format:
+
+     Dff  
+     By: ______________________   Date: ___________  
+     Dddf, Dddf  
+
+     (then one line space, next signer)
+
+   - Ensure no extra page added solely for signatures.
+
+5. **Footer**
+   - Keep disclaimer text but reduce to 9pt.
+   - Center-align; add top margin ~10px for visual separation.
+   - Ensure uniform distance from page edge (~0.5 inch).
+
+6. **Visual Check**
+   - Test both with and without logo uploaded.
+   - Confirm layout remains balanced on A4 + US Letter sizes.
+   - Verify PDF still exports cleanly via jsPDF without overflow.
+
+---
+
+🧩 OPTIONAL MICRO-POLISH (if time allows)
+   - Add faint light-gray line below “Service Agreement” title.
+   - Add small consistent padding (10–15px) above each section header.
+   - Lighten horizontal rule under header for aesthetic balance.
+
+---
+
+❓Q&A CONFIRMATION CHECKLIST (BEFORE SUBMITTING)
+
+1. **Logo rendering clean?**  
+   → Yes / No (no stretch, balanced header)
+
+2. **Sections evenly spaced and readable?**  
+   → Yes / No (no double spacing, good flow)
+
+3. **Signature block fits single page bottom half?**  
+   → Yes / No
+
+4. **No orphan headers or empty space?**  
+   → Yes / No
+
+5. **Footer visible and not overlapping content?**  
+   → Yes / No
+
+6. **All font sizes consistent (headings vs body)?**  
+   → Yes / No
+
+---
+
+🚀 GOAL:
+Finalize this layout to be client-facing and presentation-ready for Contract Commander’s public release.  
+This is the **last visual polish** — do not alter any backend logic or data bindings.
