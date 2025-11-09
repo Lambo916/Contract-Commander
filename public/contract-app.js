@@ -142,6 +142,17 @@ function initBrandingSection() {
     });
   }
   
+  // Advanced Options toggle
+  const advancedToggle = $('branding-advanced-toggle');
+  const advancedSection = $('branding-advanced-section');
+  if (advancedToggle && advancedSection) {
+    advancedToggle.addEventListener('click', () => {
+      const isHidden = advancedSection.style.display === 'none';
+      advancedSection.style.display = isHidden ? '' : 'none';
+      advancedToggle.textContent = isHidden ? 'Advanced Options ▴' : 'Advanced Options ▾';
+    });
+  }
+  
   // Logo upload handlers
   if (uploadBtn && logoUploadInput) {
     uploadBtn.addEventListener('click', () => logoUploadInput.click());
@@ -193,12 +204,6 @@ function initBrandingSection() {
   pagesRadios.forEach(radio => {
     radio.addEventListener('change', saveBrandingConfig);
   });
-  
-  // Reset branding button (Phase 2)
-  const resetBtn = $('btn-reset-branding');
-  if (resetBtn) {
-    resetBtn.addEventListener('click', resetBrandingConfig);
-  }
   
   // Initial warning check
   updateBrandingWarning();

@@ -279,48 +279,24 @@
             <input id="lhContact" placeholder="e.g., info@acme.com | (555) 123-4567 | www.acme.com" data-testid="input-lh-contact"/>
           </div>
 
-          <!-- Position Options -->
-          <div>
-            <label>Position</label>
-            <div class="radio-group">
-              <label class="radio-label">
-                <input type="radio" name="lhPosition" value="left" checked data-testid="input-position-left"/>
-                Top-left
-              </label>
-              <label class="radio-label">
-                <input type="radio" name="lhPosition" value="center" data-testid="input-position-center"/>
-                Top-center
-              </label>
-            </div>
+          <!-- Advanced Options (Collapsible) -->
+          <div class="full" style="margin-top:12px;">
+            <button class="btn btn-ghost btn-sm" id="branding-advanced-toggle" type="button" style="padding:4px 8px; font-size:11px;">
+              Advanced Options ▾
+            </button>
           </div>
-
-          <!-- Pages Options -->
-          <div>
-            <label>Pages</label>
-            <div class="radio-group">
-              <label class="radio-label">
-                <input type="radio" name="lhPages" value="first" checked data-testid="input-pages-first"/>
-                First page only
-              </label>
-              <label class="radio-label">
-                <input type="radio" name="lhPages" value="all" data-testid="input-pages-all"/>
-                All pages
+          <div id="branding-advanced-section" style="display:none;">
+            <div class="full">
+              <label class="branding-toggle-label">
+                <input type="checkbox" id="addLegalFooter" data-testid="input-add-legal-footer"/>
+                Add neutral legal footer on last page only
               </label>
             </div>
           </div>
 
-          <!-- Legal Footer Toggle -->
-          <div class="full">
-            <label class="branding-toggle-label">
-              <input type="checkbox" id="addLegalFooter" data-testid="input-add-legal-footer"/>
-              Add neutral legal footer on last page only
-            </label>
-          </div>
-
-          <!-- Reset Branding Button -->
-          <div class="full" style="margin-top:8px;">
-            <button class="btn btn-ghost btn-sm" id="btn-reset-branding" type="button" data-testid="button-reset-branding">Reset Branding</button>
-          </div>
+          <!-- Hidden fields for defaults (Position: left, Pages: first) -->
+          <input type="radio" name="lhPosition" value="left" checked style="display:none;" data-testid="input-position-left"/>
+          <input type="radio" name="lhPages" value="first" checked style="display:none;" data-testid="input-pages-first"/>
         </div>
 
         <div class="full">
