@@ -106,7 +106,21 @@ No attorney-client relationship is formed. Review and adapt before execution.
     });
   }
 
-  function addHeader(doc, contractTitle = "", brandingConfig = null, pageNum = 1) {
+  // Helper function to load image and get actual dimensions
+  function getImageDimensions(dataUrl) {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        resolve({ width: img.width, height: img.height });
+      };
+      img.onerror = () => {
+        resolve({ width: 150, height: 50 }); // Fallback dimensions
+      };
+      img.src = dataUrl;
+    });
+  }
+
+  async function addHeader(doc, contractTitle = "", brandingConfig = null, pageNum = 1) {
     // Phase 1: Render user branding on first page (or all pages in Phase 2)
     if (!brandingConfig || !brandingConfig.enabled) {
       return; // White-label mode: no header
@@ -119,7 +133,7 @@ No attorney-client relationship is formed. Review and adapt before execution.
     const pageWidth = doc.internal.pageSize.getWidth();
     const marginLeft = CC_CONFIG.pdf.margin.left;
     const marginRight = CC_CONFIG.pdf.margin.right;
-    const headerTop = 40; // Start 40pt from top (compact professional layout)
+    const headerTop = 32; // Professional compact header
     
     let logoWidth = 0;
     let logoHeight = 0;
@@ -142,28 +156,34 @@ No attorney-client relationship is formed. Review and adapt before execution.
       }
       
       if (canRender) {
-        // Smaller logo: target 80-100px height, maintain aspect ratio
-        logoHeight = 90;
-        logoWidth = logoHeight * 3; // Maintain 3:1 aspect ratio
+        // Load actual image dimensions to preserve aspect ratio
+        const actualDimensions = await getImageDimensions(brandingConfig.logoDataUrl);
+        const actualAspectRatio = actualDimensions.width / actualDimensions.height;
+        
+        // Professional sizing: max 55px height (DocuSign-grade)
+        const maxLogoHeight = 55;
+        logoHeight = maxLogoHeight;
+        logoWidth = logoHeight * actualAspectRatio; // Preserve actual aspect ratio
         hasLogo = true;
       }
     }
     
-    // Prepare letterhead text
+    // Prepare letterhead text - DocuSign-grade professional
     const hasLetterhead = brandingConfig.company || brandingConfig.address || brandingConfig.contact;
-    const fontSize = 9.5;
+    const companyFontSize = 9;
+    const detailFontSize = 8;
     let maxTextWidth = 0;
     
     // Calculate actual letterhead width if present
     if (hasLetterhead) {
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(fontSize);
+      doc.setFontSize(companyFontSize);
       if (brandingConfig.company) {
         maxTextWidth = Math.max(maxTextWidth, doc.getTextWidth(brandingConfig.company));
       }
       
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(fontSize * 0.92);
+      doc.setFontSize(detailFontSize);
       if (brandingConfig.address) {
         const addressLines = brandingConfig.address.split('\n');
         addressLines.forEach(line => {
@@ -177,14 +197,14 @@ No attorney-client relationship is formed. Review and adapt before execution.
       }
     }
     
-    // Calculate positions based on alignment
+    // Calculate positions based on alignment - DocuSign-style compact spacing
     let logoX = marginLeft;
     let letterheadX = marginLeft;
+    const gap = 10; // Tighter gap for professional look
     
     if (brandingConfig.position === 'center') {
       if (hasLogo && hasLetterhead) {
         // Both logo and text: center as a unit
-        const gap = 15;
         const totalWidth = logoWidth + gap + maxTextWidth;
         logoX = (pageWidth - totalWidth) / 2;
         letterheadX = logoX + logoWidth + gap;
@@ -199,7 +219,7 @@ No attorney-client relationship is formed. Review and adapt before execution.
       // Left alignment
       if (hasLogo) {
         logoX = marginLeft;
-        letterheadX = marginLeft + logoWidth + 15;
+        letterheadX = marginLeft + logoWidth + gap;
       } else {
         letterheadX = marginLeft;
       }
@@ -217,24 +237,24 @@ No attorney-client relationship is formed. Review and adapt before execution.
       }
     }
     
-    // Render letterhead text
+    // Render letterhead text - DocuSign-grade professional
     if (hasLetterhead) {
       const textAlign = (brandingConfig.position === 'center' && !hasLogo) ? 'center' : 'left';
-      let textY = cursorY;
-      const lineHeight = 11.5;
+      let textY = cursorY + 2; // Slight offset for better vertical alignment
+      const lineHeight = 10; // Tighter line spacing
       
       if (brandingConfig.company) {
         doc.setFont("helvetica", "bold");
-        doc.setFontSize(fontSize);
-        doc.setTextColor(60, 60, 60);
+        doc.setFontSize(companyFontSize);
+        doc.setTextColor(51, 51, 51); // #333 professional dark gray
         doc.text(brandingConfig.company, letterheadX, textY, { align: textAlign });
         textY += lineHeight;
       }
       
       if (brandingConfig.address) {
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(fontSize * 0.92);
-        doc.setTextColor(85, 85, 85);
+        doc.setFontSize(detailFontSize);
+        doc.setTextColor(102, 102, 102); // #666 medium gray
         const addressLines = brandingConfig.address.split('\n');
         addressLines.forEach(line => {
           if (line.trim()) {
@@ -246,15 +266,15 @@ No attorney-client relationship is formed. Review and adapt before execution.
       
       if (brandingConfig.contact) {
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(fontSize * 0.92);
-        doc.setTextColor(85, 85, 85);
+        doc.setFontSize(detailFontSize);
+        doc.setTextColor(102, 102, 102); // #666 medium gray
         doc.text(brandingConfig.contact, letterheadX, textY, { align: textAlign });
       }
     }
     
-    // Add hairline divider below header
-    const dividerY = headerTop + Math.max(logoHeight, 50) + 8;
-    doc.setDrawColor(204, 204, 204);
+    // Add professional divider below header - compact positioning
+    const dividerY = headerTop + Math.max(logoHeight, 50) + 6;
+    doc.setDrawColor(221, 221, 221); // #ddd light gray
     doc.setLineWidth(0.5);
     doc.line(marginLeft, dividerY, pageWidth - marginRight, dividerY);
   }
@@ -395,7 +415,7 @@ No attorney-client relationship is formed. Review and adapt before execution.
       });
 
       // First page visuals (with branding if enabled)
-      addHeader(doc, contractType, brandingConfig, 1);
+      await addHeader(doc, contractType, brandingConfig, 1);
       addWatermark(doc);
 
       // Cursor start: Adjust for branding header if active
@@ -459,7 +479,7 @@ No attorney-client relationship is formed. Review and adapt before execution.
             // Add new page
             doc.addPage();
             currentPage++;
-            addHeader(doc, contractType, brandingConfig, currentPage);
+            await addHeader(doc, contractType, brandingConfig, currentPage);
             addWatermark(doc);
             cursorY = CC_CONFIG.pdf.margin.top + 16;
           }
