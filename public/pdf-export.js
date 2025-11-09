@@ -538,9 +538,9 @@ No attorney-client relationship is formed. Review and adapt before execution.
             cursorY = CC_CONFIG.pdf.margin.top + 16;
           }
           doc.text(ln, CC_CONFIG.pdf.margin.left, cursorY);
-          cursorY += 15;  // Line height 1.36 for 11pt font
+          cursorY += 14;  // Line height 1.27 for 11pt font - tighter spacing
         }
-        cursorY += 10;  // Section spacing 10-12px
+        cursorY += 6;  // Reduced paragraph spacing for compact layout
       }
 
       // Remove old disclaimer logic (legal notice now only on last page footer via branding config)
