@@ -8,24 +8,48 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes (November 2025)
 
+## PDF Export Formatting v2.0 - Professional Layout & Spacing (November 2025)
+- **Compact, Professional Layout**: Reduced margins and spacing for modern SaaS-style contract exports
+  - Margins reduced from 72pt (1 inch) to 54pt (0.75 inch) for better space utilization
+  - Title font size optimized to 15pt with compact 18pt spacing
+  - Meta line font reduced to 10pt with 14pt spacing
+  - Header starts at 40pt from top for professional appearance
+- **Optimized Typography**: Improved readability with tighter, balanced spacing
+  - Body text line height: 14.5pt (~1.32 ratio for 11pt font) for optimal readability
+  - Paragraph spacing: 6pt for compact yet readable layout
+  - Letterhead text: 9.5pt bold company name, 8.7pt address/contact
+  - Letterhead line height: 11.5pt for compact header
+- **Improved Logo Rendering**: Smaller, proportional logo display
+  - Logo height: 90px (down from 180px wide) with maintained 3:1 aspect ratio
+  - Prevents logo from dominating the page
+  - Professional sizing similar to DocuSign/PandaDoc templates
+- **Smart Page Breaks**: Enhanced pagination logic
+  - Footer detection threshold reduced to 120pt for better space usage
+  - New pages start at 16pt offset for consistent flow
+  - Prevents awkward page breaks and empty spaces
+- **Refined Footer**: Compact legal disclaimer positioning
+  - Footer positioned at 100pt from bottom (up from 120pt)
+  - Font size: 8.5pt with 10.5pt line spacing
+  - Divider positioned 8pt above footer text
+
 ## User Branding Feature v1.0 - Custom Logo & Letterhead (Phase 1 & 2 ✅ Complete)
 - **Client Letterhead Customization**: Users can now add their own branding to exported PDFs
-  - Logo upload (PNG/JPEG, max 300KB) with Base64 storage in localStorage
+  - Logo upload (PNG/JPEG, max 1MB) with Base64 storage in localStorage
   - SVG detection with user-friendly warning (not yet supported in PDF export)
   - Letterhead fields: Company name, address (multi-line), contact line
-  - Position options: Top-left or top-center alignment
-  - Pages options: First page only or all pages (Phase 2)
-  - Optional neutral legal footer on last page (user controlled)
-- **PDF Rendering Enhancements**: Professional header layout with intelligent positioning
-  - Logo max width 180px with 3:1 aspect ratio
-  - Letterhead text block: Company (bold, 10pt) + Address + Contact (9pt, gray #555)
+  - Position options: Top-left (default, hidden in MVP UI)
+  - Pages options: First page only (default, hidden in MVP UI)
+  - Optional neutral legal footer on last page (Advanced Options dropdown)
+- **PDF Rendering Enhancements**: Professional, compact header layout with intelligent positioning
+  - Logo height 90px (maintains 3:1 aspect ratio) for professional appearance
+  - Letterhead text block: Company (bold, 9.5pt) + Address + Contact (8.7pt, gray #555)
   - **Center Alignment Logic**: Measures actual text widths using doc.getTextWidth()
     - Logo-only: Centers logo alone on page
     - Text-only: Centers text block on page
     - Logo + text: Centers both as a unit with 15pt gap
   - Left alignment: Standard positioning with logo first, text offset by logo width + 15pt
   - Hairline divider (#ccc, 0.5pt) below header for clean separation
-  - Automatic title offset (72pt/1in) when branding is active to prevent overlap
+  - Compact title offset (70pt) when branding is active to prevent overlap
 - **Storage & Persistence**: Phase 1 & 2 use client-side localStorage only
   - Key: 'ybg.contractCommander.branding'
   - Fields: enabled, logoDataUrl, company, address, contact, position, pages, addLegalFooter

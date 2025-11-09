@@ -1,0 +1,44 @@
+AGENT INSTRUCTION — PDF EXPORT FORMATTING UPDATE
+
+Please update the Contract Commander Toolkit’s PDF export layout to improve visual professionalism and spacing.
+
+🎯 OBJECTIVE:
+Make the exported PDF look polished and business-ready — similar to professional contract templates (DocuSign, PandaDoc, or Adobe Sign style).
+
+✅ REQUIRED ADJUSTMENTS:
+
+1. **Letterhead Section (Logo + Company Info)**
+   - Maintain logo’s aspect ratio (prevent any stretching or warping).
+   - Reduce logo size slightly (approx. 80–100px tall).
+   - Align logo and company info horizontally side-by-side or neatly stacked with balanced spacing.
+   - Center or left-align entire letterhead section; whichever looks cleaner and balanced.
+   - Add a thin divider line below letterhead (optional, light gray #CCCCCC) to separate it from the contract body.
+
+2. **Body Text / Paragraph Spacing**
+   - Reduce vertical spacing between paragraphs and section headers (target line-height: 1.3–1.4).
+   - Reduce top/bottom page margins slightly so content flows more efficiently across pages.
+   - Ensure consistent left/right padding — visually balanced but not excessive.
+
+3. **Signature Block Formatting**
+   - Tighten vertical spacing between signature lines and titles.
+   - Signature section should fit within half a page (not an entire page unless content length demands it).
+   - Align signature labels neatly:
+     Example:
+       Dff  
+       By: _________________________   Date: ___________  
+       Dddf, Dddf  
+
+     (Then one line space before next signer block.)
+
+4. **Page Break Logic**
+   - Prevent awkward page breaks that leave large empty spaces.
+   - Ensure section titles (e.g., “TERM AND TERMINATION”) never appear at the bottom of a page without content following them.
+
+5. **Footer**
+   - Keep current disclaimer text but reduce font size slightly (9–10pt).
+   - Align footer text center or right; maintain consistent margin.
+
+📄 GOAL:
+Produce a clean, compact, and professional contract layout — readable on both desktop and mobile PDF viewers, resembling modern SaaS contract exports.
+
+This update focuses only on styling, not logic. Please ensure all functionality (logo upload, letterhead fields, clause toggles, etc.) continues to work as before.

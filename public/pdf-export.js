@@ -25,7 +25,7 @@
     companyLegalName: "Big Stake Consulting LLC",
     // PDF look-and-feel
     pdf: {
-      margin: { top: 72, right: 72, bottom: 72, left: 72 },
+      margin: { top: 54, right: 54, bottom: 54, left: 54 },
       header: { show: true, showLogo: false, logoDataUrl: "", logoWidth: 28 },
       footer: { show: true },
       // Keep disclaimers subtle: appended once at the END (not on every page).
@@ -119,7 +119,7 @@ No attorney-client relationship is formed. Review and adapt before execution.
     const pageWidth = doc.internal.pageSize.getWidth();
     const marginLeft = CC_CONFIG.pdf.margin.left;
     const marginRight = CC_CONFIG.pdf.margin.right;
-    const headerTop = 50; // Start 50pt from top (respects 72pt top margin)
+    const headerTop = 40; // Start 40pt from top (compact professional layout)
     
     let logoWidth = 0;
     let logoHeight = 0;
@@ -128,8 +128,6 @@ No attorney-client relationship is formed. Review and adapt before execution.
     
     // Check if we have a renderable logo (PNG/JPEG only)
     if (brandingConfig.logoDataUrl) {
-      const logoMaxWidth = 180;
-      
       // Detect image format from data URL
       let imageFormat = 'PNG';
       let canRender = true;
@@ -144,15 +142,16 @@ No attorney-client relationship is formed. Review and adapt before execution.
       }
       
       if (canRender) {
-        logoWidth = logoMaxWidth;
-        logoHeight = logoMaxWidth / 3; // Fixed aspect ratio
+        // Smaller logo: target 80-100px height, maintain aspect ratio
+        logoHeight = 90;
+        logoWidth = logoHeight * 3; // Maintain 3:1 aspect ratio
         hasLogo = true;
       }
     }
     
     // Prepare letterhead text
     const hasLetterhead = brandingConfig.company || brandingConfig.address || brandingConfig.contact;
-    const fontSize = 10;
+    const fontSize = 9.5;
     let maxTextWidth = 0;
     
     // Calculate actual letterhead width if present
@@ -164,7 +163,7 @@ No attorney-client relationship is formed. Review and adapt before execution.
       }
       
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(fontSize * 0.9);
+      doc.setFontSize(fontSize * 0.92);
       if (brandingConfig.address) {
         const addressLines = brandingConfig.address.split('\n');
         addressLines.forEach(line => {
@@ -222,19 +221,19 @@ No attorney-client relationship is formed. Review and adapt before execution.
     if (hasLetterhead) {
       const textAlign = (brandingConfig.position === 'center' && !hasLogo) ? 'center' : 'left';
       let textY = cursorY;
-      const lineHeight = 13;
+      const lineHeight = 11.5;
       
       if (brandingConfig.company) {
         doc.setFont("helvetica", "bold");
         doc.setFontSize(fontSize);
-        doc.setTextColor(85, 85, 85);
+        doc.setTextColor(60, 60, 60);
         doc.text(brandingConfig.company, letterheadX, textY, { align: textAlign });
         textY += lineHeight;
       }
       
       if (brandingConfig.address) {
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(fontSize * 0.9);
+        doc.setFontSize(fontSize * 0.92);
         doc.setTextColor(85, 85, 85);
         const addressLines = brandingConfig.address.split('\n');
         addressLines.forEach(line => {
@@ -247,15 +246,15 @@ No attorney-client relationship is formed. Review and adapt before execution.
       
       if (brandingConfig.contact) {
         doc.setFont("helvetica", "normal");
-        doc.setFontSize(fontSize * 0.9);
+        doc.setFontSize(fontSize * 0.92);
         doc.setTextColor(85, 85, 85);
         doc.text(brandingConfig.contact, letterheadX, textY, { align: textAlign });
       }
     }
     
     // Add hairline divider below header
-    const dividerY = headerTop + Math.max(logoHeight, 60) + 10;
-    doc.setDrawColor(200, 200, 200);
+    const dividerY = headerTop + Math.max(logoHeight, 50) + 8;
+    doc.setDrawColor(204, 204, 204);
     doc.setLineWidth(0.5);
     doc.line(marginLeft, dividerY, pageWidth - marginRight, dividerY);
   }
@@ -270,21 +269,21 @@ No attorney-client relationship is formed. Review and adapt before execution.
     
     if (isLastPage && showLegalFooter) {
       // User enabled legal footer: Show neutral disclaimer
-      const legalY = pageHeight - 120;
+      const legalY = pageHeight - 100;
       
       // Light divider line
       doc.setDrawColor(224, 224, 224);  // #e0e0e0
       doc.setLineWidth(0.5);
       doc.line(
         CC_CONFIG.pdf.margin.left,
-        legalY - 10,
+        legalY - 8,
         pageWidth - CC_CONFIG.pdf.margin.right,
-        legalY - 10
+        legalY - 8
       );
       
       // Neutral disclaimer (exact text from brief)
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(9);
+      doc.setFontSize(8.5);
       doc.setTextColor(119, 119, 119);  // #777777
       const disclaimerText = "This document was generated with an AI-assisted drafting tool. It is provided for informational and drafting purposes only and is not legal, tax, or financial advice. No attorney-client relationship is created.";
       const maxWidth = pageWidth - CC_CONFIG.pdf.margin.left - CC_CONFIG.pdf.margin.right;
@@ -296,7 +295,7 @@ No attorney-client relationship is formed. Review and adapt before execution.
         const lineWidth = doc.getTextWidth(line);
         const x = (pageWidth - lineWidth) / 2;
         doc.text(line, x, disclaimerY);
-        disclaimerY += 12;
+        disclaimerY += 10.5;
       }
     }
     
@@ -402,19 +401,19 @@ No attorney-client relationship is formed. Review and adapt before execution.
       // Cursor start: Adjust for branding header if active
       const hasBranding = brandingConfig && brandingConfig.enabled && 
                           (brandingConfig.logoDataUrl || brandingConfig.company || brandingConfig.address || brandingConfig.contact);
-      const titleOffset = hasBranding ? 72 : 35; // 72pt = ~1 inch offset when branding is active
+      const titleOffset = hasBranding ? 70 : 30; // Compact offset
       let cursorY = CC_CONFIG.pdf.margin.top + titleOffset;
 
       // Title block
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(16);
+      doc.setFontSize(15);
       doc.setTextColor(20);
       doc.text(visibleTitle, CC_CONFIG.pdf.margin.left, cursorY);
-      cursorY += 20;
+      cursorY += 18;
 
       // Meta line
       doc.setFont("helvetica", "normal");
-      doc.setFontSize(11);
+      doc.setFontSize(10);
       doc.setTextColor(70);
       const metaLine = [
         effectiveDate ? `Effective Date: ${effectiveDate}` : null,
@@ -426,19 +425,19 @@ No attorney-client relationship is formed. Review and adapt before execution.
 
       if (metaLine) {
         doc.text(metaLine, CC_CONFIG.pdf.margin.left, cursorY);
-        cursorY += 16;
+        cursorY += 14;
       }
 
       // Divider
       doc.setDrawColor(220);
-      doc.setLineWidth(0.6);
+      doc.setLineWidth(0.5);
       doc.line(
         CC_CONFIG.pdf.margin.left,
         cursorY,
         doc.internal.pageSize.getWidth() - CC_CONFIG.pdf.margin.right,
         cursorY
       );
-      cursorY += 20;
+      cursorY += 16;
 
       // Main body (convert minimal HTML to text)
       const plain = htmlToPlainText(bodyHtml).split("\n");
@@ -455,19 +454,19 @@ No attorney-client relationship is formed. Review and adapt before execution.
       for (const para of plain) {
         const lines = doc.splitTextToSize(para || " ", maxWidth);
         for (const ln of lines) {
-          // Check if we need a new page (leave 150pt for footer on last page)
-          if (cursorY > doc.internal.pageSize.getHeight() - 150) {
+          // Check if we need a new page (leave 120pt for footer on last page)
+          if (cursorY > doc.internal.pageSize.getHeight() - 120) {
             // Add new page
             doc.addPage();
             currentPage++;
             addHeader(doc, contractType, brandingConfig, currentPage);
             addWatermark(doc);
-            cursorY = CC_CONFIG.pdf.margin.top + 20;
+            cursorY = CC_CONFIG.pdf.margin.top + 16;
           }
           doc.text(ln, CC_CONFIG.pdf.margin.left, cursorY);
-          cursorY += 15;  // Increased line spacing
+          cursorY += 14.5;  // Line height ~1.32 for 11pt font
         }
-        cursorY += 10;  // Increased paragraph spacing
+        cursorY += 6;  // Compact paragraph spacing
       }
 
       // Remove old disclaimer logic (legal notice now only on last page footer via branding config)
