@@ -273,7 +273,7 @@ No attorney-client relationship is formed. Review and adapt before execution.
     }
     
     // Add professional divider below header - compact positioning
-    const dividerY = headerTop + Math.max(logoHeight, 50) + 6;
+    const dividerY = headerTop + Math.max(logoHeight, 50) + 8;
     doc.setDrawColor(221, 221, 221); // #ddd light gray
     doc.setLineWidth(0.5);
     doc.line(marginLeft, dividerY, pageWidth - marginRight, dividerY);
