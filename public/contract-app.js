@@ -209,16 +209,12 @@ function initBrandingSection() {
   updateBrandingWarning();
 }
 
-function resetBrandingConfig() {
-  if (!confirm('Reset all branding settings? This will clear your logo, letterhead, and preferences.')) {
-    return;
-  }
-  
-  // Clear localStorage
+function clearBrandingConfig() {
+  // Clear localStorage first (before any UI updates that might trigger saves)
   try {
     localStorage.removeItem(BRANDING_STORAGE_KEY);
   } catch (e) {
-    console.error('Failed to reset branding config:', e);
+    console.error('Failed to clear branding config:', e);
   }
   
   // Reset form fields
@@ -234,11 +230,24 @@ function resetBrandingConfig() {
   if (leftRadio) leftRadio.checked = true;
   if (firstRadio) firstRadio.checked = true;
   
-  // Remove logo
-  removeLogo();
+  // Clear logo without triggering save
+  const logoUploadInput = $('logoUpload');
+  if (logoUploadInput) {
+    logoUploadInput.value = '';
+  }
+  displayLogoPreview(null);
+  hideLogoError();
   
-  // Update warning
+  // Update warning display
   updateBrandingWarning();
+}
+
+function resetBrandingConfig() {
+  if (!confirm('Reset all branding settings? This will clear your logo, letterhead, and preferences.')) {
+    return;
+  }
+  
+  clearBrandingConfig();
   
   // Show success message
   alert('Branding settings have been reset.');
@@ -292,8 +301,14 @@ function displayLogoPreview(dataUrl) {
   const previewImg = $('logo-preview');
   const uploadBtn = $('btn-upload-logo');
   
-  if (previewImg && dataUrl) {
-    previewImg.src = dataUrl;
+  if (previewImg) {
+    if (dataUrl) {
+      previewImg.src = dataUrl;
+    } else {
+      // Explicitly clear the src to prevent getBrandingConfig from reading stale data
+      previewImg.removeAttribute('src');
+      previewImg.src = '';
+    }
   }
   
   if (previewContainer && uploadBtn) {
@@ -1285,6 +1300,9 @@ $('btn-clear-all').addEventListener('click', () => {
   
   // Trigger party field visibility update
   handleNumberOfPartiesChange();
+  
+  // Clear branding configuration (logo, letterhead, preferences)
+  clearBrandingConfig();
   
   // Clear results
   $('report-view').innerHTML = '';
