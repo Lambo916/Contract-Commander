@@ -1,8 +1,8 @@
 # Contract Commander
 
-> **AI-Powered Legal Contract Drafting in Minutes**
+> **AI-Powered Legal Contract Drafting with Professional Export**
 
-Contract Commander is a professional contract generation platform that creates legally-structured, print-ready contracts using OpenAI GPT-4o. Generate NDAs, Service Agreements, Employment Contracts, MOUs, and Partnership Agreements with proper formatting, signature blocks, and instant PDF/Word export.
+Contract Commander is a production-ready contract generation platform that creates legally-structured, print-ready contracts using OpenAI GPT-4o. Generate NDAs, Service Agreements, Employment Contracts, MOUs, and Partnership Agreements with professional formatting, signature blocks, and instant PDF/Word export with optional white-label branding.
 
 🌐 **Live Production**: [contract.yourbizguru.com](https://contract.yourbizguru.com)
 
@@ -19,23 +19,36 @@ Contract Commander is a professional contract generation platform that creates l
   - **Multi-Party Support**: 2-6 parties with dynamic role assignment
 
 ### 📄 Professional Document Export
-- **PDF Export**: Clean, print-ready PDFs with proper pagination
+- **PDF Export**: Clean, print-ready PDFs with 1-inch legal margins and proper pagination
 - **Word Export**: Editable .docx files for further customization
-- **Instant Download**: No server processing delays
+- **White-Label Branding**: Optional company logo and letterhead for professional client deliverables
+- **Signature Blocks**: Properly formatted signature sections for all parties
+- **Smart Formatting**: Orphan prevention, heading protection, and professional footer positioning
 
-### 🎨 Modern Interface
-- **Gold/Dark/White Theme**: Professional branding (#F5C543, #111111, #FFFFFF)
-- **Compact Form Design**: Streamlined input with logical section organization
-- **Real-Time Preview**: See contract updates as you type
+### 🏷️ White-Label Branding System
+- **Logo Upload**: Add company logo to contract headers (auto-scaled to professional dimensions)
+- **Letterhead Text**: Customizable company name and contact information
+- **Two Export Modes**:
+  - **Standard Mode**: Clean contract without branding
+  - **Branded Mode**: Professional white-label output with logo and letterhead
+- **Persistent Settings**: Branding preferences saved in localStorage
+- **Clear All Function**: Reset all branding and form data with one click
+
+### 🎨 Dual-Theme Interface
+- **Dark Theme**: Modern black background with gold accents (#F5C543)
+- **Light Theme**: Clean white background with cornflower blue accents (#6495ED)
+- **Professional Typography**: Inter font family throughout
 - **Responsive Layout**: Works on desktop, tablet, and mobile
+- **Theme Toggle**: Seamless switching between light and dark modes
 
 ### ⚡ Smart Features
 - **Keyboard Shortcuts**: 
   - `Ctrl+Enter` - Generate contract
-  - `Ctrl+S` - Save to database
-  - `Ctrl+N` - New contract
+  - `Ctrl+S` - Export as PDF
+  - `Ctrl+N` - Clear all fields
 - **Auto-Save**: Prevents data loss with localStorage caching
-- **Database Storage**: Save and retrieve contracts with Supabase
+- **Real-Time Preview**: See contract updates instantly
+- **Form Validation**: Intelligent field validation and error messages
 
 ---
 
@@ -44,7 +57,7 @@ Contract Commander is a professional contract generation platform that creates l
 Every generated contract includes:
 
 1. **Title & Effective Date** - Contract identification
-2. **Parties** - Complete party information with names and roles
+2. **Parties** - Complete party information with names and roles (2-6 parties)
 3. **Scope of Work** - Detailed description of services/deliverables
 4. **Compensation** - Payment terms and amounts
 5. **Term & Duration** - Contract timeframe
@@ -53,7 +66,7 @@ Every generated contract includes:
 8. **Intellectual Property** - (Optional) IP ownership and licensing
 9. **Governing Law** - Jurisdiction and applicable laws
 10. **Additional Clauses** - Custom terms specific to your needs
-11. **Signatures** - Signature blocks for all parties
+11. **Signatures** - Signature blocks for all parties with dates
 
 ---
 
@@ -62,7 +75,7 @@ Every generated contract includes:
 ### Prerequisites
 - Node.js 20+
 - OpenAI API key ([get one here](https://platform.openai.com/api-keys))
-- Supabase account ([create free account](https://supabase.com))
+- Supabase account (optional - for contract storage)
 
 ### Local Development
 
@@ -127,7 +140,7 @@ Every generated contract includes:
    - Project Settings → Domains
    - Add your domain (e.g., `contract.yourbizguru.com`)
    - Update DNS with CNAME: `cname.vercel-dns.com`
-   - **Important**: Add your custom domain to CORS allowed origins in `server/production.ts`
+   - **Important**: Add your custom domain to CORS allowed origins in `server/index.ts`
 
 5. **Deploy** 🎉
 
@@ -145,23 +158,24 @@ Every generated contract includes:
 ### Frontend
 - **Vanilla JavaScript** - Zero framework dependencies, maximum compatibility
 - **HTML/CSS** - Semantic markup with custom property theming
-- **jsPDF** - Client-side PDF generation
+- **jsPDF** - Client-side PDF generation with advanced formatting
 - **html-docx-js** - Word document export
 
 ### Backend
 - **Express.js** - RESTful API server
 - **TypeScript** - Type-safe server code
 - **OpenAI GPT-4o** - AI contract generation
-- **Drizzle ORM** - Type-safe database operations
+- **CORS** - Secure cross-origin request handling
+- **Rate Limiting** - Protection against API abuse
 
 ### Database & Storage
-- **Supabase PostgreSQL** - Production database with automatic backups
-- **LocalStorage** - Client-side caching for autosave
+- **Supabase PostgreSQL** - Production database with automatic backups (optional)
+- **LocalStorage** - Client-side caching for autosave and branding preferences
 
 ### Deployment
 - **Vercel** - Serverless functions (primary)
 - **Replit Publishing** - Alternative deployment platform
-- **CORS** - Multi-domain support (yourbizguru.com, vercel.app, replit.app)
+- **Multi-Domain CORS** - Support for custom domains and platform deployments
 
 ---
 
@@ -171,30 +185,23 @@ Every generated contract includes:
 Contract-Commander/
 ├── public/                      # Frontend assets
 │   ├── index.html              # Main application
+│   ├── contract-app.js         # Application logic & contract generation
+│   ├── pdf-export.js           # PDF generation with branding
 │   ├── ybg.css                 # Base theme system
-│   ├── bizplan-styles.css      # Contract Commander styles
-│   ├── bizplan-app.js          # Main application logic
-│   ├── pdf-export.js           # PDF generation
 │   └── assets/                 # Logos and images
 ├── server/                      # Backend API
-│   ├── index.ts                # Development server
-│   ├── production.ts           # Production server (Vercel)
-│   ├── routes.ts               # API endpoints
-│   ├── db.ts                   # Database connection
-│   └── auth.ts                 # Authentication middleware
+│   ├── index.ts                # Express server (dev & production)
+│   └── routes.ts               # API endpoints
 ├── core/                        # Core utilities
 │   ├── clients/
-│   │   ├── openai.ts           # OpenAI client
-│   │   └── supabase.ts         # Supabase client
+│   │   ├── openai.ts           # OpenAI client configuration
+│   │   └── supabase.ts         # Supabase client (optional)
 │   └── config/
-│       └── index.ts            # App configuration
+│       └── index.ts            # Environment configuration
 ├── shared/                      # Shared types
-│   └── schema.ts               # Drizzle schemas
-├── models/                      # Type definitions
-│   └── contracts.ts            # Contract types
-├── vercel.json                 # Vercel config
-├── build-vercel.sh             # Vercel build script
-└── package.json                # Dependencies
+│   └── schema.ts               # Database schemas (if using Supabase)
+├── package.json                # Dependencies
+└── README.md                   # This file
 ```
 
 ---
@@ -202,89 +209,135 @@ Contract-Commander/
 ## 🔌 API Endpoints
 
 ### Contract Generation
-- **POST** `/api/bizplan`
-  - Generates AI-powered contract
-  - Request body: Contract details (type, parties, terms, etc.)
-  - Response: Complete contract content in structured format
-  - Rate limit: 60 requests/minute
+- **POST** `/api/generate-contract`
+  - Generates AI-powered contract using GPT-4o
+  - Request body: Contract details (type, parties, terms, clauses, etc.)
+  - Response: Complete contract content in markdown format
+  - Rate limit: Configured in Express middleware
 
-### Contract Management
-- **POST** `/api/bizplan/reports/save` - Save contract to database
-- **GET** `/api/bizplan/reports` - List all saved contracts
-- **GET** `/api/bizplan/reports/:id` - Get specific contract
-- **DELETE** `/api/bizplan/reports/:id` - Delete contract
+### Document Export
+- **POST** `/api/export-word`
+  - Converts HTML contract to Word document
+  - Request body: `{ html: string, filename: string }`
+  - Response: Binary .docx file download
+  - Uses html-to-docx for clean formatting
 
 ### Health & Status
-- **GET** `/api/health/db` - Database connection status
-- **GET** `/api/db/ping` - Supabase connectivity check
+- **GET** `/api/health` - API health check
+- **GET** `/api/health/db` - Database connection status (if configured)
 
 ---
 
 ## 🎨 Design System
 
-### Color Palette
-- **Primary Gold**: `#F5C543` - Professional, premium feel
+### Color Palettes
+
+#### Dark Theme (Default)
+- **Primary Gold**: `#F5C543` - Premium, professional accent
 - **Dark Background**: `#111111` - Modern, clean
 - **White Text**: `#FFFFFF` - High contrast, readable
-- **Accent Gray**: `#C9C9D1` - Subtle UI elements
+- **Gray Borders**: `#333333` - Subtle separation
 
-### Form Sections (In Order)
+#### Light Theme
+- **Primary Blue**: `#6495ED` - Cornflower blue accent
+- **White Background**: `#FFFFFF` - Clean, bright
+- **Dark Text**: `#1A1A1A` - Excellent readability
+- **Light Gray Borders**: `#E0E0E0` - Subtle definition
+
+### Typography
+- **Font Family**: Inter (clean, professional)
+- **Section Titles**: 18px, bold
+- **Body Text**: 16px
+- **Labels**: 14px
+- **Small Text**: 12px
+
+### Form Design
 1. **Contract Setup** - Type, Title, Date, Tone, Detail Level
-2. **Parties** - Compact header with party count selector, 2-column name/role pairing
+2. **Parties** - Dynamic 2-6 party configuration with names and roles
 3. **Contract Terms** - Scope, Compensation, Term, Termination
-4. **Legal Options** - Governing Law, IP Ownership, Confidentiality
-5. **Signatures** - Signatory names and titles
-
-### UI Improvements (Nov 2025)
-- ✅ Unified 48px height for all inputs/selects
-- ✅ 120px height for textareas
-- ✅ Consistent 8px border radius
-- ✅ Gold focus outlines (#F5C543)
-- ✅ Ultra-compact party selector (70px dropdown)
-- ✅ 2-column name/role layout for better scanning
+4. **Legal Options** - Governing Law, IP Ownership, Confidentiality checkbox
+5. **Additional Clauses** - Custom terms and conditions
+6. **Signatures** - Signatory information for all parties
 
 ---
 
-## 🔐 Environment Variables
+## 🔐 Security Features
+
+### API Protection
+- **Environment Variables**: OpenAI API key secured server-side only
+- **CORS Configuration**: Whitelist-based origin validation
+- **Rate Limiting**: Protection against API abuse
+- **Input Sanitization**: HTML escaping for user inputs
+- **Error Handling**: Environment-based error messages (detailed in dev, generic in prod)
+
+### Data Privacy
+- **No Server Storage**: Contracts stored client-side in localStorage by default
+- **Optional Database**: Supabase integration available but not required
+- **Client-Side Export**: PDF/Word generation happens in browser
+
+---
+
+## 📊 Production Readiness Checklist
+
+### ✅ Completed (November 2025)
+- [x] OpenAI GPT-4o integration with proper error handling
+- [x] All 5 contract types generating correctly
+- [x] PDF export with professional formatting and branding
+- [x] Word document export with modal download workaround
+- [x] White-label branding system (logo + letterhead)
+- [x] Dual-theme support (dark gold / light blue)
+- [x] Security: API key protection, CORS, input sanitization
+- [x] Responsive design for all screen sizes
+- [x] Keyboard shortcuts for power users
+- [x] Clear All functionality for form reset
+- [x] Theme toggle with persistent preferences
+- [x] Production code cleanup (debug statements removed)
+- [x] SEO optimization with meta tags and Open Graph
+- [x] Error handling and user feedback (toast notifications)
+- [x] Cross-browser compatibility testing
+
+### 🎯 Production Features
+- **Zero Dependencies on Frontend**: Pure vanilla JavaScript
+- **Fast Load Times**: Minimal bundle size, no framework overhead
+- **Offline Capable**: All core features work without database
+- **Print-Ready PDFs**: DocuSign/Adobe-compatible formatting
+- **Professional Export**: 1-inch margins, proper pagination, signature blocks
+
+---
+
+## 🔧 Environment Variables
 
 ### Required Variables
 | Variable | Description | Example |
 |----------|-------------|---------|
 | `OPENAI_API_KEY` | OpenAI API key for GPT-4o | `sk-proj-***` |
-| `SUPABASE_URL` | Supabase project URL | `https://xxx.supabase.co` |
-| `SUPABASE_ANON_KEY` | Supabase public key | `eyJhbGci***` |
-| `DATABASE_URL` | PostgreSQL connection string | `postgresql://***` |
 
 ### Optional Variables
 | Variable | Description | Default |
 |----------|-------------|---------|
+| `SUPABASE_URL` | Supabase project URL | `null` |
+| `SUPABASE_ANON_KEY` | Supabase public key | `null` |
+| `DATABASE_URL` | PostgreSQL connection string | `null` |
 | `NODE_ENV` | Environment mode | `development` |
 | `PORT` | Server port | `5000` |
 
 ---
 
-## 🔧 CORS Configuration
+## 💡 Usage Tips
 
-Production CORS allows these origins:
-- `grant.yourbizguru.com`
-- `bizplan.yourbizguru.com`
-- `contract.yourbizguru.com`
-- `*.vercel.app` (Vercel deployments)
-- `*.replit.app` (Replit deployments)
+### For Best Results
+1. **Be Specific**: Provide detailed scope, compensation, and term information
+2. **Use Custom Clauses**: Add industry-specific requirements in "Additional Clauses"
+3. **Choose Appropriate Tone**: Professional for corporate, Legal for complex contracts
+4. **Review Before Export**: Always review AI-generated content
+5. **Legal Disclaimer**: AI-generated contracts should be reviewed by legal counsel
 
-**Adding a new domain?** Edit `server/production.ts` and add to `allowedOrigins` array.
-
----
-
-## 📊 Recent Updates
-
-### November 2025 - v1.0.0
-- ✅ **Form UI Overhaul**: Compact, logical section organization
-- ✅ **Multi-Party Support**: Dynamic 2-6 party contracts
-- ✅ **Export Options**: Both PDF and Word (.docx)
-- ✅ **CORS Fix**: Support for Replit and custom domains
-- ✅ **Keyboard Shortcuts**: Power user productivity features
-- ✅ **Consistent Styling**: Unified field heights and focus states
+### White-Label Branding
+1. Upload a company logo (PNG/JPG, recommended 400x100px)
+2. Add letterhead text (company name, address, contact info)
+3. Toggle "Include Branding" when exporting PDF
+4. Logo appears in header, letterhead in footer
+5. Use "Clear All" to remove branding and start fresh
 
 ---
 
@@ -307,12 +360,23 @@ Proprietary software. Unauthorized copying, modification, or distribution is pro
 
 ## ✨ Project Status
 
-- ✅ **Version**: 1.0.0
-- ✅ **Status**: Production Ready
+- ✅ **Version**: 1.0.0 Production
+- ✅ **Status**: Live & Production Ready
 - ✅ **Live URL**: [contract.yourbizguru.com](https://contract.yourbizguru.com)
-- ✅ **Last Updated**: November 2025
-- ✅ **Platforms**: Vercel (Primary), Replit (Alternative)
+- ✅ **Last Updated**: November 9, 2025
+- ✅ **Deployment**: Vercel (Primary), Replit Compatible
+- ✅ **RDA Review**: Passed comprehensive pre-launch review
+
+### Recent Production Deployment (Nov 9, 2025)
+- ✅ Security validation complete
+- ✅ All contract types tested and working
+- ✅ PDF/Word export with branding validated
+- ✅ Performance optimized
+- ✅ Cross-platform compatibility confirmed
+- ✅ Production code cleanup completed
 
 ---
 
 **Built with ❤️ by YourBizGuru**
+
+*Professional legal contract drafting, powered by AI, ready in minutes.*
