@@ -8,6 +8,32 @@ Preferred communication style: Simple, everyday language.
 
 # Recent Changes (November 2025)
 
+## User Branding Feature v1.1 - DocuSign-Grade Logo & Letterhead (November 2025)
+- **Critical Logo Aspect Ratio Fix**: Eliminated logo warping/stretching
+  - Implemented async image loading to get actual logo dimensions before rendering
+  - Calculates proper scaling to preserve true aspect ratio (not forced 3:1)
+  - Supports any logo shape: square, horizontal, vertical, etc.
+  - addHeader() function now async with await calls throughout
+- **Professional Size Optimization**: Reduced logo to DocuSign/Adobe standards
+  - Logo max height reduced from 90px to 55px for modern professional appearance
+  - Prevents logo from dominating header while maintaining visibility
+  - Scales width automatically based on actual aspect ratio
+- **Refined Typography**: Smaller, tighter fonts for professional letterhead
+  - Company name: 9pt bold in #333 (professional dark gray)
+  - Address/contact: 8pt normal in #666 (medium gray)
+  - Line height reduced to 10pt for compact spacing
+  - 2pt vertical offset for better logo-text baseline alignment
+- **Optimized Spacing**: DocuSign-style compact layout
+  - Header starts at 32pt from top (down from 40pt)
+  - Logo-to-text gap reduced to 10pt (down from 15pt)
+  - Divider positioned 6pt below header (down from 8pt)
+  - Professional light gray divider (#ddd) for clean separation
+- **Implementation Quality**: Production-ready PDF export system
+  - Async/await pattern ensures images load before dimensions are calculated
+  - Fallback dimensions (150x50) if image fails to load
+  - No forced aspect ratios - preserves whatever logo user uploads
+  - All branding rendering is DocuSign/Adobe Acrobat professional grade
+
 ## PDF Export Formatting v2.0 - Professional Layout & Spacing (November 2025)
 - **Compact, Professional Layout**: Reduced margins and spacing for modern SaaS-style contract exports
   - Margins reduced from 72pt (1 inch) to 54pt (0.75 inch) for better space utilization
