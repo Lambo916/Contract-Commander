@@ -434,7 +434,8 @@ No attorney-client relationship is formed. Review and adapt before execution.
       // Cursor start: Adjust for branding header if active
       const hasBranding = brandingConfig && brandingConfig.enabled && 
                           (brandingConfig.logoDataUrl || brandingConfig.company || brandingConfig.address || brandingConfig.contact);
-      const titleOffset = hasBranding ? 70 : 30; // Compact offset
+      // titleOffset accounts for: headerTop(32) + maxLogoHeight(85) + dividerSpacing(8) + gap(16) - margin.top(54) = 87
+      const titleOffset = hasBranding ? 87 : 30; // Ensures title starts below header divider
       let cursorY = CC_CONFIG.pdf.margin.top + titleOffset;
 
       // Title block
@@ -524,7 +525,9 @@ No attorney-client relationship is formed. Review and adapt before execution.
           currentPage++;
           await addHeader(doc, contractType, brandingConfig, currentPage);
           addWatermark(doc);
-          cursorY = CC_CONFIG.pdf.margin.top + 16;
+          // If header shown on all pages, start below it; otherwise start at top
+          const showHeaderOnPage = hasBranding && brandingConfig.pages === 'all';
+          cursorY = showHeaderOnPage ? (CC_CONFIG.pdf.margin.top + 87) : (CC_CONFIG.pdf.margin.top + 16);
         }
         
         for (const ln of lines) {
@@ -535,7 +538,9 @@ No attorney-client relationship is formed. Review and adapt before execution.
             currentPage++;
             await addHeader(doc, contractType, brandingConfig, currentPage);
             addWatermark(doc);
-            cursorY = CC_CONFIG.pdf.margin.top + 16;
+            // If header shown on all pages, start below it; otherwise start at top
+            const showHeaderOnPage = hasBranding && brandingConfig.pages === 'all';
+            cursorY = showHeaderOnPage ? (CC_CONFIG.pdf.margin.top + 87) : (CC_CONFIG.pdf.margin.top + 16);
           }
           doc.text(ln, CC_CONFIG.pdf.margin.left, cursorY);
           cursorY += 14;  // Line height 1.27 for 11pt font - tighter spacing
