@@ -116,7 +116,7 @@ function handleKeyboardShortcuts(e) {
 // ==== BRANDING SECTION (PHASE 1 & 2) ====
 
 const BRANDING_STORAGE_KEY = 'ybg.contractCommander.branding';
-const MAX_LOGO_SIZE = 300 * 1024; // 300KB
+const MAX_LOGO_SIZE = 1024 * 1024; // 1MB
 
 function initBrandingSection() {
   const collapseToggle = $('branding-collapse-toggle');
