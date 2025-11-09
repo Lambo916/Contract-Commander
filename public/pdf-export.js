@@ -288,17 +288,17 @@ No attorney-client relationship is formed. Review and adapt before execution.
     const showLegalFooter = brandingConfig && brandingConfig.addLegalFooter;
     
     if (isLastPage && showLegalFooter) {
-      // User enabled legal footer: Show neutral disclaimer
-      const legalY = pageHeight - 100;
+      // User enabled legal footer: Show neutral disclaimer at ~0.5 inch from bottom
+      const legalY = pageHeight - 60;  // ~0.5 inch margin from bottom
       
-      // Light divider line
+      // Light divider line with ~10px top margin
       doc.setDrawColor(224, 224, 224);  // #e0e0e0
       doc.setLineWidth(0.5);
       doc.line(
         CC_CONFIG.pdf.margin.left,
-        legalY - 8,
+        legalY - 10,
         pageWidth - CC_CONFIG.pdf.margin.right,
-        legalY - 8
+        legalY - 10
       );
       
       // Neutral disclaimer (exact text from brief)
@@ -473,9 +473,14 @@ No attorney-client relationship is formed. Review and adapt before execution.
       // Helper: Detect if a line is a section heading
       function isHeading(text) {
         const trimmed = text.trim();
-        // Match patterns like: "1. PARTIES", "ARTICLE 1.", "2. SCOPE", etc.
-        return /^(\d+\.|ARTICLE\s+\d+|[IVX]+\.)\s+[A-Z]/.test(trimmed) ||
-               /^[A-Z][A-Z\s]{3,}:?\s*$/.test(trimmed);  // All caps headings
+        // Match common legal heading patterns:
+        // - "1. PARTIES", "2. SCOPE OF SERVICES"
+        // - "ARTICLE I.", "ARTICLE II. TERM", "ARTICLE III. COMPENSATION"
+        // - "I. INTRODUCTION", "II. DEFINITIONS"
+        // - All caps headings like "WHEREAS", "NOW THEREFORE"
+        return /^(\d+\.|ARTICLE\s+[IVX\d]+\.?)\s*/i.test(trimmed) ||  // Numbered or ARTICLE sections
+               /^[IVX]+\.\s+[A-Z]/.test(trimmed) ||                   // Roman numeral sections
+               /^[A-Z][A-Z\s]{3,}:?\s*$/.test(trimmed);                // All caps headings
       }
 
       let currentPage = 1;
